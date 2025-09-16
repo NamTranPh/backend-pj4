@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:3004}   # lấy từ .env, default 3004
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: backend-pj4
+
+  flyway:
+    enabled: false  # Tắt Flyway
+    
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3307/movie_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: none  #   Khi đã dùng Flyway để quản lý schema => không dùng update nữa. dung lan 2 validate hoặc lan dau none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    database-platform: org.hibernate.dialect.MySQLDialect
+    
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:3004
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:nD7Kf1qT6xB9mW4yP8sR3vZ0hL2cJ5gE7tF1uN9aQ6wM3oX8rS4dV0kH2BC78}
+  expiration: ${JWT_ACCESS_EXPIRATION:900000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
+
+# Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /docs
+    enabled: true
+    operationsSorter: method
+
+logging:
+  level:
+    com.movieapi: DEBUG
+    org.springframework.security: DEBUG
