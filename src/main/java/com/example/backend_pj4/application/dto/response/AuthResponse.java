@@ -1,7 +1,5 @@
 package com.example.backend_pj4.application.dto.response;
 
-import org.springframework.data.jpa.repository.query.Meta;
-
 import com.example.backend_pj4.application.dto.MetaDto;
 import com.example.backend_pj4.application.dto.PaginationDto;
 
