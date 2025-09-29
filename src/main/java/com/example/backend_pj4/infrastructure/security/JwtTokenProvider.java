@@ -17,7 +17,6 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtTokenProvider {
-    
     @Value("${jwt.secret}")
     private String jwtSecret;
     
@@ -26,6 +25,7 @@ public class JwtTokenProvider {
     
     @Value("${jwt.refresh-expiration}")
     private long jwtRefreshExpirationInMs;
+    
     
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
@@ -55,7 +55,7 @@ public class JwtTokenProvider {
                 .compact();
     }
     
-    public String getUsernameFromToken(String token) {
+    public String getPhoneFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
     
@@ -82,7 +82,7 @@ public class JwtTokenProvider {
     }
     
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
+        final String username = getPhoneFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 }

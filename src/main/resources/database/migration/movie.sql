@@ -1,4 +1,4 @@
-
+-- //Tạo bảng
 -- Role
 CREATE TABLE IF NOT EXISTS role (
     role_id INT PRIMARY KEY AUTO_INCREMENT,

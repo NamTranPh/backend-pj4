@@ -1,3 +1,5 @@
+# Set up Connection
+
 server:
   port: ${SERVER_PORT:3004}   # lấy từ .env, default 3004
   servlet:
@@ -8,7 +10,7 @@ spring:
     name: backend-pj4
 
   flyway:
-    enabled: false  # Tắt Flyway
+    enabled: false  # Dùng tạo bảng bằng flyway đọc file resources/database/migration/ .sql tạo csdl chưa dùng
     
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3307/movie_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
@@ -18,7 +20,7 @@ spring:
     
   jpa:
     hibernate:
-      ddl-auto: none  #   Khi đã dùng Flyway để quản lý schema => không dùng update nữa. dung lan 2 validate hoặc lan dau none
+      ddl-auto: update  #   Khi đã dùng Flyway để quản lý schema => không dùng update nữa. dung lan 2 validate hoặc lan dau none
     show-sql: true
     properties:
       hibernate:

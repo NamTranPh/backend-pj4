@@ -5,12 +5,12 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.example.backend_pj4.domain.entities.User;
 import com.example.backend_pj4.domain.enums.MembershipStatus;
+import com.example.backend_pj4.infrastructure.databases.entities.UserEntity;
 
 @Data
 public class UserResponse {
-    private Integer userId;
+    private String userId;
     private String email;
     private String name;
     private LocalDate birthDate;
@@ -23,9 +23,9 @@ public class UserResponse {
     private Boolean isActive;
     private LocalDateTime createdAt;
     
-    public static UserResponse fromEntity(User user) {
+    public static UserResponse fromEntity(UserEntity user) {
         UserResponse response = new UserResponse();
-        response.setUserId(user.getUserId());
+        response .setUserId(user.getUserId());
         response.setEmail(user.getEmail());
         response.setName(user.getName());
         response.setBirthDate(user.getBirthDate());
