@@ -3,7 +3,7 @@ package com.example.backend_pj4.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.backend_pj4.infrastructure.databases.entities.Genre;
+import com.example.backend_pj4.domain.entities.Genre;
 
 public interface GenreRepository {
     // Basic
@@ -11,7 +11,7 @@ public interface GenreRepository {
 
     Optional<Genre> findById(String genreId);
 
-    List<Genre> finAll();
+    List<Genre> findAll();
 
     void deleteById(String genreId);
 
@@ -21,5 +21,4 @@ public interface GenreRepository {
     boolean existsByName(String name);
 
     List<Genre> findByNameContaining(String keyword);
-
 }

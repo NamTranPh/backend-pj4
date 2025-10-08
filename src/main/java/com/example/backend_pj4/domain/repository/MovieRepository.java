@@ -3,7 +3,7 @@ package com.example.backend_pj4.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.backend_pj4.infrastructure.databases.entities.Movie;
+import com.example.backend_pj4.domain.entities.Movie;
 
 public interface MovieRepository {
     // Basic CRUD

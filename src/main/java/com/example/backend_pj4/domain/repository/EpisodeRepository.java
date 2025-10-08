@@ -3,7 +3,7 @@ package com.example.backend_pj4.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.backend_pj4.infrastructure.databases.entities.Episode;
+import com.example.backend_pj4.domain.entities.Episode;
 
 public interface EpisodeRepository {
     // Basic CRUD

@@ -1,9 +1,13 @@
 package com.example.backend_pj4.application.dto.response;
 
-import com.example.backend_pj4.application.dto.MetaDto;
-import com.example.backend_pj4.application.dto.PaginationDto;
 
-import lombok.*;
+import com.example.backend_pj4.common.dto.MetaDto;
+import com.example.backend_pj4.common.dto.PaginationDto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor

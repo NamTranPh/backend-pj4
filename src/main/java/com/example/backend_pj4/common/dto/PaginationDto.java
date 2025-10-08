@@ -1,11 +1,13 @@
-package com.example.backend_pj4.application.dto;
+package com.example.backend_pj4.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class PaginationDto {
 
     @Schema(description = "The current page number", example = "1")
@@ -18,5 +20,5 @@ public class PaginationDto {
     private long totalItems;
 
     @Schema(description = "The total number of pages", example = "0")
-    private long totalPages;
+    private int totalPages;
 }

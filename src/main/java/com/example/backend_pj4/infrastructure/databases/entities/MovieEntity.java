@@ -10,7 +10,22 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.example.backend_pj4.domain.enums.MovieStatus;
 import com.example.backend_pj4.domain.enums.MovieType;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,10 +36,11 @@ import lombok.NoArgsConstructor;
         @Index(name = "idx_release_year", columnList = "release_year"),
         @Index(name = "idx_rating", columnList = "rating")
 })
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Movie {
+public class MovieEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "movie_id", updatable = false, nullable = false)
@@ -106,20 +122,20 @@ public class Movie {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "movie_genre", joinColumns = @JoinColumn(name = "movie_id"), inverseJoinColumns = @JoinColumn(name = "genre_id"))
-    private List<Genre> genres;
+    private List<GenreEntity> genres;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Episode> episodes;
+    private List<EpisodeEntity> episodes;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Comment> comments;
+    private List<CommentEntity> comments;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Rating> ratings;
+    private List<RatingEntity> ratings;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<ListFavorite> favorites;
+    private List<ListFavoriteEntity> favorites;
 
     @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<HistoryWatching> watchingHistory;
+    private List<HistoryWatchingEntity> watchingHistory;
 }

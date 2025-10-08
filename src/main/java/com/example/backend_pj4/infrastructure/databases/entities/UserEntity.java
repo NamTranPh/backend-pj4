@@ -81,26 +81,26 @@ public class UserEntity {
 
     // Relationships
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Comment> comments;
+    private List<CommentEntity> comments;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Rating> ratings;
+    private List<RatingEntity> ratings;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<ListFavorite> favorites;
+    private List<ListFavoriteEntity> favorites;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<HistoryWatching> watchingHistory;
+    private List<HistoryWatchingEntity> watchingHistory;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Membership> memberships;
+    private List<MembershipEntity> memberships;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Transaction> transactions;
+    private List<TransactionEntity> transactions;
 
     @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
-    private List<Movie> createdMovies;
+    private List<MovieEntity> createdMovies;
 
     @OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
-    private List<Advertisement> createdAds;
+    private List<AdvertisementEntity> createdAds;
 }

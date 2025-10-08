@@ -15,10 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.backend_pj4.application.api.response.ResponseApiUserListDto;
 import com.example.backend_pj4.application.dto.request.user.CreateUserRequest;
 import com.example.backend_pj4.application.dto.request.user.UpdateUserRequest;
 import com.example.backend_pj4.application.dto.response.UserResponse;
 import com.example.backend_pj4.application.services.user.UserService;
+import com.example.backend_pj4.common.dto.MetaDto;
+import com.example.backend_pj4.common.dto.PaginationDto;
+import com.example.backend_pj4.common.dto.RequestPaginationDto;
 import com.example.backend_pj4.domain.entities.User;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,12 +44,22 @@ public class UserController {
     @GetMapping
     @Operation(summary = "Get all users", description = "Retrieve list of all users (Admin only)")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
+    public ResponseEntity<ResponseApiUserListDto> getAllUsers(@Valid RequestPaginationDto pagination) {
         List<User> users = userService.getAllUsers();
         List<UserResponse> response = users.stream()
                 .map(UserResponse::fromDomain)
                 .toList();
-        return ResponseEntity.ok(response);
+
+        // tạo response wrapper
+        ResponseApiUserListDto apiResponse = new ResponseApiUserListDto();
+        int totalItems = users.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pagination.getLimit());
+
+        apiResponse.setMeta(new MetaDto(true, "Success", null));
+        apiResponse.setData(response);
+        apiResponse.setPagination(new PaginationDto(pagination.getPage(), pagination.getLimit(), totalItems, totalPages));
+
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/{id}")
