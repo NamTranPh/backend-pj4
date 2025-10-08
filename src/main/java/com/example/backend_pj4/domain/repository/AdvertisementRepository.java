@@ -10,11 +10,11 @@ public interface AdvertisementRepository {
     // Basic CRUD
     Advertisement save(Advertisement advertisement);
 
-    Optional<Advertisement> findById(Integer adId);
+    Optional<Advertisement> findById(String adId);
 
     List<Advertisement> findAll();
 
-    void deleteById(Integer adId);
+    void deleteById(String adId);
 
     // Active ads
     List<Advertisement> findActiveAds();
@@ -38,7 +38,7 @@ public interface AdvertisementRepository {
     List<Advertisement> findByPosition(String position);
 
     // Creator
-    List<Advertisement> findByCreatedBy(Integer userId);
+    List<Advertisement> findByCreatedBy(String userId);
 
     // Performance queries
     List<Advertisement> findTopClickedAds(int limit);
@@ -54,5 +54,5 @@ public interface AdvertisementRepository {
 
     long countByAdType(String adType);
 
-    Double calculateClickThroughRate(Integer adId);
+    Double calculateClickThroughRate(String adId);
 }

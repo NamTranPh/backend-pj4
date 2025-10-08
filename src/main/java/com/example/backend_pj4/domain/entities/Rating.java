@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder(toBuilder = true)
 public class Rating {
-    private Integer ratingId;
+    private String ratingId;
     private User user;
     private Movie movie;
     private Integer score;

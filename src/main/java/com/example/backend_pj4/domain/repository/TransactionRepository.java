@@ -10,16 +10,16 @@ public interface TransactionRepository {
     // Basic CRUD
     Transaction save(Transaction transaction);
 
-    Optional<Transaction> findById(Integer transactionId);
+    Optional<Transaction> findById(String transactionId);
 
     List<Transaction> findAll();
 
-    void deleteById(Integer transactionId);
+    void deleteById(String transactionId);
 
     // User transactions
-    List<Transaction> findByUserId(Integer userId);
+    List<Transaction> findByUserId(String userId);
 
-    List<Transaction> findByUserIdOrderByTransactionDateDesc(Integer userId);
+    List<Transaction> findByUserIdOrderByTransactionDateDesc(String userId);
 
     // Transaction code
     Optional<Transaction> findByTransactionCode(String transactionCode);
@@ -38,7 +38,7 @@ public interface TransactionRepository {
     // Payment method queries
     List<Transaction> findByPaymentMethod(String paymentMethod);
 
-    List<Transaction> findByUserIdAndPaymentMethod(Integer userId, String paymentMethod);
+    List<Transaction> findByUserIdAndPaymentMethod(String userId, String paymentMethod);
 
     // Date range queries
     List<Transaction> findByTransactionDateBetween(LocalDateTime startDate, LocalDateTime endDate);
@@ -46,7 +46,7 @@ public interface TransactionRepository {
     List<Transaction> findByCompletedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     // Membership transactions
-    List<Transaction> findByMembershipId(Integer membershipId);
+    List<Transaction> findByMembershipId(String membershipId);
 
     // Statistics
     long countByPaymentStatus(String paymentStatus);

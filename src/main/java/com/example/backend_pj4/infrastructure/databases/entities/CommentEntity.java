@@ -32,9 +32,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommentEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comment_id")
-    private Integer commentId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "comment_id", updatable = false, nullable = false)
+    private String commentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

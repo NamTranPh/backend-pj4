@@ -35,9 +35,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RatingEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "rating_id")
-    private Integer ratingId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "rating_id", updatable = false, nullable = false)
+    private String ratingId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

@@ -26,20 +26,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "membership",
-    indexes = {
+@Table(name = "membership", indexes = {
         @Index(name = "idx_user_membership", columnList = "user_id"),
         @Index(name = "idx_end_date", columnList = "end_date")
-    }
-)
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class MembershipEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id")
-    private Integer memberId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "member_id", updatable = false, nullable = false)
+    private String memberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

@@ -8,25 +8,25 @@ import com.example.backend_pj4.domain.entities.ListFavorite;
 public interface ListFavoriteRepository {
     // Basic CRUD
     ListFavorite save(ListFavorite favorite);
-    Optional<ListFavorite> findById(Integer favoriteId);
+    Optional<ListFavorite> findById(String favoriteId);
     List<ListFavorite> findAll();
-    void deleteById(Integer favoriteId);
-    void deleteByUserIdAndMovieId(Integer userId, Integer movieId);
+    void deleteById(String favoriteId);
+    void deleteByUserIdAndMovieId(String userId, String movieId);
     
     // User favorites
-    List<ListFavorite> findByUserId(Integer userId);
-    List<ListFavorite> findByUserIdOrderByAddedAtDesc(Integer userId);
+    List<ListFavorite> findByUserId(String userId);
+    List<ListFavorite> findByUserIdOrderByAddedAtDesc(String userId);
     
     // Movie favorites
-    List<ListFavorite> findByMovieId(Integer movieId);
+    List<ListFavorite> findByMovieId(String movieId);
     
     // Check if exists
-    boolean existsByUserIdAndMovieId(Integer userId, Integer movieId);
-    Optional<ListFavorite> findByUserIdAndMovieId(Integer userId, Integer movieId);
+    boolean existsByUserIdAndMovieId(String userId, String movieId);
+    Optional<ListFavorite> findByUserIdAndMovieId(String userId, String movieId);
     
     // Statistics
-    long countByMovieId(Integer movieId);
-    long countByUserId(Integer userId);
+    long countByMovieId(String movieId);
+    long countByUserId(String userId);
     
     // Popular movies by favorites
     List<Object[]> findMostFavoritedMovies(int limit); // Returns movieId, favoriteCount

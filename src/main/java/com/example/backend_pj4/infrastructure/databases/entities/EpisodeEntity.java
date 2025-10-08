@@ -36,8 +36,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EpisodeEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "episode_id")
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "episode_id", updatable = false, nullable = false)
     private String episodeId;
 
     @ManyToOne(fetch = FetchType.LAZY)

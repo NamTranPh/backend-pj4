@@ -25,9 +25,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MembershipPlanEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "plan_id")
-    private Integer planId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "plan_id", updatable = false, nullable = false)
+    private String planId;
 
     @Column(name = "plan_name", nullable = false, unique = true, length = 100)
     private String planName;

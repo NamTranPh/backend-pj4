@@ -24,20 +24,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "advertisement",
-    indexes = {
+@Table(name = "advertisement", indexes = {
         @Index(name = "idx_date_range", columnList = "start_date, end_date"),
         @Index(name = "idx_ad_type", columnList = "ad_type")
-    }
-)
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdvertisementEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ad_id")
-    private Integer adId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "ad_id", updatable = false, nullable = false)
+    private String adId;
 
     @Column(name = "title", nullable = false)
     private String title;

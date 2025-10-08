@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GenreEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "genre_id")
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "genre_id", updatable = false, nullable = false)
     private String genreId;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)

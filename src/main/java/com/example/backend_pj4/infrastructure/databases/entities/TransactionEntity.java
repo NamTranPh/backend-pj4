@@ -37,9 +37,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TransactionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "transaction_id")
-    private Integer transactionId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "transaction_id", updatable = false, nullable = false)
+    private String transactionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

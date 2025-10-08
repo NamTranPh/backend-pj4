@@ -20,20 +20,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "history_watching",
-    indexes = {
+@Table(name = "history_watching", indexes = {
         @Index(name = "idx_user_history", columnList = "user_id"),
         @Index(name = "idx_watched_at", columnList = "watched_at")
-    }
-)
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class HistoryWatchingEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "history_id")
-    private Integer historyId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "history_id", updatable = false, nullable = false)
+    private String historyId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

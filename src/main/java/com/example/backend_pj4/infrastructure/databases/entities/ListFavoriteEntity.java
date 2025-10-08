@@ -33,9 +33,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ListFavoriteEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "favorite_id")
-    private Integer favoriteId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "favorite_id", updatable = false, nullable = false)
+    private String favoriteId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

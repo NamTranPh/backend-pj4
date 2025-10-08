@@ -10,17 +10,17 @@ import java.util.List;
 public interface MembershipRepository {
     // Basic CRUD
     Membership save(Membership membership);
-    Optional<Membership> findById(Integer memberId);
+    Optional<Membership> findById(String memberId);
     List<Membership> findAll();
-    void deleteById(Integer memberId);
+    void deleteById(String memberId);
     
     // User memberships
-    List<Membership> findByUserId(Integer userId);
-    Optional<Membership> findActiveByUserId(Integer userId);
-    List<Membership> findByUserIdOrderByEndDateDesc(Integer userId);
+    List<Membership> findByUserId(String userId);
+    Optional<Membership> findActiveByUserId(String userId);
+    List<Membership> findByUserIdOrderByEndDateDesc(String userId);
     
     // Plan memberships
-    List<Membership> findByPlanId(Integer planId);
+    List<Membership> findByPlanId(String planId);
     
     // Status queries
     List<Membership> findByPaymentStatus(String paymentStatus);
@@ -37,7 +37,7 @@ public interface MembershipRepository {
     List<Membership> findByStartDateBetween(LocalDate startDate, LocalDate endDate);
     
     // Statistics
-    long countByPlanId(Integer planId);
+    long countByPlanId(String planId);
     long countByPaymentStatus(String paymentStatus);
     long countActiveMemberships();
 }
