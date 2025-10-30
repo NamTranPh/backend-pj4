@@ -1,13 +1,34 @@
 package com.example.backend_pj4.infrastructure.databases.mapper;
 
-import com.example.backend_pj4.domain.entities.Movie;
-import com.example.backend_pj4.infrastructure.databases.entities.MovieEntity;
-
+import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
+import com.example.backend_pj4.domain.entities.Movie;
+import com.example.backend_pj4.domain.enums.MovieStatus;
+import com.example.backend_pj4.domain.enums.MovieType;
+import com.example.backend_pj4.infrastructure.databases.entities.MovieEntity;
+
+@Component
 public class MovieMapper {
 
-    public static Movie toDomain(MovieEntity entity) {
+    private final GenreMapper genreMapper;
+    private final EpisodeMapper episodeMapper;
+
+    public MovieMapper(
+            GenreMapper genreMapper,
+            @Lazy EpisodeMapper episodeMapper
+    ) {
+        this.genreMapper = genreMapper;
+        this.episodeMapper = episodeMapper;
+    }
+
+    // ==============================
+    // Entity → Domain
+    // ==============================
+    public Movie toDomain(MovieEntity entity) {
         if (entity == null) return null;
 
         return Movie.builder()
@@ -36,16 +57,19 @@ public class MovieMapper {
                 .updatedAt(entity.getUpdatedAt())
                 .genres(entity.getGenres() != null ? entity.getGenres()
                         .stream()
-                        .map(GenreMapper::toDomain)
-                        .collect(Collectors.toList()) : null)
+                        .map(genreMapper::toDomain)
+                        .collect(Collectors.toList()) : List.of())
                 .episodes(entity.getEpisodes() != null ? entity.getEpisodes()
                         .stream()
-                        .map(EpisodeMapper::toDomain)
-                        .collect(Collectors.toList()) : null)
+                        .map(episodeMapper::toSimpleDomain) // dùng bản đơn giản tránh loop
+                        .collect(Collectors.toList()) : List.of())
                 .build();
     }
 
-    public static MovieEntity toEntity(Movie domain) {
+    // ==============================
+    // Domain → Entity
+    // ==============================
+    public MovieEntity toEntity(Movie domain) {
         if (domain == null) return null;
 
         MovieEntity entity = new MovieEntity();
@@ -64,11 +88,13 @@ public class MovieMapper {
         entity.setBackdropUrl(domain.getBackdropUrl());
         entity.setRating(domain.getRating());
         entity.setViewCount(domain.getViewCount());
-        // convert string -> enum
-        if (domain.getMovieType() != null)
-            entity.setMovieType(Enum.valueOf(com.example.backend_pj4.domain.enums.MovieType.class, domain.getMovieType()));
-        if (domain.getStatus() != null)
-            entity.setStatus(Enum.valueOf(com.example.backend_pj4.domain.enums.MovieStatus.class, domain.getStatus()));
+
+        if (domain.getMovieType() != null) {
+            entity.setMovieType(MovieType.valueOf(domain.getMovieType()));
+        }
+        if (domain.getStatus() != null) {
+            entity.setStatus(MovieStatus.valueOf(domain.getStatus()));
+        }
 
         entity.setTotalEpisodes(domain.getTotalEpisodes());
         entity.setIsPremium(domain.getIsPremium());
@@ -80,17 +106,30 @@ public class MovieMapper {
         if (domain.getGenres() != null) {
             entity.setGenres(domain.getGenres()
                     .stream()
-                    .map(GenreMapper::toEntity)
+                    .map(genreMapper::toEntity)
                     .collect(Collectors.toList()));
         }
 
         if (domain.getEpisodes() != null) {
             entity.setEpisodes(domain.getEpisodes()
                     .stream()
-                    .map(EpisodeMapper::toEntity)
+                    .map(episodeMapper::toEntity)
                     .collect(Collectors.toList()));
         }
 
         return entity;
+    }
+
+    // ==============================
+    // Simple mapping (tránh vòng lặp)
+    // ==============================
+    public Movie toSimpleDomain(MovieEntity entity) {
+        if (entity == null) return null;
+        return Movie.builder()
+                .movieId(entity.getMovieId())
+                .title(entity.getTitle())
+                .posterUrl(entity.getPosterUrl())
+                .rating(entity.getRating())
+                .build();
     }
 }

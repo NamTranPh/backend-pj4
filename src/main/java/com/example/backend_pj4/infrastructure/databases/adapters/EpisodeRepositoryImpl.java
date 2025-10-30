@@ -13,30 +13,31 @@ import com.example.backend_pj4.infrastructure.databases.repository.JpaEpisodeRep
 
 @Repository
 public class EpisodeRepositoryImpl implements EpisodeRepository {
-
     private final JpaEpisodeRepository jpaEpisodeRepository;
+    private final EpisodeMapper episodeMapper;
 
-    public EpisodeRepositoryImpl(JpaEpisodeRepository jpaEpisodeRepository) {
+    public EpisodeRepositoryImpl(JpaEpisodeRepository jpaEpisodeRepository, EpisodeMapper episodeMapper) {
         this.jpaEpisodeRepository = jpaEpisodeRepository;
+        this.episodeMapper = episodeMapper;
     }
 
     @Override
     public Episode save(Episode episode) {
-        var entity = EpisodeMapper.toEntity(episode);
+        var entity = episodeMapper.toEntity(episode);
         var savedEntity = jpaEpisodeRepository.save(entity);
-        return EpisodeMapper.toDomain(savedEntity);
+        return episodeMapper.toDomain(savedEntity);
     }
 
     @Override
     public Optional<Episode> findById(String episodeId) {
         return jpaEpisodeRepository.findById(episodeId)
-                .map(EpisodeMapper::toDomain);
+                .map(episodeMapper::toDomain);
     }
 
     @Override
     public List<Episode> findAll() {
         return jpaEpisodeRepository.findAll().stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -48,41 +49,41 @@ public class EpisodeRepositoryImpl implements EpisodeRepository {
     @Override
     public List<Episode> findByMovieId(String movieId) {
         return jpaEpisodeRepository.findByMovieId(movieId).stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Episode> findByMovieIdAndEpisodeNumber(String movieId, Integer episodeNumber) {
         return jpaEpisodeRepository.findByMovieIdAndEpisodeNumber(movieId, episodeNumber)
-                .map(EpisodeMapper::toDomain);
+                .map(episodeMapper::toDomain);
     }
 
     @Override
     public List<Episode> findByMovieIdOrderByEpisodeNumber(String movieId) {
         return jpaEpisodeRepository.findByMovieIdOrderByEpisodeNumber(movieId).stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Episode> findPremiumEpisodesByMovieId(String movieId) {
         return jpaEpisodeRepository.findPremiumEpisodesByMovieId(movieId).stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Episode> findFreeEpisodesByMovieId(String movieId) {
         return jpaEpisodeRepository.findFreeEpisodesByMovieId(movieId).stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Episode> findActiveEpisodesByMovieId(String movieId) {
         return jpaEpisodeRepository.findActiveEpisodesByMovieId(movieId).stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -99,14 +100,14 @@ public class EpisodeRepositoryImpl implements EpisodeRepository {
     @Override
     public List<Episode> findLatestEpisodes(int limit) {
         return jpaEpisodeRepository.findLatestEpisodes(limit).stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Episode> findByMovieIdAndEpisodeNumberGreaterThan(String movieId, Integer episodeNumber) {
         return jpaEpisodeRepository.findByMovieIdAndEpisodeNumberGreaterThan(movieId, episodeNumber).stream()
-                .map(EpisodeMapper::toDomain)
+                .map(episodeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 }

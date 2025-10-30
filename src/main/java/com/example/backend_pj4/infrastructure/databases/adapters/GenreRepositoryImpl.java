@@ -9,33 +9,36 @@ import org.springframework.stereotype.Repository;
 import com.example.backend_pj4.domain.entities.Genre;
 import com.example.backend_pj4.domain.repository.GenreRepository;
 import com.example.backend_pj4.infrastructure.databases.mapper.GenreMapper;
+import com.example.backend_pj4.infrastructure.databases.mapper.MovieMapper;
 import com.example.backend_pj4.infrastructure.databases.repository.JpaGenreRepository;
 
 @Repository
 public class GenreRepositoryImpl implements GenreRepository {
     private final JpaGenreRepository jpaGenreRepository;
+    private final GenreMapper genreMapper;
 
-    public GenreRepositoryImpl(JpaGenreRepository jpaGenreRepository) {
+    public GenreRepositoryImpl(JpaGenreRepository jpaGenreRepository, GenreMapper genreMapper) {
         this.jpaGenreRepository = jpaGenreRepository;
+        this.genreMapper = genreMapper;
     }
 
     @Override
     public Genre save(Genre genre) {
-        var entity = GenreMapper.toEntity(genre);
+        var entity = genreMapper.toEntity(genre);
         var savedEntity = jpaGenreRepository.save(entity);
-        return GenreMapper.toDomain(savedEntity);
+        return genreMapper.toDomain(savedEntity);
     }
 
     @Override
     public Optional<Genre> findById(String genreId) {
         return jpaGenreRepository.findById(genreId)
-                .map(GenreMapper::toDomain);
+                .map(genreMapper::toDomain);
     }
 
     @Override
     public List<Genre> findAll() {
         return jpaGenreRepository.findAll().stream()
-                .map(GenreMapper::toDomain)
+                .map(genreMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -47,7 +50,7 @@ public class GenreRepositoryImpl implements GenreRepository {
     @Override
     public Optional<Genre> findByName(String name) {
         return jpaGenreRepository.findByName(name)
-                .map(GenreMapper::toDomain);
+                .map(genreMapper::toDomain);
     }
 
     @Override
@@ -59,7 +62,7 @@ public class GenreRepositoryImpl implements GenreRepository {
     public List<Genre> findByNameContaining(String keyword) {
         return jpaGenreRepository.findByNameContaining(keyword)
                 .stream()
-                .map(GenreMapper::toDomain)
+                .map(genreMapper::toDomain)
                 .collect(Collectors.toList());
     }
 }

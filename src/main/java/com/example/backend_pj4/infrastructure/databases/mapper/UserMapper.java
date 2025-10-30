@@ -26,6 +26,7 @@ public class UserMapper {
                 .build();
     }
 
+    
     public static UserEntity toEntity(User user) {
         if (user == null)
             return null;
