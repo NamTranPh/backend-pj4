@@ -1,8 +1,9 @@
 package com.example.backend_pj4.domain.entities;
 
+import java.time.LocalDateTime;
+
 import lombok.Builder;
 import lombok.Data;
-import java.time.LocalDateTime;
 
 @Data
 @Builder(toBuilder = true)

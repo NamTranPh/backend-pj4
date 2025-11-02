@@ -7,8 +7,8 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.backend_pj4.domain.enums.MovieStatus;
-import com.example.backend_pj4.domain.enums.MovieType;
+import com.example.backend_pj4.common.enums.MovieStatus;
+import com.example.backend_pj4.common.enums.MovieType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

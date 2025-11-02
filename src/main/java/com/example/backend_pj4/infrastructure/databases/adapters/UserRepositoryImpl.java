@@ -14,28 +14,30 @@ import com.example.backend_pj4.infrastructure.databases.repository.JpaUserReposi
 @Repository
 public class UserRepositoryImpl implements UserRepository {
     private final JpaUserRepository jpaUserRepository;
+    private final UserMapper userMapper;
 
-    public UserRepositoryImpl(JpaUserRepository jpaUserRepository) {
+    public UserRepositoryImpl(JpaUserRepository jpaUserRepository, UserMapper userMapper) {
         this.jpaUserRepository = jpaUserRepository;
+        this.userMapper = userMapper;
     }
 
     @Override
     public User save(User user) {
-        var entity = UserMapper.toEntity(user);
+        var entity = userMapper.toEntity(user);
         var savedEntity = jpaUserRepository.save(entity);
-        return UserMapper.toDomain(savedEntity);
+        return userMapper.toDomain(savedEntity);
     }
 
     @Override
     public Optional<User> findById(String userId) {
         return jpaUserRepository.findById(userId)
-                .map(UserMapper::toDomain);
+                .map(userMapper::toDomain);
     }
 
     @Override
     public List<User> findAll() {
         return jpaUserRepository.findAll().stream()
-                .map(UserMapper::toDomain)
+                .map(userMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -52,19 +54,19 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> findByEmail(String email) {
         return jpaUserRepository.findByEmail(email)
-                .map(UserMapper::toDomain);
+                .map(userMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByPhone(String phone) {
         return jpaUserRepository.findByPhone(phone)
-                .map(UserMapper::toDomain);
+                .map(userMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByEmailOrPhone(String identifier) {
         return jpaUserRepository.findByEmailOrPhone(identifier)
-                .map(UserMapper::toDomain);
+                .map(userMapper::toDomain);
     }
 
     @Override
@@ -80,35 +82,35 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public List<User> findByMembershipStatus(String membershipStatus) {
         return jpaUserRepository.findByMembershipStatus(membershipStatus).stream()
-                .map(UserMapper::toDomain)
+                .map(userMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<User> findExpiredMemberships() {
         return jpaUserRepository.findExpiredMemberships().stream()
-                .map(UserMapper::toDomain)
+                .map(userMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<User> findByRole(String roleId) {
         return jpaUserRepository.findByRole(roleId).stream()
-                .map(UserMapper::toDomain)
+                .map(userMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<User> findActiveUsers() {
         return jpaUserRepository.findByIsActiveTrue().stream()
-                .map(UserMapper::toDomain)
+                .map(userMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<User> findInactiveUsers() {
         return jpaUserRepository.findByIsActiveFalse().stream()
-                .map(UserMapper::toDomain)
+                .map(userMapper::toDomain)
                 .collect(Collectors.toList());
     }
 }

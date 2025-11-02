@@ -3,8 +3,8 @@ package com.example.backend_pj4.domain.entities;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.example.backend_pj4.domain.enums.PaymentMethod;
-import com.example.backend_pj4.domain.enums.PaymentStatus;
+import com.example.backend_pj4.common.enums.PaymentMethod;
+import com.example.backend_pj4.common.enums.PaymentStatus;
 
 import lombok.Builder;
 import lombok.Data;

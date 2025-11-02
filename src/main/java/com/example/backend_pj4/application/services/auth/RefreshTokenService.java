@@ -4,7 +4,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import com.example.backend_pj4.application.dto.response.AuthResponse;
+import com.example.backend_pj4.application.dto.response.auth.ResponseAuthDto;
 import com.example.backend_pj4.application.exceptions.ResourceNotFoundException;
 import com.example.backend_pj4.infrastructure.databases.repository.JpaUserRepository;
 import com.example.backend_pj4.infrastructure.security.JwtTokenProvider;
@@ -22,7 +22,7 @@ public class RefreshTokenService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
 
-    public AuthResponse refreshToken(String refreshToken) {
+    public ResponseAuthDto refreshToken(String refreshToken) {
     String username = jwtTokenProvider.getPhoneFromToken(refreshToken);
     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
     if (!jwtTokenProvider.validateToken(refreshToken, userDetails)) {
@@ -35,6 +35,6 @@ public class RefreshTokenService {
     userRepository.findByPhone(username)
     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    return AuthResponse.success(username, newAccessToken, newRefreshToken);
+    return ResponseAuthDto.success(username, newAccessToken, newRefreshToken);
     }
 }

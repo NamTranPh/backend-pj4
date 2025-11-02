@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import com.example.backend_pj4.common.enums.MovieStatus;
+import com.example.backend_pj4.common.enums.MovieType;
 import com.example.backend_pj4.domain.entities.Movie;
-import com.example.backend_pj4.domain.enums.MovieStatus;
-import com.example.backend_pj4.domain.enums.MovieType;
 import com.example.backend_pj4.infrastructure.databases.entities.MovieEntity;
 
 @Component

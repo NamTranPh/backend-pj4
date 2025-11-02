@@ -7,7 +7,7 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.example.backend_pj4.domain.enums.MembershipStatus;
+import com.example.backend_pj4.common.enums.MembershipStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

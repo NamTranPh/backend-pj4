@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.example.backend_pj4.domain.enums.MovieStatus;
-import com.example.backend_pj4.domain.enums.MovieType;
+import com.example.backend_pj4.common.enums.MovieStatus;
+import com.example.backend_pj4.common.enums.MovieType;
 import com.example.backend_pj4.infrastructure.databases.entities.MovieEntity;
 
 @Repository

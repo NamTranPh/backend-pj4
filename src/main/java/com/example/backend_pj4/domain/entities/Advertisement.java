@@ -3,7 +3,7 @@ package com.example.backend_pj4.domain.entities;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.example.backend_pj4.domain.enums.AdType;
+import com.example.backend_pj4.common.enums.AdType;
 
 import lombok.Builder;
 import lombok.Data;

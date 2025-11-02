@@ -6,9 +6,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import com.example.backend_pj4.application.dto.request.LoginRequest;
-import com.example.backend_pj4.application.dto.response.AuthResponse;
+import com.example.backend_pj4.application.dto.request.auth.RequestLoginDto;
+import com.example.backend_pj4.application.dto.response.auth.ResponseAuthDto;
 import com.example.backend_pj4.application.exceptions.ResourceNotFoundException;
+import com.example.backend_pj4.common.base.BaseService;
 import com.example.backend_pj4.domain.repository.UserRepository;
 import com.example.backend_pj4.infrastructure.security.JwtTokenProvider;
 
@@ -18,12 +19,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class LoginService {
+public class LoginService extends BaseService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthResponse login(LoginRequest request) {
+    public ResponseAuthDto login(RequestLoginDto request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getPhone(),
@@ -37,6 +38,6 @@ public class LoginService {
         userRepository.findByPhone(request.getPhone())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return AuthResponse.success(request.getPhone(), accessToken, refreshToken);
+        return ResponseAuthDto.success(request.getPhone(), accessToken, refreshToken);
     }
 }

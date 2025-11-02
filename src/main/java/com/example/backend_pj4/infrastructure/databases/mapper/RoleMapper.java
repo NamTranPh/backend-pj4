@@ -1,11 +1,13 @@
 package com.example.backend_pj4.infrastructure.databases.mapper;
 
+import org.springframework.stereotype.Component;
+
 import com.example.backend_pj4.domain.entities.Role;
 import com.example.backend_pj4.infrastructure.databases.entities.RoleEntity;
 
+@Component
 public class RoleMapper {
-
-    public static Role toDomain(RoleEntity entity) {
+    public Role toDomain(RoleEntity entity) {
         if (entity == null)
             return null;
         return Role.builder()
@@ -16,7 +18,7 @@ public class RoleMapper {
                 .build();
     }
 
-    public static RoleEntity toEntity(Role role) {
+    public RoleEntity toEntity(Role role) {
         if (role == null)
             return null;
         RoleEntity entity = new RoleEntity();

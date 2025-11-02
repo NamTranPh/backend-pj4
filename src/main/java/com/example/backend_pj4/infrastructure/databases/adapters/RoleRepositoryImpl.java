@@ -14,28 +14,30 @@ import com.example.backend_pj4.infrastructure.databases.repository.JpaRoleReposi
 @Repository 
 public class RoleRepositoryImpl implements RoleRepository {
     private final JpaRoleRepository jpaRoleRepository;
+    private final RoleMapper roleMapper;
 
-    public RoleRepositoryImpl(JpaRoleRepository jpaRoleRepository) {
+    public RoleRepositoryImpl(JpaRoleRepository jpaRoleRepository, RoleMapper roleMapper) {
         this.jpaRoleRepository = jpaRoleRepository;
+        this.roleMapper = roleMapper;
     }
 
     @Override
     public Role save(Role Role) {
-        var entity = RoleMapper.toEntity(Role);
+        var entity = roleMapper.toEntity(Role);
         var savedEntity = jpaRoleRepository.save(entity);
-        return RoleMapper.toDomain(savedEntity);
+        return roleMapper.toDomain(savedEntity);
     }
 
     @Override
     public Optional<Role> findById(String roleId) {
         return jpaRoleRepository.findById(roleId)
-                .map(RoleMapper::toDomain);
+                .map(roleMapper::toDomain);
     }
 
     @Override
     public List<Role> findAll() {
         return jpaRoleRepository.findAll().stream()
-                .map(RoleMapper::toDomain)
+                .map(roleMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -47,7 +49,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Optional<Role> findByRoleName(String roleName) {
         return jpaRoleRepository.findByRoleName(roleName)
-                .map(RoleMapper::toDomain);
+                .map(roleMapper::toDomain);
     }
 
     @Override

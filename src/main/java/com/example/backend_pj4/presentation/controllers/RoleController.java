@@ -8,14 +8,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend_pj4.application.services.role.RoleService;
+import com.example.backend_pj4.common.base.BaseController;
 import com.example.backend_pj4.domain.entities.Role;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @Tag(name = "Role Management")
 @SecurityRequirement(name = "bearerAuth")
-public class RoleController {
+public class RoleController extends BaseController {
 
     private final RoleService roleService;
 
@@ -58,7 +59,7 @@ public class RoleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @Operation(summary = "Update role", description = "Update an existing role (Admin only)")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Role> updateRole(

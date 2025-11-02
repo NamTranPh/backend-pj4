@@ -5,10 +5,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.backend_pj4.application.dto.request.RegisterRequest;
-import com.example.backend_pj4.application.dto.response.AuthResponse;
+import com.example.backend_pj4.application.dto.request.auth.RequestRegisterDto;
+import com.example.backend_pj4.application.dto.response.auth.ResponseAuthDto;
 import com.example.backend_pj4.application.exceptions.ResourceNotFoundException;
-import com.example.backend_pj4.domain.enums.MembershipStatus;
+import com.example.backend_pj4.common.enums.MembershipStatus;
 import com.example.backend_pj4.infrastructure.databases.entities.RoleEntity;
 import com.example.backend_pj4.infrastructure.databases.entities.UserEntity;
 import com.example.backend_pj4.infrastructure.databases.repository.JpaRoleRepository;
@@ -28,7 +28,7 @@ public class RegisterService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
 
-    public AuthResponse register(RegisterRequest request) {
+    public ResponseAuthDto register(RequestRegisterDto request) {
         if (userRepository.existsByPhone(request.getPhone())) {
             throw new RuntimeException("Phone already exists");
         }
@@ -49,6 +49,6 @@ public class RegisterService {
         String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
 
-        return AuthResponse.success(user.getPhone(), accessToken, refreshToken);
+        return ResponseAuthDto.success(user.getPhone(), accessToken, refreshToken);
     }
 }

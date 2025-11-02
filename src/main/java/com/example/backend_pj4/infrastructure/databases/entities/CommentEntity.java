@@ -44,15 +44,25 @@ public class CommentEntity {
     @JoinColumn(name = "movie_id", nullable = false)
     private MovieEntity movie;
 
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "episode_id", columnDefinition = "INT NULL COMMENT 'NULL
+    // nếu bình luận cho phim lẻ'")
+    // private EpisodeEntity episode;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "episode_id", columnDefinition = "INT NULL COMMENT 'NULL nếu bình luận cho phim lẻ'")
+    @JoinColumn(name = "episode_id", columnDefinition = "VARCHAR(36) NULL COMMENT 'NULL nếu bình luận cho phim lẻ'")
     private EpisodeEntity episode;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "parent_id", columnDefinition = "INT NULL COMMENT 'ID bình
+    // luận cha (reply)'")
+    // private CommentEntity parent;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id", columnDefinition = "INT NULL COMMENT 'ID bình luận cha (reply)'")
+    @JoinColumn(name = "parent_id", referencedColumnName = "comment_id", columnDefinition = "VARCHAR(36) NULL COMMENT 'ID bình luận cha (reply)'")
     private CommentEntity parent;
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)

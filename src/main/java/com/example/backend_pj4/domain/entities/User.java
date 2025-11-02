@@ -2,7 +2,8 @@ package com.example.backend_pj4.domain.entities;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import com.example.backend_pj4.domain.enums.MembershipStatus;
+
+import com.example.backend_pj4.common.enums.MembershipStatus;
 
 import lombok.Builder;
 import lombok.Data;

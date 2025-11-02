@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.backend_pj4.domain.enums.PaymentStatus;
+import com.example.backend_pj4.common.enums.PaymentStatus;
 
 import lombok.Builder;
 import lombok.Data;

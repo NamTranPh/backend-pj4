@@ -85,7 +85,7 @@ public class MovieRepositoryImpl implements MovieRepository {
     @Override
     public List<Movie> findByMovieType(String movieType) {
         return jpaMovieRepository.findByMovieType(
-                com.example.backend_pj4.domain.enums.MovieType.valueOf(movieType))
+                com.example.backend_pj4.common.enums.MovieType.valueOf(movieType))
                 .stream().map(movieMapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -93,7 +93,7 @@ public class MovieRepositoryImpl implements MovieRepository {
     @Override
     public List<Movie> findByStatus(String status) {
         return jpaMovieRepository.findByStatus(
-                com.example.backend_pj4.domain.enums.MovieStatus.valueOf(status))
+                com.example.backend_pj4.common.enums.MovieStatus.valueOf(status))
                 .stream().map(movieMapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -212,13 +212,13 @@ public class MovieRepositoryImpl implements MovieRepository {
     @Override
     public long countByMovieType(String movieType) {
         return jpaMovieRepository.countByMovieType(
-                com.example.backend_pj4.domain.enums.MovieType.valueOf(movieType));
+                com.example.backend_pj4.common.enums.MovieType.valueOf(movieType));
     }
 
     @Override
     public long countByStatus(String status) {
         return jpaMovieRepository.countByStatus(
-                com.example.backend_pj4.domain.enums.MovieStatus.valueOf(status));
+                com.example.backend_pj4.common.enums.MovieStatus.valueOf(status));
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import com.example.backend_pj4.domain.entities.Genre;
 import com.example.backend_pj4.domain.repository.GenreRepository;
 import com.example.backend_pj4.infrastructure.databases.mapper.GenreMapper;
-import com.example.backend_pj4.infrastructure.databases.mapper.MovieMapper;
 import com.example.backend_pj4.infrastructure.databases.repository.JpaGenreRepository;
 
 @Repository

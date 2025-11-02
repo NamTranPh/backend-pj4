@@ -1,8 +1,10 @@
 //Entity – Domain thuần túy
 package com.example.backend_pj4.domain.entities;
 
-import lombok.*;
 import java.time.LocalDateTime;
+
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder(toBuilder = true)
