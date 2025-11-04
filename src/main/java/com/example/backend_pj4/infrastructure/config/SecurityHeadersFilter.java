@@ -1,4 +1,4 @@
-package com.example.backend_pj4.config;
+package com.example.backend_pj4.infrastructure.config;
 
 import java.io.IOException;
 

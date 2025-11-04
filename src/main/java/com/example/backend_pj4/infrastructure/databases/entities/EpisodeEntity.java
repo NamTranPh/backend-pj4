@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,14 +24,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "episode",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "unique_movie_episode", columnNames = {"movie_id", "episode_number"})
-    },
-    indexes = {
+@Table(name = "episode", uniqueConstraints = {
+        @UniqueConstraint(name = "unique_movie_episode", columnNames = { "movie_id", "episode_number" })
+}, indexes = {
         @Index(name = "idx_episode_number", columnList = "episode_number")
-    }
-)
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -77,6 +75,10 @@ public class EpisodeEntity {
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "episode", fetch = FetchType.LAZY)
     private List<CommentEntity> comments;

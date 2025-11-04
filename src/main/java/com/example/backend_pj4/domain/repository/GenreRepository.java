@@ -9,9 +9,11 @@ public interface GenreRepository {
     // Basic
     Genre save(Genre genre);
 
+    List<Genre> findAll();
+
     Optional<Genre> findById(String genreId);
 
-    List<Genre> findAll();
+    List<Genre> findAllByIds(List<String> genreIds);
 
     void deleteById(String genreId);
 

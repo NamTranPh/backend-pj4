@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserResponse {
+public class UserCmsResponse {
 
     @Schema(description = "Unique identifier of the user")
     private String userId;
@@ -57,8 +57,8 @@ public class UserResponse {
     @Schema(description = "Account last update timestamp")
     private LocalDateTime updatedAt;
 
-    public static UserResponse fromDomain(User user) {
-        return UserResponse.builder()
+    public static UserCmsResponse fromDomain(User user) {
+        return UserCmsResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .name(user.getName())

@@ -1,4 +1,4 @@
-package com.example.backend_pj4.application.services.user;
+package com.example.backend_pj4.application.services.user_cms;
 
 import org.springframework.stereotype.Service;
 

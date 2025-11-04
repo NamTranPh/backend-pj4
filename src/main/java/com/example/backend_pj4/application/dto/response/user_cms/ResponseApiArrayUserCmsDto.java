@@ -15,13 +15,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "API response wrapper for an array of genres with pagination")
-public class ResponseApiArrayUserDto extends ApiResponseDto<List<UserResponse>> {
+public class ResponseApiArrayUserCmsDto extends ApiResponseDto<List<UserCmsResponse>> {
 
-    public ResponseApiArrayUserDto(MetaDto meta, List<UserResponse> data, PaginationDto pagination) {
+    public ResponseApiArrayUserCmsDto(MetaDto meta, List<UserCmsResponse> data, PaginationDto pagination) {
         super(meta, data, pagination);
     }
 
-    public static ResponseApiArrayUserDto of(String message, List<UserResponse> data, PaginationDto pagination) {
-        return new ResponseApiArrayUserDto(MetaDto.success(message), data, pagination);
+    public static ResponseApiArrayUserCmsDto of(String message, List<UserCmsResponse> data, PaginationDto pagination) {
+        return new ResponseApiArrayUserCmsDto(MetaDto.success(message), data, pagination);
     }
 }

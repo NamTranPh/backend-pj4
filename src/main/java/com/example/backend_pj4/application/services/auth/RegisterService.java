@@ -9,6 +9,7 @@ import com.example.backend_pj4.application.dto.request.auth.RequestRegisterDto;
 import com.example.backend_pj4.application.dto.response.auth.ResponseAuthDto;
 import com.example.backend_pj4.application.exceptions.ResourceNotFoundException;
 import com.example.backend_pj4.common.enums.MembershipStatus;
+import com.example.backend_pj4.common.enums.RoleEnum;
 import com.example.backend_pj4.infrastructure.databases.entities.RoleEntity;
 import com.example.backend_pj4.infrastructure.databases.entities.UserEntity;
 import com.example.backend_pj4.infrastructure.databases.repository.JpaRoleRepository;
@@ -33,7 +34,7 @@ public class RegisterService {
             throw new RuntimeException("Phone already exists");
         }
 
-        RoleEntity userRole = roleRepository.findByRoleName("USER")
+        RoleEntity userRole = roleRepository.findByRoleName(RoleEnum.USER)
                 .orElseThrow(() -> new ResourceNotFoundException("User role not found"));
 
         UserEntity user = new UserEntity();

@@ -1,4 +1,4 @@
-package com.example.backend_pj4.application.dto.request.user_cms;
+package com.example.backend_pj4.application.dto.request.movie;
 
 import com.example.backend_pj4.common.dto.request.RequestPaginationDto;
 import com.example.backend_pj4.common.enums.SortOrder;
@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-public class RequestGetUserDto extends RequestPaginationDto {
+public class RequestGetMovieCmsDto extends RequestPaginationDto {
     @Schema(description = "Keyword for searching by genre name")
     private String q;
 

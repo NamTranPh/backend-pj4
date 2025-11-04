@@ -6,27 +6,48 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import com.example.backend_pj4.common.enums.MovieStatus;
+import com.example.backend_pj4.common.enums.MovieType;
 import com.example.backend_pj4.domain.entities.Movie;
 import com.example.backend_pj4.domain.repository.MovieRepository;
+import com.example.backend_pj4.infrastructure.databases.entities.GenreEntity;
 import com.example.backend_pj4.infrastructure.databases.mapper.MovieMapper;
 import com.example.backend_pj4.infrastructure.databases.repository.JpaMovieRepository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
 @Repository
+@RequiredArgsConstructor
 public class MovieRepositoryImpl implements MovieRepository {
+
     private final JpaMovieRepository jpaMovieRepository;
     private final MovieMapper movieMapper;
-
-    public MovieRepositoryImpl(JpaMovieRepository jpaMovieRepository, MovieMapper movieMapper) {
-        this.jpaMovieRepository = jpaMovieRepository;
-        this.movieMapper = movieMapper;
-    }
+    private final EntityManager entityManager;
 
     // ---------------- Basic CRUD ----------------
     @Override
+    @Transactional
     public Movie save(Movie movie) {
         var entity = movieMapper.toEntity(movie);
-        var savedEntity = jpaMovieRepository.save(entity);
-        return movieMapper.toDomain(savedEntity);
+
+        if (movie.getGenres() != null && !movie.getGenres().isEmpty()) {
+            var genreIds = movie.getGenres()
+                    .stream()
+                    .map(g -> g.getGenreId())
+                    .toList();
+
+            var managedGenres = entityManager.createQuery(
+                    "SELECT g FROM GenreEntity g WHERE g.genreId IN :ids", GenreEntity.class)
+                    .setParameter("ids", genreIds)
+                    .getResultList();
+
+            entity.setGenres(managedGenres);
+        }
+
+        var saved = jpaMovieRepository.save(entity);
+        return movieMapper.toDomain(saved);
     }
 
     @Override
@@ -77,24 +98,25 @@ public class MovieRepositoryImpl implements MovieRepository {
     @Override
     public List<Movie> findBySearchQuery(String query) {
         return jpaMovieRepository.findByTitleContainingIgnoreCase(query)
-                .stream().map(movieMapper::toDomain)
+                .stream()
+                .map(movieMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     // ---------------- Filter queries ----------------
     @Override
-    public List<Movie> findByMovieType(String movieType) {
-        return jpaMovieRepository.findByMovieType(
-                com.example.backend_pj4.common.enums.MovieType.valueOf(movieType))
-                .stream().map(movieMapper::toDomain)
+    public List<Movie> findByMovieType(MovieType movieType) {
+        return jpaMovieRepository.findByMovieType(movieType)
+                .stream()
+                .map(movieMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Movie> findByStatus(String status) {
-        return jpaMovieRepository.findByStatus(
-                com.example.backend_pj4.common.enums.MovieStatus.valueOf(status))
-                .stream().map(movieMapper::toDomain)
+    public List<Movie> findByStatus(MovieStatus status) {
+        return jpaMovieRepository.findByStatus(status)
+                .stream()
+                .map(movieMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -210,15 +232,13 @@ public class MovieRepositoryImpl implements MovieRepository {
 
     // ---------------- Statistics ----------------
     @Override
-    public long countByMovieType(String movieType) {
-        return jpaMovieRepository.countByMovieType(
-                com.example.backend_pj4.common.enums.MovieType.valueOf(movieType));
+    public long countByMovieType(MovieType movieType) {
+        return jpaMovieRepository.countByMovieType(movieType);
     }
 
     @Override
-    public long countByStatus(String status) {
-        return jpaMovieRepository.countByStatus(
-                com.example.backend_pj4.common.enums.MovieStatus.valueOf(status));
+    public long countByStatus(MovieStatus status) {
+        return jpaMovieRepository.countByStatus(status);
     }
 
     @Override

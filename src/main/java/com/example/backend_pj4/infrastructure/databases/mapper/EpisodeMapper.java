@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.backend_pj4.domain.entities.Episode;
 import com.example.backend_pj4.infrastructure.databases.entities.EpisodeEntity;
+import com.example.backend_pj4.infrastructure.databases.entities.MovieEntity;
 
 @Component
 public class EpisodeMapper {
@@ -45,6 +46,7 @@ public class EpisodeMapper {
                 .viewCount(entity.getViewCount())
                 .isActive(entity.getIsActive())
                 .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 // ✅ tránh vòng lặp vô hạn Episode <-> Comment
                 .comments(entity.getComments() != null
                         ? entity.getComments().stream()
@@ -68,7 +70,6 @@ public class EpisodeMapper {
 
         EpisodeEntity entity = new EpisodeEntity();
         entity.setEpisodeId(domain.getEpisodeId());
-        entity.setMovie(movieMapper.toEntity(domain.getMovie()));
         entity.setEpisodeNumber(domain.getEpisodeNumber());
         entity.setTitle(domain.getTitle());
         entity.setDescription(domain.getDescription());
@@ -80,7 +81,17 @@ public class EpisodeMapper {
         entity.setViewCount(domain.getViewCount());
         entity.setIsActive(domain.getIsActive());
         entity.setCreatedAt(domain.getCreatedAt());
+        entity.setUpdatedAt(domain.getUpdatedAt());
+        // entity.setMovie(movieMapper.toEntity(domain.getMovie()));
 
+        // if (domain.getMovie() != null && domain.getMovie().getMovieId() != null) {
+        // entity.setMovie(movieMapper.toEntity(domain.getMovie()));
+        // }
+        if (domain.getMovie() != null && domain.getMovie().getMovieId() != null) {
+            MovieEntity movieEntity = new MovieEntity();
+            movieEntity.setMovieId(domain.getMovie().getMovieId());
+            entity.setMovie(movieEntity);
+        }
         return entity;
     }
 

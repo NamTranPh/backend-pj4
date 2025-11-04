@@ -42,6 +42,13 @@ public class GenreRepositoryImpl implements GenreRepository {
     }
 
     @Override
+    public List<Genre> findAllByIds(List<String> genreIds) {
+        return jpaGenreRepository.findAllById(genreIds).stream()
+                .map(genreMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public void deleteById(String GenreId) {
         jpaGenreRepository.deleteById(GenreId);
     }

@@ -16,16 +16,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend_pj4.application.dto.request.user_cms.RequestCreateUserDto;
-import com.example.backend_pj4.application.dto.request.user_cms.RequestGetUserDto;
-import com.example.backend_pj4.application.dto.request.user_cms.RequestUpdateUserDto;
-import com.example.backend_pj4.application.dto.response.user_cms.ResponseApiArrayUserDto;
-import com.example.backend_pj4.application.dto.response.user_cms.ResponseApiUserDto;
-import com.example.backend_pj4.application.dto.response.user_cms.UserResponse;
-import com.example.backend_pj4.application.services.user.CreateUserService;
-import com.example.backend_pj4.application.services.user.DeleteUserService;
-import com.example.backend_pj4.application.services.user.GetUserService;
-import com.example.backend_pj4.application.services.user.UpdateUserService;
+import com.example.backend_pj4.application.dto.request.user_cms.RequestCreateUserCmsDto;
+import com.example.backend_pj4.application.dto.request.user_cms.RequestGetUserCmsDto;
+import com.example.backend_pj4.application.dto.request.user_cms.RequestUpdateUserCmsDto;
+import com.example.backend_pj4.application.dto.response.user_cms.ResponseApiArrayUserCmsDto;
+import com.example.backend_pj4.application.dto.response.user_cms.ResponseApiUserCmsDto;
+import com.example.backend_pj4.application.dto.response.user_cms.UserCmsResponse;
+import com.example.backend_pj4.application.services.user_cms.CreateUserService;
+import com.example.backend_pj4.application.services.user_cms.DeleteUserService;
+import com.example.backend_pj4.application.services.user_cms.GetUserService;
+import com.example.backend_pj4.application.services.user_cms.UpdateUserService;
 import com.example.backend_pj4.common.base.BaseController;
 import com.example.backend_pj4.common.dto.response.ApiResponseDto;
 import com.example.backend_pj4.common.dto.response.PaginationDto;
@@ -41,7 +41,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "User Management")
+@Tag(name = "User CMS")
 @SecurityRequirement(name = "bearerAuth")
 public class UserController extends BaseController {
 
@@ -53,10 +53,10 @@ public class UserController extends BaseController {
     @GetMapping
     @Operation(summary = "Get all users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseApiArrayUserDto getAllUsers(@ParameterObject @ModelAttribute RequestGetUserDto dto) {
+    public ResponseApiArrayUserCmsDto getUsers(@ParameterObject @ModelAttribute RequestGetUserCmsDto dto) {
         var result = getUserService.execute(dto);
 
-        var data = (List<UserResponse>) result.get("data");
+        var data = (List<UserCmsResponse>) result.get("data");
         var paginationMap = (Map<String, Object>) result.get("pagination");
 
         var pagination = PaginationDto.builder()
@@ -66,34 +66,34 @@ public class UserController extends BaseController {
                 .totalPages((int) paginationMap.get("totalPages"))
                 .build();
 
-        return ResponseApiArrayUserDto.of("Get all genres successfully", data, pagination);
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Get user by ID")
-    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(#id)")
-    public ResponseApiUserDto getById(@PathVariable String id) {
-        User user = getUserService.executeSingle(id)
-                .orElseThrow(() -> new EntityNotFoundException("Genre not found"));
-
-        return ResponseApiUserDto.of("Get user successfully", UserResponse.fromDomain(user));
+        return ResponseApiArrayUserCmsDto.of("Get all users successfully", data, pagination);
     }
 
     @PostMapping
     @Operation(summary = "Create new user", description = "Create a new user (Admin only)")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseApiUserDto create(@RequestBody RequestCreateUserDto dto) {
+    public ResponseApiUserCmsDto create(@RequestBody RequestCreateUserCmsDto dto) {
         User user = createUserService.execute(dto);
-        return ResponseApiUserDto.of("User created successfully", UserResponse.fromDomain(user));
+        return ResponseApiUserCmsDto.of("User created successfully", UserCmsResponse.fromDomain(user));
 
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get user by ID")
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(#id)")
+    public ResponseApiUserCmsDto getById(@PathVariable String id) {
+        User user = getUserService.executeSingle(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        return ResponseApiUserCmsDto.of("Get user successfully", UserCmsResponse.fromDomain(user));
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update user", description = "Update user information")
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isOwner(#id)")
-    public ResponseApiUserDto update(@PathVariable String id, @RequestBody RequestUpdateUserDto dto) {
+    public ResponseApiUserCmsDto update(@PathVariable String id, @RequestBody RequestUpdateUserCmsDto dto) {
         User updated = updateUserSseCase.execute(id, dto);
-        return ResponseApiUserDto.of("User updated successfully", UserResponse.fromDomain(updated));
+        return ResponseApiUserCmsDto.of("User updated successfully", UserCmsResponse.fromDomain(updated));
     }
 
     @DeleteMapping("/{id}")

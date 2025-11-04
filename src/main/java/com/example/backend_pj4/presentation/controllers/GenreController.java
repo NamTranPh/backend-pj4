@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "Genres")
-@SecurityRequirement(name = "bearerAuth")
 public class GenreController extends BaseController {
 
     private final CreateGenreService createGenreService;
@@ -49,9 +49,11 @@ public class GenreController extends BaseController {
     private final UpdateGenreService updateGenreUseCase;
     private final DeleteGenreService deleteGenreService;
 
-    // private static final Logger logger = LoggerFactory.getLogger(GenreController.class);
+    // private static final Logger logger =
+    // LoggerFactory.getLogger(GenreController.class);
 
     @GetMapping
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get all genres")
     public ResponseApiArrayGenreDto getAll(@ParameterObject @ModelAttribute RequestGetGenreDto dto) {
         var result = getGenreService.execute(dto);
@@ -73,7 +75,17 @@ public class GenreController extends BaseController {
         return ResponseApiArrayGenreDto.of("Get all genres successfully", responseData, pagination);
     }
 
+    @PostMapping
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    @Operation(summary = "Create a new genre")
+    public ResponseApiGenreDto create(@RequestBody RequestCreateGenreDto dto) {
+        Genre genre = createGenreService.execute(dto);
+        return ResponseApiGenreDto.of("Genre created successfully", GenreResponse.fromDomain(genre));
+    }
+
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get genre by id")
     public ResponseApiGenreDto getById(@PathVariable String id) {
         Genre genre = getGenreService.executeSingle(id)
@@ -81,14 +93,9 @@ public class GenreController extends BaseController {
         return ResponseApiGenreDto.of("Get genre successfully", GenreResponse.fromDomain(genre));
     }
 
-    @PostMapping
-    @Operation(summary = "Create a new genre")
-    public ResponseApiGenreDto create(@RequestBody RequestCreateGenreDto dto) {
-        Genre genre = createGenreService.execute(dto);
-        return ResponseApiGenreDto.of("Genre created successfully", GenreResponse.fromDomain(genre));
-    }
-
     @PatchMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     @Operation(summary = "Update a genre by ID")
     public ResponseApiGenreDto update(@PathVariable String id, @RequestBody RequestUpdateGenreDto dto) {
         Genre updated = updateGenreUseCase.execute(id, dto);
@@ -96,6 +103,8 @@ public class GenreController extends BaseController {
     }
 
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     @Operation(summary = "Delete a genre by ID")
     public ApiResponseDto<Void> delete(@PathVariable String id) {
         deleteGenreService.execute(id);

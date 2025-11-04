@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RequestUpdateUserDto {
+public class RequestCreateUserCmsDto {
     private String email;
     
     @NotBlank(message = "Phone is required")
@@ -23,7 +23,7 @@ public class RequestUpdateUserDto {
     private LocalDate birthDate;
     private String profilePicture;
     private String address;
-    private String role;
+     private String role;
     // private Role role;
     // private MembershipStatus membershipStatus;
     // private LocalDate membershipExpiryDate;
@@ -32,11 +32,14 @@ public class RequestUpdateUserDto {
     // public User toDomain() {
     //     return User.builder()
     //             .email(this.email)
+    //             .password(this.password)
     //             .name(this.name)
     //             .phone(this.phone)
     //             .birthDate(this.birthDate)
     //             .profilePicture(this.profilePicture)
     //             .address(this.address)
+    //             .membershipStatus(MembershipStatus.FREE)
+    //             .isActive(true)
     //             .build();
     // }
 }

@@ -1,19 +1,14 @@
-package com.example.backend_pj4.domain.entities;
+package com.example.backend_pj4.application.dto.request.movie;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.backend_pj4.common.enums.MovieStatus;
 import com.example.backend_pj4.common.enums.MovieType;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder(toBuilder = true)
-public class Movie {
-    private String movieId;
+public class RequestUpdateMovieDto {
     private String title;
     private String originalTitle;
     private String description;
@@ -26,17 +21,13 @@ public class Movie {
     private String trailerUrl;
     private String posterUrl;
     private String backdropUrl;
-    private BigDecimal rating;
-    private Integer viewCount;
+
     private MovieType movieType;
     private Integer totalEpisodes;
     private MovieStatus status;
     private Boolean isPremium;
     private Boolean isFeatured;
     private Boolean isActive;
-    private User createdBy;
-    private List<Genre> genres;
-    private List<Episode> episodes;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    private List<String> genreIds;
 }

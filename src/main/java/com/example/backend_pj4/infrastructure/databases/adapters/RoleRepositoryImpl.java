@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import com.example.backend_pj4.common.enums.RoleEnum;
 import com.example.backend_pj4.domain.entities.Role;
 import com.example.backend_pj4.domain.repository.RoleRepository;
 import com.example.backend_pj4.infrastructure.databases.mapper.RoleMapper;
@@ -47,7 +48,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Optional<Role> findByRoleName(String roleName) {
+    public Optional<Role> findByRoleName(RoleEnum roleName) {
         return jpaRoleRepository.findByRoleName(roleName)
                 .map(roleMapper::toDomain);
     }

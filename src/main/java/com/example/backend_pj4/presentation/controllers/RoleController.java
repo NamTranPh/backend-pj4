@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/roles")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "Role Management")
+@Tag(name = "Role CMS")
 @SecurityRequirement(name = "bearerAuth")
 public class RoleController extends BaseController {
 
@@ -43,20 +43,20 @@ public class RoleController extends BaseController {
         return ResponseEntity.ok(roles);
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get role by ID", description = "Retrieve role details by ID (Admin only)")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Role> getRoleById(@PathVariable String id) {
-        Role role = roleService.getRoleById(id);
-        return ResponseEntity.ok(role);
-    }
-
     @PostMapping
     @Operation(summary = "Create new role", description = "Create a new role (Admin only)")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Role> createRole(@Valid @RequestBody Role request) {
         Role created = roleService.creatRRole(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get role by ID", description = "Retrieve role details by ID (Admin only)")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Role> getRoleById(@PathVariable String id) {
+        Role role = roleService.getRoleById(id);
+        return ResponseEntity.ok(role);
     }
 
     @PatchMapping("/{id}")

@@ -6,8 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import com.example.backend_pj4.common.enums.MovieStatus;
-import com.example.backend_pj4.common.enums.MovieType;
 import com.example.backend_pj4.domain.entities.Movie;
 import com.example.backend_pj4.infrastructure.databases.entities.MovieEntity;
 
@@ -19,8 +17,7 @@ public class MovieMapper {
 
     public MovieMapper(
             GenreMapper genreMapper,
-            @Lazy EpisodeMapper episodeMapper
-    ) {
+            @Lazy EpisodeMapper episodeMapper) {
         this.genreMapper = genreMapper;
         this.episodeMapper = episodeMapper;
     }
@@ -29,7 +26,8 @@ public class MovieMapper {
     // Entity → Domain
     // ==============================
     public Movie toDomain(MovieEntity entity) {
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
 
         return Movie.builder()
                 .movieId(entity.getMovieId())
@@ -47,9 +45,9 @@ public class MovieMapper {
                 .backdropUrl(entity.getBackdropUrl())
                 .rating(entity.getRating())
                 .viewCount(entity.getViewCount())
-                .movieType(entity.getMovieType() != null ? entity.getMovieType().name() : null)
+                .movieType(entity.getMovieType())
                 .totalEpisodes(entity.getTotalEpisodes())
-                .status(entity.getStatus() != null ? entity.getStatus().name() : null)
+                .status(entity.getStatus())
                 .isPremium(entity.getIsPremium())
                 .isFeatured(entity.getIsFeatured())
                 .isActive(entity.getIsActive())
@@ -70,7 +68,8 @@ public class MovieMapper {
     // Domain → Entity
     // ==============================
     public MovieEntity toEntity(Movie domain) {
-        if (domain == null) return null;
+        if (domain == null)
+            return null;
 
         MovieEntity entity = new MovieEntity();
         entity.setMovieId(domain.getMovieId());
@@ -90,10 +89,10 @@ public class MovieMapper {
         entity.setViewCount(domain.getViewCount());
 
         if (domain.getMovieType() != null) {
-            entity.setMovieType(MovieType.valueOf(domain.getMovieType()));
+            entity.setMovieType(domain.getMovieType());
         }
         if (domain.getStatus() != null) {
-            entity.setStatus(MovieStatus.valueOf(domain.getStatus()));
+            entity.setStatus(domain.getStatus());
         }
 
         entity.setTotalEpisodes(domain.getTotalEpisodes());
@@ -124,7 +123,8 @@ public class MovieMapper {
     // Simple mapping (tránh vòng lặp)
     // ==============================
     public Movie toSimpleDomain(MovieEntity entity) {
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
         return Movie.builder()
                 .movieId(entity.getMovieId())
                 .title(entity.getTitle())

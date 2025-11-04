@@ -23,6 +23,7 @@ public class Episode {
     private Integer viewCount;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private List<Comment> comments;
     private List<HistoryWatching> watchingHistory;
 }

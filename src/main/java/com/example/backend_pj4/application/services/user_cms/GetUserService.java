@@ -1,4 +1,4 @@
-package com.example.backend_pj4.application.services.user;
+package com.example.backend_pj4.application.services.user_cms;
 
 import java.util.HashMap;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.example.backend_pj4.application.dto.request.user_cms.RequestGetUserDto;
-import com.example.backend_pj4.application.dto.response.user_cms.UserResponse;
+import com.example.backend_pj4.application.dto.request.user_cms.RequestGetUserCmsDto;
+import com.example.backend_pj4.application.dto.response.user_cms.UserCmsResponse;
 import com.example.backend_pj4.common.base.BaseService;
 import com.example.backend_pj4.common.enums.SortOrder;
 import com.example.backend_pj4.domain.entities.User;
@@ -31,7 +31,7 @@ public class GetUserService extends BaseService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public Map<String, Object> execute(RequestGetUserDto dto) {
+    public Map<String, Object> execute(RequestGetUserCmsDto dto) {
         // --- Default values ---
         int page = Optional.ofNullable(dto.getPage()).orElse(1);
         int limit = Optional.ofNullable(dto.getLimit()).orElse(10);
@@ -64,9 +64,9 @@ public class GetUserService extends BaseService {
         query.setMaxResults(limit);
 
         // --- MAP ENTITY -> DOMAIN -> DTO ---
-        List<UserResponse> items = query.getResultList().stream()
+        List<UserCmsResponse> items = query.getResultList().stream()
                 .map(userMapper::toDomain) // entity -> domain
-                .map(UserResponse::fromDomain) // domain -> DTO
+                .map(UserCmsResponse::fromDomain) // domain -> DTO
                 .toList();
 
         // --- COUNT QUERY ---

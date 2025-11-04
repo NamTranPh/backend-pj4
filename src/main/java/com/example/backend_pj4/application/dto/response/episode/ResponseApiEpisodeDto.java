@@ -1,4 +1,4 @@
-package com.example.backend_pj4.application.dto.response.user_cms;
+package com.example.backend_pj4.application.dto.response.episode;
 
 import com.example.backend_pj4.common.dto.response.ApiResponseDto;
 import com.example.backend_pj4.common.dto.response.MetaDto;
@@ -11,14 +11,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class ResponseApiUserDto extends ApiResponseDto<UserResponse> {
+public class ResponseApiEpisodeDto extends ApiResponseDto<EpisodeResponse> {
 
     // Constructor gọi super để khởi tạo meta, data, pagination
-    public ResponseApiUserDto(MetaDto meta, UserResponse data, PaginationDto pagination) {
+    public ResponseApiEpisodeDto(MetaDto meta, EpisodeResponse data, PaginationDto pagination) {
         super(meta, data, pagination);
     }
 
-    public static ResponseApiUserDto of(String message, UserResponse data) {
-        return new ResponseApiUserDto(MetaDto.success(message), data, null);
+    public static ResponseApiEpisodeDto of(String message, EpisodeResponse data) {
+        return new ResponseApiEpisodeDto(MetaDto.success(message), data, null);
     }
 }

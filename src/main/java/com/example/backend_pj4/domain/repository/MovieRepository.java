@@ -3,6 +3,8 @@ package com.example.backend_pj4.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.backend_pj4.common.enums.MovieStatus;
+import com.example.backend_pj4.common.enums.MovieType;
 import com.example.backend_pj4.domain.entities.Movie;
 
 public interface MovieRepository {
@@ -27,9 +29,9 @@ public interface MovieRepository {
     List<Movie> findBySearchQuery(String query); // Full text search
 
     // Filter queries
-    List<Movie> findByMovieType(String movieType);
+    List<Movie> findByMovieType(MovieType movieType);
 
-    List<Movie> findByStatus(String status);
+    List<Movie> findByStatus(MovieStatus status);
 
     List<Movie> findByReleaseYear(Integer year);
 
@@ -66,9 +68,9 @@ public interface MovieRepository {
     List<Movie> findInactiveMovies();
 
     // Statistics
-    long countByMovieType(String movieType);
+    long countByMovieType(MovieType movieType);
 
-    long countByStatus(String status);
+    long countByStatus(MovieStatus status);
 
     long countActiveMovies();
 }

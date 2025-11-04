@@ -5,6 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.example.backend_pj4.common.enums.RoleEnum;
 import com.example.backend_pj4.infrastructure.databases.entities.RoleEntity;
 import com.example.backend_pj4.infrastructure.databases.entities.UserEntity;
 import com.example.backend_pj4.infrastructure.databases.repository.JpaRoleRepository;
@@ -61,7 +62,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private void seedAdminUser() {
         if (!userRepository.existsByPhone(adminPhone)) {
-            RoleEntity adminRole = roleRepository.findByRoleName("ADMIN").orElseThrow();
+            RoleEntity adminRole = roleRepository.findByRoleName(RoleEnum.ADMIN).orElseThrow();
 
             UserEntity admin = new UserEntity();
             admin.setEmail(adminEmail);

@@ -1,11 +1,11 @@
-package com.example.backend_pj4.application.services.user;
+package com.example.backend_pj4.application.services.user_cms;
 
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.backend_pj4.application.dto.request.user_cms.RequestUpdateUserDto;
+import com.example.backend_pj4.application.dto.request.user_cms.RequestUpdateUserCmsDto;
 import com.example.backend_pj4.application.exceptions.ResourceNotFoundException;
 import com.example.backend_pj4.common.base.BaseService;
 import com.example.backend_pj4.common.utils.PasswordUtils;
@@ -21,7 +21,7 @@ public class UpdateUserService extends BaseService {
     private final UserRepository userRepository;
 
     @Transactional
-    public User execute(String userId, RequestUpdateUserDto dto) {
+    public User execute(String userId, RequestUpdateUserCmsDto dto) {
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
