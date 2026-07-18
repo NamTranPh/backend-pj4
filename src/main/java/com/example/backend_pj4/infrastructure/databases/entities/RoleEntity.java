@@ -8,7 +8,10 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.example.backend_pj4.common.enums.RoleEnum;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -32,7 +35,8 @@ public class RoleEntity {
     private String roleId;
 
     @Column(name = "role_name", nullable = false, unique = true, length = 50)
-    private String roleName;
+    @Convert(converter = com.example.backend_pj4.infrastructure.databases.entities.RoleEnumConverter.class)
+    private RoleEnum roleName;
 
     @CreationTimestamp
     @Column(name = "created_at")

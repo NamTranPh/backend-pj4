@@ -23,8 +23,8 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Role save(Role Role) {
-        var entity = roleMapper.toEntity(Role);
+    public Role save(Role role) {
+        var entity = roleMapper.toEntity(role);
         var savedEntity = jpaRoleRepository.save(entity);
         return roleMapper.toDomain(savedEntity);
     }
@@ -54,7 +54,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public boolean existsByRoleName(String roleName) {
+    public boolean existsByRoleName(RoleEnum roleName) {
         return jpaRoleRepository.existsByRoleName(roleName);
     }
 

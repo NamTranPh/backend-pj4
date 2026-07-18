@@ -1,7 +1,6 @@
 # Set up Connection
-
 server:
-  port: ${SERVER_PORT:3004}   # lấy từ .env, default 3004
+  port: ${SERVER_PORT:3004} # lấy từ .env, default 3004
   servlet:
     context-path: /api
 
@@ -10,24 +9,24 @@ spring:
     name: backend-pj4
 
   flyway:
-    enabled: false  # Dùng tạo bảng bằng flyway đọc file resources/database/migration/ .sql tạo csdl chưa dùng
-    
+    enabled: false # Dùng tạo bảng bằng flyway đọc file resources/database/migration/ .sql tạo csdl chưa dùng
+
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3307/movie_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/movie_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    
+
   jpa:
     hibernate:
-      ddl-auto: update  #   Khi đã dùng Flyway để quản lý schema => không dùng update nữa. dung lan 2 validate hoặc lan dau none
+      ddl-auto: update #   Khi đã dùng Flyway để quản lý schema => không dùng update nữa. dung lan 2 validate hoặc lan dau none
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
     database-platform: org.hibernate.dialect.MySQLDialect
-    
+
   security:
     oauth2:
       resourceserver:

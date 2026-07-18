@@ -25,7 +25,6 @@ public class CreateUserService extends BaseService {
     private final RoleRepository roleRepository;
 
     public User execute(RequestCreateUserCmsDto request) {
-        // Validate
         if (userRepository.existsByPhone(request.getPhone())) {
             throw new IllegalArgumentException("Phone already exists");
         }
@@ -34,7 +33,6 @@ public class CreateUserService extends BaseService {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        // Set defaults - Thao tác với Domain Object
         var defaultRole = roleRepository.findByRoleName(RoleEnum.STAFF)
                 .orElseThrow(() -> new ResourceNotFoundException("Default role not found"));
 

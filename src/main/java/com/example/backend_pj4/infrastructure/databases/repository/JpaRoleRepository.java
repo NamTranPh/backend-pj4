@@ -11,6 +11,5 @@ import com.example.backend_pj4.infrastructure.databases.entities.RoleEntity;
 @Repository
 public interface JpaRoleRepository extends JpaRepository<RoleEntity, String> {
     Optional<RoleEntity> findByRoleName(RoleEnum roleName);
-    boolean existsByRoleName(String roleName);
-    //
+    boolean existsByRoleName(RoleEnum roleName);
 }

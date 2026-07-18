@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.backend_pj4.application.exceptions.ResourceNotFoundException;
+import com.example.backend_pj4.common.enums.RoleEnum;
 import com.example.backend_pj4.domain.entities.Role;
 import com.example.backend_pj4.domain.repository.RoleRepository;
 
@@ -21,7 +22,6 @@ public class RoleService {
         return roleRepository.findAll();
     }
 
-    // Co the se phai phat trien them
     public Role getRoleById(String roleId) {
         return roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + roleId));
@@ -46,8 +46,7 @@ public class RoleService {
         roleRepository.deleteById(roleId);
     }
 
-    // Kiểm tra tồn tại theo tên
-    public boolean existsByRoleName(String roleName) {
+    public boolean existsByRoleName(RoleEnum roleName) {
         return roleRepository.existsByRoleName(roleName);
     }
 }

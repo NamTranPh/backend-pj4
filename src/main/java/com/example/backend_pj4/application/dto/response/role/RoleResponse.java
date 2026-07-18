@@ -2,6 +2,7 @@ package com.example.backend_pj4.application.dto.response.role;
 
 import java.time.LocalDateTime;
 
+import com.example.backend_pj4.common.enums.RoleEnum;
 import com.example.backend_pj4.domain.entities.Role;
 
 import lombok.Builder;
@@ -11,7 +12,7 @@ import lombok.Data;
 @Builder
 public class RoleResponse {
     private String roleId;
-    private String roleName;
+    private RoleEnum roleName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

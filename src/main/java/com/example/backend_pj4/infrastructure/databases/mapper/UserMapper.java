@@ -54,4 +54,14 @@ public class UserMapper {
         entity.setUpdatedAt(user.getUpdatedAt());
         return entity;
     }
+
+    public User toSimpleDomain(UserEntity entity) {
+        if (entity == null) return null;
+        return User.builder()
+                .userId(entity.getUserId())
+                .name(entity.getName())
+                .email(entity.getEmail())
+                .profilePicture(entity.getProfilePicture())
+                .build();
+    }
 }
