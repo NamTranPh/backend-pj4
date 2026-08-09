@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.backend_pj4.infrastructure.config.properties.AuthCookieProperties;
+import com.example.backend_pj4.infrastructure.config.properties.JwtProperties;
+
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +29,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
+    private final AuthCookieProperties authCookieProperties;
+    private final JwtProperties jwtProperties;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -35,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
-                String username = jwtTokenProvider.getPhoneFromToken(jwt);
+                String username = jwtTokenProvider.getSubjectFromToken(jwt);
 
                 if (username != null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -57,10 +63,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
+        String cookieToken = getCookieValue(request, authCookieProperties.getAccessName());
+        if (StringUtils.hasText(cookieToken)) {
+            return cookieToken;
+        }
+
         String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+        if (jwtProperties.isEnableBearerFallback()
+                && StringUtils.hasText(bearerToken)
+                && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+        return null;
+    }
+
+    private String getCookieValue(HttpServletRequest request, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (name.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+
         return null;
     }
 }

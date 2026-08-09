@@ -1,0 +1,23 @@
+# Build output
+target/
+
+# Git & IDE
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml
+
+# Env & secrets (KHÔNG đưa vào image)
+.env
+.env.*
+!.env.example
+
+# FFmpeg binary local (image tự cài qua apt, không cần)
+tools/
+
+# Docs & docker meta
+*.md
+Dockerfile
+.dockerignore
+docker-compose*.yml

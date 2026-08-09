@@ -1,36 +1,24 @@
-//Domain Entity -> lớp triển khai -> Usecase -> dto -> controller
-
 package com.example.backend_pj4.domain.repository;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.example.backend_pj4.domain.entities.User;
-
+import com.example.backend_pj4.common.constants.enums.AccountStatus;
+import com.example.backend_pj4.common.constants.enums.UserRole;
+import com.example.backend_pj4.domain.model.User;
 
 public interface UserRepository {
-    // Basic CRUD
     User save(User user);
-    Optional<User> findById(String userId);
+    Optional<User> findById(String id);
     List<User> findAll();
-    void deleteById(String userId);
-    boolean existsById(String userId);
-    
-    // Business queries
+    void deleteById(String id);
+    boolean existsById(String id);
     Optional<User> findByEmail(String email);
+    Optional<User> findByEmailIgnoreCase(String email);
     Optional<User> findByPhone(String phone);
-    Optional<User> findByEmailOrPhone(String identifier);
-    
-    // Validation queries
+    Optional<User> findByEmailOrPhone(String email, String phone);
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
-    
-    // Membership queries
-    List<User> findByMembershipStatus(String membershipStatus);
-    List<User> findExpiredMemberships();
-    
-    // Admin queries
-    List<User> findByRole(String roleId);
-    List<User> findActiveUsers();
-    List<User> findInactiveUsers();
+    List<User> findByRole(UserRole role);
+    List<User> findByAccountStatus(AccountStatus status);
 }

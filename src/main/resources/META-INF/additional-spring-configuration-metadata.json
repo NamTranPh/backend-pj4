@@ -2,11 +2,26 @@
   {
     "name": "jwt.secret",
     "type": "java.lang.String",
-    "description": "A description for 'jwt.secret'"
+    "description": "JWT signing secret."
+  },
+  {
+    "name": "jwt.expiration",
+    "type": "java.lang.Long",
+    "description": "Access token expiration in milliseconds."
   },
   {
     "name": "jwt.refresh-expiration",
+    "type": "java.lang.Long",
+    "description": "Refresh token expiration in milliseconds."
+  },
+  {
+    "name": "jwt.issuer",
     "type": "java.lang.String",
-    "description": "A description for 'jwt.refresh-expiration'"
+    "description": "JWT issuer claim."
+  },
+  {
+    "name": "jwt.enable-bearer-fallback",
+    "type": "java.lang.Boolean",
+    "description": "Allow Authorization Bearer fallback for development tools."
   }
 ]}

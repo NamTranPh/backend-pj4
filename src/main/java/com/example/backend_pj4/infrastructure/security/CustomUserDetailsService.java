@@ -10,8 +10,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.backend_pj4.infrastructure.databases.entities.UserEntity;
-import com.example.backend_pj4.infrastructure.databases.repository.JpaUserRepository;
+import com.example.backend_pj4.common.constants.enums.AccountStatus;
+import com.example.backend_pj4.infrastructure.database.entities.UserJpaEntity;
+import com.example.backend_pj4.infrastructure.database.repositories.SpringDataUserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,33 +20,34 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final JpaUserRepository userRepository;
+    private final SpringDataUserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String phone) throws UsernameNotFoundException {
-        // Sửa cú pháp: xóa (phone) thừa
-        UserEntity user = userRepository.findByPhone(phone)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + phone));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        UserJpaEntity user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
+        boolean active = user.getAccountStatus() == AccountStatus.ACTIVE;
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getPhone()) // dùng phone làm username
+                .username(user.getEmail())
                 .password(user.getPassword())
                 .authorities(getAuthorities(user))
                 .accountExpired(false)
-                .accountLocked(!user.getIsActive())
+                .accountLocked(!active)
                 .credentialsExpired(false)
-                .disabled(!user.getIsActive())
+                .disabled(!active)
                 .build();
     }
 
-    private Collection<? extends GrantedAuthority> getAuthorities(UserEntity user) {
+    private Collection<? extends GrantedAuthority> getAuthorities(UserJpaEntity user) {
         // Trả về role dạng "ROLE_ADMIN" hoặc "ROLE_USER"
-        if (user.getRole() != null && user.getRole().getRoleName() != null) {
+        if (user.getRole() != null) {
             return Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName())
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
             );
         }
         // Nếu user chưa có role, trả về ROLE_USER mặc định
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 }
+

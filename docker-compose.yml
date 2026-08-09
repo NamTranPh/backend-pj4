@@ -1,0 +1,38 @@
+name: movie-project
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: movie-backend:local
+    container_name: movie-backend-local
+    restart: unless-stopped
+
+    # Cấu hình đọc toàn bộ biến từ .env
+    env_file:
+      - .env
+
+    # CHỈ override những biến bắt buộc khác nhau khi chạy TRONG container:
+    # trong mạng Docker phải gọi nhau qua TÊN service (mysql/redis/mailpit),
+    # không phải localhost + port publish như khi chạy trên máy.
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      REDIS_HOST: redis
+      MAIL_HOST: mailpit
+      # MinIO: trong container gọi qua tên service "minio:9000".
+      # MINIO_PUBLIC_ENDPOINT giữ nguyên localhost:9000 (URL cho trình duyệt) -> lấy từ .env
+      MINIO_ENDPOINT: http://minio:9000
+      FFMPEG_PATH: /usr/bin/ffmpeg
+      FFPROBE_PATH: /usr/bin/ffprobe
+
+    ports:
+      - "3004:3004"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
+    name: app-network

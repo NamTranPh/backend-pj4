@@ -3,7 +3,7 @@ package com.example.backend_pj4.domain.repository;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import com.example.backend_pj4.domain.entities.Membership;
+import com.example.backend_pj4.domain.model.Membership;
 
 import java.util.List;
 

@@ -1,6 +1,5 @@
 package com.example.backend_pj4.infrastructure.config;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
@@ -23,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.backend_pj4.infrastructure.security.CustomUserDetailsService;
 import com.example.backend_pj4.infrastructure.security.JwtAuthenticationFilter;
+import com.example.backend_pj4.infrastructure.config.properties.CorsProperties;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +34,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CorsProperties corsProperties;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -70,6 +71,13 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        // Luồng auth admin: login/refresh/logout mở, còn lại (kể cả /me) yêu cầu ADMIN
+                        .requestMatchers(
+                                "/api/v1/admin/auth/login",
+                                "/api/v1/admin/auth/refresh-token",
+                                "/api/v1/admin/auth/logout")
+                        .permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         // Các API khác phải có token
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
@@ -81,8 +89,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(corsProperties.getAllowedOrigins());
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

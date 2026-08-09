@@ -3,40 +3,17 @@ package com.example.backend_pj4.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.backend_pj4.domain.entities.Episode;
+import com.example.backend_pj4.common.constants.enums.VideoStatus;
+import com.example.backend_pj4.domain.model.Episode;
 
 public interface EpisodeRepository {
-    // Basic CRUD
     Episode save(Episode episode);
-
-    Optional<Episode> findById(String episodeId);
-
+    Optional<Episode> findById(String id);
     List<Episode> findAll();
-
-    void deleteById(String episodeId);
-
-    // Movie-specific queries
+    void deleteById(String id);
     List<Episode> findByMovieId(String movieId);
-
     Optional<Episode> findByMovieIdAndEpisodeNumber(String movieId, Integer episodeNumber);
-
     List<Episode> findByMovieIdOrderByEpisodeNumber(String movieId);
-
-    // Premium episodes
-    List<Episode> findPremiumEpisodesByMovieId(String movieId);
-
-    List<Episode> findFreeEpisodesByMovieId(String movieId);
-
-    // Active episodes
-    List<Episode> findActiveEpisodesByMovieId(String movieId);
-
-    // Statistics
+    List<Episode> findByStatus(VideoStatus status);
     long countByMovieId(String movieId);
-
-    long countActiveEpisodesByMovieId(String movieId);
-
-    // Latest episodes
-    List<Episode> findLatestEpisodes(int limit);
-
-    List<Episode> findByMovieIdAndEpisodeNumberGreaterThan(String movieId, Integer episodeNumber);
 }
