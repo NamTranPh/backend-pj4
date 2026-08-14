@@ -9,15 +9,15 @@ import org.springframework.stereotype.Repository;
 import com.example.backend_pj4.domain.model.EmailVerification;
 import com.example.backend_pj4.domain.repository.EmailVerificationRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.EmailVerificationPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataEmailVerificationRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.EmailVerificationJpaRepository;
 
 @Repository
 public class JpaEmailVerificationRepositoryAdapter implements EmailVerificationRepository {
 
-    private final SpringDataEmailVerificationRepository jpaRepository;
+    private final EmailVerificationJpaRepository jpaRepository;
     private final EmailVerificationPersistenceMapper mapper;
 
-    public JpaEmailVerificationRepositoryAdapter(SpringDataEmailVerificationRepository jpaRepository, EmailVerificationPersistenceMapper mapper) {
+    public JpaEmailVerificationRepositoryAdapter(EmailVerificationJpaRepository jpaRepository, EmailVerificationPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

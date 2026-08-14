@@ -12,83 +12,83 @@ import com.example.backend_pj4.domain.model.User;
 import com.example.backend_pj4.domain.repository.UserRepository;
 import com.example.backend_pj4.infrastructure.database.entities.UserJpaEntity;
 import com.example.backend_pj4.infrastructure.database.mappers.UserPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataUserRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.UserJpaRepository;
 
 @Repository
 public class JpaUserRepositoryAdapter implements UserRepository {
 
-    private final SpringDataUserRepository SpringDataUserRepository;
-    private final UserPersistenceMapper UserPersistenceMapper;
+    private final UserJpaRepository userJpaRepository;
+    private final UserPersistenceMapper userPersistenceMapper;
 
-    public JpaUserRepositoryAdapter(SpringDataUserRepository SpringDataUserRepository, UserPersistenceMapper UserPersistenceMapper) {
-        this.SpringDataUserRepository = SpringDataUserRepository;
-        this.UserPersistenceMapper = UserPersistenceMapper;
+    public JpaUserRepositoryAdapter(UserJpaRepository userJpaRepository, UserPersistenceMapper userPersistenceMapper) {
+        this.userJpaRepository = userJpaRepository;
+        this.userPersistenceMapper = userPersistenceMapper;
     }
 
     @Override
     public User save(User user) {
-        UserJpaEntity entity = UserPersistenceMapper.toEntity(user);
-        return UserPersistenceMapper.toDomain(SpringDataUserRepository.save(entity));
+        UserJpaEntity entity = userPersistenceMapper.toEntity(user);
+        return userPersistenceMapper.toDomain(userJpaRepository.save(entity));
     }
 
     @Override
     public Optional<User> findById(String id) {
-        return SpringDataUserRepository.findById(id).map(UserPersistenceMapper::toDomain);
+        return userJpaRepository.findById(id).map(userPersistenceMapper::toDomain);
     }
 
     @Override
     public List<User> findAll() {
-        return SpringDataUserRepository.findAll().stream().map(UserPersistenceMapper::toDomain).collect(Collectors.toList());
+        return userJpaRepository.findAll().stream().map(userPersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(String id) {
-        SpringDataUserRepository.deleteById(id);
+        userJpaRepository.deleteById(id);
     }
 
     @Override
     public boolean existsById(String id) {
-        return SpringDataUserRepository.existsById(id);
+        return userJpaRepository.existsById(id);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return SpringDataUserRepository.findByEmail(email).map(UserPersistenceMapper::toDomain);
+        return userJpaRepository.findByEmail(email).map(userPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByEmailIgnoreCase(String email) {
-        return SpringDataUserRepository.findByEmailIgnoreCase(email).map(UserPersistenceMapper::toDomain);
+        return userJpaRepository.findByEmailIgnoreCase(email).map(userPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByPhone(String phone) {
-        return SpringDataUserRepository.findByPhone(phone).map(UserPersistenceMapper::toDomain);
+        return userJpaRepository.findByPhone(phone).map(userPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<User> findByEmailOrPhone(String email, String phone) {
-        return SpringDataUserRepository.findByEmailOrPhone(email, phone).map(UserPersistenceMapper::toDomain);
+        return userJpaRepository.findByEmailOrPhone(email, phone).map(userPersistenceMapper::toDomain);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return SpringDataUserRepository.existsByEmail(email);
+        return userJpaRepository.existsByEmail(email);
     }
 
     @Override
     public boolean existsByPhone(String phone) {
-        return SpringDataUserRepository.existsByPhone(phone);
+        return userJpaRepository.existsByPhone(phone);
     }
 
     @Override
     public List<User> findByRole(UserRole role) {
-        return SpringDataUserRepository.findByRole(role).stream().map(UserPersistenceMapper::toDomain).collect(Collectors.toList());
+        return userJpaRepository.findByRole(role).stream().map(userPersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<User> findByAccountStatus(AccountStatus status) {
-        return SpringDataUserRepository.findByAccountStatus(status).stream().map(UserPersistenceMapper::toDomain).collect(Collectors.toList());
+        return userJpaRepository.findByAccountStatus(status).stream().map(userPersistenceMapper::toDomain).collect(Collectors.toList());
     }
 }
 

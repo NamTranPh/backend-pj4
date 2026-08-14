@@ -1,9 +1,8 @@
 package com.example.backend_pj4.presentation.admin;
 
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,37 +10,75 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Luồng auth RIÊNG cho admin. Endpoint tách hẳn khỏi user, dùng cookie refresh
- * riêng (admin_refresh_token) để session admin và user không đè nhau.
- */
+import com.example.backend_pj4.application.command.auth.LoginCommand;
+import com.example.backend_pj4.application.command.auth.LogoutCommand;
+import com.example.backend_pj4.application.command.auth.RefreshTokenCommand;
+import com.example.backend_pj4.application.dto.auth.AuthTokenResult;
+import com.example.backend_pj4.application.dto.user.UserProfileResult;
+import com.example.backend_pj4.application.port.in.admin.AdminLoginUseCase;
+import com.example.backend_pj4.application.port.in.admin.AdminLogoutUseCase;
+import com.example.backend_pj4.application.port.in.admin.AdminRefreshTokenUseCase;
+import com.example.backend_pj4.application.port.in.auth.GetCurrentUserUseCase;
+import com.example.backend_pj4.infrastructure.security.AuthCookieService;
+import com.example.backend_pj4.presentation.auth.request.LoginRequest;
+import com.example.backend_pj4.presentation.auth.response.LoginResponse;
+
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/v1/admin/auth")
 public class AdminAuthController {
 
-    // Đăng nhập admin (chỉ tài khoản ADMIN)
+    private final AdminLoginUseCase adminLoginUseCase;
+    private final AdminRefreshTokenUseCase adminRefreshTokenUseCase;
+    private final AdminLogoutUseCase adminLogoutUseCase;
+    private final GetCurrentUserUseCase getCurrentUserUseCase;
+    private final AuthCookieService authCookieService;
+
+    public AdminAuthController(AdminLoginUseCase adminLoginUseCase,
+                                AdminRefreshTokenUseCase adminRefreshTokenUseCase,
+                                AdminLogoutUseCase adminLogoutUseCase,
+                                GetCurrentUserUseCase getCurrentUserUseCase,
+                                AuthCookieService authCookieService) {
+        this.adminLoginUseCase = adminLoginUseCase;
+        this.adminRefreshTokenUseCase = adminRefreshTokenUseCase;
+        this.adminLogoutUseCase = adminLogoutUseCase;
+        this.getCurrentUserUseCase = getCurrentUserUseCase;
+        this.authCookieService = authCookieService;
+    }
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, Object> body) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+                                                HttpServletResponse response) {
+        AuthTokenResult result = adminLoginUseCase.execute(
+                new LoginCommand(request.email(), request.password()));
+        authCookieService.addAdminRefreshCookie(response, result.refreshToken());
+        return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.expiresIn()));
     }
 
-    // Cấp lại access token admin từ refresh token cookie
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "${auth.cookie.admin-refresh-name}", required = false) String refreshTokenCookie) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<LoginResponse> refreshToken(
+            @CookieValue(name = "${auth.cookie.admin-refresh-name}", required = false) String refreshTokenCookie,
+            HttpServletResponse response) {
+        AuthTokenResult result = adminRefreshTokenUseCase.execute(
+                new RefreshTokenCommand(refreshTokenCookie));
+        authCookieService.addAdminRefreshCookie(response, result.refreshToken());
+        return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.expiresIn()));
     }
 
-    // Đăng xuất admin, xóa refresh token cookie
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
-            @CookieValue(name = "${auth.cookie.admin-refresh-name}", required = false) String refreshTokenCookie) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<Void> logout(
+            @CookieValue(name = "${auth.cookie.admin-refresh-name}", required = false) String refreshTokenCookie,
+            HttpServletResponse response) {
+        adminLogoutUseCase.execute(new LogoutCommand(refreshTokenCookie));
+        authCookieService.clearAdminRefreshCookie(response);
+        return ResponseEntity.ok().build();
     }
 
-    // Lấy thông tin admin hiện tại đang đăng nhập
     @GetMapping("/me")
-    public ResponseEntity<?> me() {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<UserProfileResult> me(@AuthenticationPrincipal UserDetails userDetails) {
+        UserProfileResult result = getCurrentUserUseCase.execute(userDetails.getUsername());
+        return ResponseEntity.ok(result);
     }
 }

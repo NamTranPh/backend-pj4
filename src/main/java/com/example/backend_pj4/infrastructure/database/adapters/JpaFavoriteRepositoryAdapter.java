@@ -10,15 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend_pj4.domain.model.ListFavorite;
 import com.example.backend_pj4.domain.repository.FavoriteRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.ListFavoritePersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataListFavoriteRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.ListFavoriteJpaRepository;
 
 @Repository
 public class JpaFavoriteRepositoryAdapter implements FavoriteRepository {
 
-    private final SpringDataListFavoriteRepository jpaRepository;
+    private final ListFavoriteJpaRepository jpaRepository;
     private final ListFavoritePersistenceMapper mapper;
 
-    public JpaFavoriteRepositoryAdapter(SpringDataListFavoriteRepository jpaRepository, ListFavoritePersistenceMapper mapper) {
+    public JpaFavoriteRepositoryAdapter(ListFavoriteJpaRepository jpaRepository, ListFavoritePersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

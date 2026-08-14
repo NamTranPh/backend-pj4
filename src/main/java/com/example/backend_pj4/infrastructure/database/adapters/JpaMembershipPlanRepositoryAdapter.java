@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.example.backend_pj4.domain.model.MembershipPlan;
 import com.example.backend_pj4.domain.repository.MembershipPlanRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.MembershipPlanPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataMembershipPlanRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.MembershipPlanJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,78 +17,78 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JpaMembershipPlanRepositoryAdapter implements MembershipPlanRepository {
 
-    private final SpringDataMembershipPlanRepository SpringDataMembershipPlanRepository;
-    private final MembershipPlanPersistenceMapper MembershipPlanPersistenceMapper;
+    private final MembershipPlanJpaRepository membershipPlanJpaRepository;
+    private final MembershipPlanPersistenceMapper membershipPlanPersistenceMapper;
 
     @Override
     public MembershipPlan save(MembershipPlan plan) {
-        var entity = MembershipPlanPersistenceMapper.toEntity(plan);
-        var saved = SpringDataMembershipPlanRepository.save(entity);
-        return MembershipPlanPersistenceMapper.toDomain(saved);
+        var entity = membershipPlanPersistenceMapper.toEntity(plan);
+        var saved = membershipPlanJpaRepository.save(entity);
+        return membershipPlanPersistenceMapper.toDomain(saved);
     }
 
     @Override
     public Optional<MembershipPlan> findById(String planId) {
-        return SpringDataMembershipPlanRepository.findById(planId)
-                .map(MembershipPlanPersistenceMapper::toDomain);
+        return membershipPlanJpaRepository.findById(planId)
+                .map(membershipPlanPersistenceMapper::toDomain);
     }
 
     @Override
     public List<MembershipPlan> findAll() {
-        return SpringDataMembershipPlanRepository.findAll().stream()
-                .map(MembershipPlanPersistenceMapper::toDomain)
+        return membershipPlanJpaRepository.findAll().stream()
+                .map(membershipPlanPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(String planId) {
-        SpringDataMembershipPlanRepository.deleteById(planId);
+        membershipPlanJpaRepository.deleteById(planId);
     }
 
     @Override
     public Optional<MembershipPlan> findByPlanName(String planName) {
-        return SpringDataMembershipPlanRepository.findAll().stream()
+        return membershipPlanJpaRepository.findAll().stream()
                 .filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(planName))
-                .map(MembershipPlanPersistenceMapper::toDomain)
+                .map(membershipPlanPersistenceMapper::toDomain)
                 .findFirst();
     }
 
     @Override
     public List<MembershipPlan> findActivePlans() {
-        return SpringDataMembershipPlanRepository.findByIsActiveTrue().stream()
-                .map(MembershipPlanPersistenceMapper::toDomain)
+        return membershipPlanJpaRepository.findByIsActiveTrue().stream()
+                .map(membershipPlanPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<MembershipPlan> findInactivePlans() {
-        return SpringDataMembershipPlanRepository.findAll().stream()
+        return membershipPlanJpaRepository.findAll().stream()
                 .filter(p -> !Boolean.TRUE.equals(p.getIsActive()))
-                .map(MembershipPlanPersistenceMapper::toDomain)
+                .map(membershipPlanPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<MembershipPlan> findByPriceRange(Double minPrice, Double maxPrice) {
-        return SpringDataMembershipPlanRepository.findAll().stream()
+        return membershipPlanJpaRepository.findAll().stream()
                 .filter(p -> p.getPrice() != null 
                         && p.getPrice().doubleValue() >= minPrice 
                         && p.getPrice().doubleValue() <= maxPrice)
-                .map(MembershipPlanPersistenceMapper::toDomain)
+                .map(membershipPlanPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<MembershipPlan> findByDurationDaysLessThanEqual(Integer maxDays) {
-        return SpringDataMembershipPlanRepository.findAll().stream()
+        return membershipPlanJpaRepository.findAll().stream()
                 .filter(p -> p.getDurationDays() != null && p.getDurationDays() <= maxDays)
-                .map(MembershipPlanPersistenceMapper::toDomain)
+                .map(membershipPlanPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public boolean existsByPlanName(String planName) {
-        return SpringDataMembershipPlanRepository.existsByName(planName);
+        return membershipPlanJpaRepository.existsByName(planName);
     }
 }
 

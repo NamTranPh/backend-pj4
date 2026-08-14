@@ -10,15 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend_pj4.domain.model.HistoryWatching;
 import com.example.backend_pj4.domain.repository.HistoryWatchingRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.HistoryWatchingPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataHistoryWatchingRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.HistoryWatchingJpaRepository;
 
 @Repository
 public class JpaHistoryWatchingRepositoryAdapter implements HistoryWatchingRepository {
 
-    private final SpringDataHistoryWatchingRepository jpaRepository;
+    private final HistoryWatchingJpaRepository jpaRepository;
     private final HistoryWatchingPersistenceMapper mapper;
 
-    public JpaHistoryWatchingRepositoryAdapter(SpringDataHistoryWatchingRepository jpaRepository, HistoryWatchingPersistenceMapper mapper) {
+    public JpaHistoryWatchingRepositoryAdapter(HistoryWatchingJpaRepository jpaRepository, HistoryWatchingPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

@@ -11,15 +11,15 @@ import com.example.backend_pj4.common.constants.enums.ReportTargetType;
 import com.example.backend_pj4.domain.model.Report;
 import com.example.backend_pj4.domain.repository.ReportRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.ReportPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataReportRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.ReportJpaRepository;
 
 @Repository
 public class JpaReportRepositoryAdapter implements ReportRepository {
 
-    private final SpringDataReportRepository jpaRepository;
+    private final ReportJpaRepository jpaRepository;
     private final ReportPersistenceMapper mapper;
 
-    public JpaReportRepositoryAdapter(SpringDataReportRepository jpaRepository, ReportPersistenceMapper mapper) {
+    public JpaReportRepositoryAdapter(ReportJpaRepository jpaRepository, ReportPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

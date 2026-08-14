@@ -7,5 +7,6 @@ import lombok.Data;
 @Data
 @ConfigurationProperties(prefix = "mail")
 public class MailProperties {
-    private String from;
+    private String fromAddress;
+    private String fromName;
 }

@@ -13,132 +13,132 @@ import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 import com.example.backend_pj4.domain.model.Movie;
 import com.example.backend_pj4.domain.repository.MovieRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.MoviePersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataMovieRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.MovieJpaRepository;
 
 @Repository
 public class JpaMovieRepositoryAdapter implements MovieRepository {
 
-    private final SpringDataMovieRepository SpringDataMovieRepository;
-    private final MoviePersistenceMapper MoviePersistenceMapper;
+    private final MovieJpaRepository movieJpaRepository;
+    private final MoviePersistenceMapper moviePersistenceMapper;
 
-    public JpaMovieRepositoryAdapter(SpringDataMovieRepository SpringDataMovieRepository, MoviePersistenceMapper MoviePersistenceMapper) {
-        this.SpringDataMovieRepository = SpringDataMovieRepository;
-        this.MoviePersistenceMapper = MoviePersistenceMapper;
+    public JpaMovieRepositoryAdapter(MovieJpaRepository movieJpaRepository, MoviePersistenceMapper moviePersistenceMapper) {
+        this.movieJpaRepository = movieJpaRepository;
+        this.moviePersistenceMapper = moviePersistenceMapper;
     }
 
     @Override
     public Movie save(Movie movie) {
-        return MoviePersistenceMapper.toDomain(SpringDataMovieRepository.save(MoviePersistenceMapper.toEntity(movie)));
+        return moviePersistenceMapper.toDomain(movieJpaRepository.save(moviePersistenceMapper.toEntity(movie)));
     }
 
     @Override
     public Optional<Movie> findById(String id) {
-        return SpringDataMovieRepository.findById(id).map(MoviePersistenceMapper::toDomain);
+        return movieJpaRepository.findById(id).map(moviePersistenceMapper::toDomain);
     }
 
     @Override
     public List<Movie> findAll() {
-        return SpringDataMovieRepository.findAll().stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findAll().stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(String id) {
-        SpringDataMovieRepository.deleteById(id);
+        movieJpaRepository.deleteById(id);
     }
 
     @Override
     public boolean existsById(String id) {
-        return SpringDataMovieRepository.existsById(id);
+        return movieJpaRepository.existsById(id);
     }
 
     @Override
     public List<Movie> findByTitleContaining(String title) {
-        return SpringDataMovieRepository.findByTitleContainingIgnoreCase(title).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByTitleContainingIgnoreCase(title).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByMovieType(MovieType movieType) {
-        return SpringDataMovieRepository.findByMovieType(movieType).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByMovieType(movieType).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByStatus(VideoStatus status) {
-        return SpringDataMovieRepository.findByStatus(status).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByStatus(status).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByVisibility(VideoVisibility visibility) {
-        return SpringDataMovieRepository.findByVisibility(visibility).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByVisibility(visibility).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByReleaseYear(Integer year) {
-        return SpringDataMovieRepository.findByReleaseYear(year).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByReleaseYear(year).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByReleaseYearBetween(Integer startYear, Integer endYear) {
-        return SpringDataMovieRepository.findByReleaseYearBetween(startYear, endYear).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByReleaseYearBetween(startYear, endYear).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByCountry(String country) {
-        return SpringDataMovieRepository.findByCountry(country).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByCountry(country).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByLanguage(String language) {
-        return SpringDataMovieRepository.findByLanguage(language).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByLanguage(language).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findPremiumMovies() {
-        return SpringDataMovieRepository.findByIsPremiumTrue().stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByIsPremiumTrue().stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findFeaturedMovies() {
-        return SpringDataMovieRepository.findByIsFeaturedTrue().stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByIsFeaturedTrue().stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findFreeMovies() {
-        return SpringDataMovieRepository.findByIsPremiumFalse().stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByIsPremiumFalse().stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findTopRated(int limit) {
-        return SpringDataMovieRepository.findTopRated(PageRequest.of(0, limit)).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findTopRated(PageRequest.of(0, limit)).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findMostViewed(int limit) {
-        return SpringDataMovieRepository.findMostViewed(PageRequest.of(0, limit)).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findMostViewed(PageRequest.of(0, limit)).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByGenre(String genreId) {
-        return SpringDataMovieRepository.findByGenreId(genreId).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByGenreId(genreId).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByGenres(List<String> genreIds) {
-        return SpringDataMovieRepository.findByGenreIds(genreIds).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByGenreIds(genreIds).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Movie> findByCreatedBy(String userId) {
-        return SpringDataMovieRepository.findByCreatedBy_Id(userId).stream().map(MoviePersistenceMapper::toDomain).collect(Collectors.toList());
+        return movieJpaRepository.findByCreatedBy_Id(userId).stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public long countByMovieType(MovieType movieType) {
-        return SpringDataMovieRepository.countByMovieType(movieType);
+        return movieJpaRepository.countByMovieType(movieType);
     }
 
     @Override
     public long countByStatus(VideoStatus status) {
-        return SpringDataMovieRepository.countByStatus(status);
+        return movieJpaRepository.countByStatus(status);
     }
 }
 

@@ -10,15 +10,15 @@ import org.springframework.stereotype.Repository;
 import com.example.backend_pj4.domain.model.OutboxEvent;
 import com.example.backend_pj4.domain.repository.OutboxEventRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.OutboxEventPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataOutboxEventRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.OutboxEventJpaRepository;
 
 @Repository
 public class JpaOutboxEventRepositoryAdapter implements OutboxEventRepository {
 
-    private final SpringDataOutboxEventRepository jpaRepository;
+    private final OutboxEventJpaRepository jpaRepository;
     private final OutboxEventPersistenceMapper mapper;
 
-    public JpaOutboxEventRepositoryAdapter(SpringDataOutboxEventRepository jpaRepository, OutboxEventPersistenceMapper mapper) {
+    public JpaOutboxEventRepositoryAdapter(OutboxEventJpaRepository jpaRepository, OutboxEventPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

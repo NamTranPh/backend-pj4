@@ -10,62 +10,62 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.domain.model.Episode;
 import com.example.backend_pj4.domain.repository.EpisodeRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.EpisodePersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataEpisodeRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.EpisodeJpaRepository;
 
 @Repository
 public class JpaEpisodeRepositoryAdapter implements EpisodeRepository {
 
-    private final SpringDataEpisodeRepository SpringDataEpisodeRepository;
-    private final EpisodePersistenceMapper EpisodePersistenceMapper;
+    private final EpisodeJpaRepository episodeJpaRepository;
+    private final EpisodePersistenceMapper episodePersistenceMapper;
 
-    public JpaEpisodeRepositoryAdapter(SpringDataEpisodeRepository SpringDataEpisodeRepository, EpisodePersistenceMapper EpisodePersistenceMapper) {
-        this.SpringDataEpisodeRepository = SpringDataEpisodeRepository;
-        this.EpisodePersistenceMapper = EpisodePersistenceMapper;
+    public JpaEpisodeRepositoryAdapter(EpisodeJpaRepository episodeJpaRepository, EpisodePersistenceMapper episodePersistenceMapper) {
+        this.episodeJpaRepository = episodeJpaRepository;
+        this.episodePersistenceMapper = episodePersistenceMapper;
     }
 
     @Override
     public Episode save(Episode episode) {
-        return EpisodePersistenceMapper.toDomain(SpringDataEpisodeRepository.save(EpisodePersistenceMapper.toEntity(episode)));
+        return episodePersistenceMapper.toDomain(episodeJpaRepository.save(episodePersistenceMapper.toEntity(episode)));
     }
 
     @Override
     public Optional<Episode> findById(String id) {
-        return SpringDataEpisodeRepository.findById(id).map(EpisodePersistenceMapper::toDomain);
+        return episodeJpaRepository.findById(id).map(episodePersistenceMapper::toDomain);
     }
 
     @Override
     public List<Episode> findAll() {
-        return SpringDataEpisodeRepository.findAll().stream().map(EpisodePersistenceMapper::toDomain).collect(Collectors.toList());
+        return episodeJpaRepository.findAll().stream().map(episodePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(String id) {
-        SpringDataEpisodeRepository.deleteById(id);
+        episodeJpaRepository.deleteById(id);
     }
 
     @Override
     public List<Episode> findByMovieId(String movieId) {
-        return SpringDataEpisodeRepository.findByMovie_Id(movieId).stream().map(EpisodePersistenceMapper::toDomain).collect(Collectors.toList());
+        return episodeJpaRepository.findByMovie_Id(movieId).stream().map(episodePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public Optional<Episode> findByMovieIdAndEpisodeNumber(String movieId, Integer episodeNumber) {
-        return SpringDataEpisodeRepository.findByMovie_IdAndEpisodeNumber(movieId, episodeNumber).map(EpisodePersistenceMapper::toDomain);
+        return episodeJpaRepository.findByMovie_IdAndEpisodeNumber(movieId, episodeNumber).map(episodePersistenceMapper::toDomain);
     }
 
     @Override
     public List<Episode> findByMovieIdOrderByEpisodeNumber(String movieId) {
-        return SpringDataEpisodeRepository.findByMovie_IdOrderByEpisodeNumberAsc(movieId).stream().map(EpisodePersistenceMapper::toDomain).collect(Collectors.toList());
+        return episodeJpaRepository.findByMovie_IdOrderByEpisodeNumberAsc(movieId).stream().map(episodePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Episode> findByStatus(VideoStatus status) {
-        return SpringDataEpisodeRepository.findByStatus(status).stream().map(EpisodePersistenceMapper::toDomain).collect(Collectors.toList());
+        return episodeJpaRepository.findByStatus(status).stream().map(episodePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public long countByMovieId(String movieId) {
-        return SpringDataEpisodeRepository.countByMovie_Id(movieId);
+        return episodeJpaRepository.countByMovie_Id(movieId);
     }
 }
 

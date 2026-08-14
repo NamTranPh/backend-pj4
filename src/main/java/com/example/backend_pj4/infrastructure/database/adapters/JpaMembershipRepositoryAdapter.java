@@ -11,7 +11,7 @@ import com.example.backend_pj4.common.constants.enums.MembershipPaymentStatus;
 import com.example.backend_pj4.domain.model.Membership;
 import com.example.backend_pj4.domain.repository.MembershipRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.MembershipPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataMembershipRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.MembershipJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,137 +19,137 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JpaMembershipRepositoryAdapter implements MembershipRepository {
 
-    private final SpringDataMembershipRepository SpringDataMembershipRepository;
-    private final MembershipPersistenceMapper MembershipPersistenceMapper;
+    private final MembershipJpaRepository membershipJpaRepository;
+    private final MembershipPersistenceMapper membershipPersistenceMapper;
 
     @Override
     public Membership save(Membership membership) {
-        var entity = MembershipPersistenceMapper.toEntity(membership);
-        var saved = SpringDataMembershipRepository.save(entity);
-        return MembershipPersistenceMapper.toDomain(saved);
+        var entity = membershipPersistenceMapper.toEntity(membership);
+        var saved = membershipJpaRepository.save(entity);
+        return membershipPersistenceMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Membership> findById(String memberId) {
-        return SpringDataMembershipRepository.findById(memberId)
-                .map(MembershipPersistenceMapper::toDomain);
+        return membershipJpaRepository.findById(memberId)
+                .map(membershipPersistenceMapper::toDomain);
     }
 
     @Override
     public List<Membership> findAll() {
-        return SpringDataMembershipRepository.findAll().stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findAll().stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(String memberId) {
-        SpringDataMembershipRepository.deleteById(memberId);
+        membershipJpaRepository.deleteById(memberId);
     }
 
     @Override
     public List<Membership> findByUserId(String userId) {
-        return SpringDataMembershipRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Membership> findActiveByUserId(String userId) {
-        return SpringDataMembershipRepository.findActiveMembershipByUserId(userId, LocalDate.now())
-                .map(MembershipPersistenceMapper::toDomain);
+        return membershipJpaRepository.findActiveMembershipByUserId(userId, LocalDate.now())
+                .map(membershipPersistenceMapper::toDomain);
     }
 
     @Override
     public List<Membership> findByUserIdOrderByEndDateDesc(String userId) {
-        return SpringDataMembershipRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findByPlanId(String planId) {
-        return SpringDataMembershipRepository.findAll().stream()
+        return membershipJpaRepository.findAll().stream()
                 .filter(m -> m.getPlan() != null && m.getPlan().getId().equals(planId))
-                .map(MembershipPersistenceMapper::toDomain)
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findByPaymentStatus(String paymentStatus) {
-        return SpringDataMembershipRepository.findByPaymentStatus(MembershipPaymentStatus.valueOf(paymentStatus)).stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findByPaymentStatus(MembershipPaymentStatus.valueOf(paymentStatus)).stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findActiveMemberships() {
-        return SpringDataMembershipRepository.findByIsActiveTrue().stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findByIsActiveTrue().stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findExpiredMemberships() {
-        return SpringDataMembershipRepository.findByEndDateBetween(LocalDate.MIN, LocalDate.now().minusDays(1)).stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findByEndDateBetween(LocalDate.MIN, LocalDate.now().minusDays(1)).stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findExpiringMemberships(LocalDate date) {
-        return SpringDataMembershipRepository.findByEndDateBetween(date, date.plusDays(7)).stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findByEndDateBetween(date, date.plusDays(7)).stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findByAutoRenewalTrue() {
-        return SpringDataMembershipRepository.findAll().stream()
+        return membershipJpaRepository.findAll().stream()
                 .filter(m -> Boolean.TRUE.equals(m.getAutoRenewal()))
-                .map(MembershipPersistenceMapper::toDomain)
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findExpiringWithAutoRenewal(LocalDate date) {
-        return SpringDataMembershipRepository.findByEndDateBetween(date, date.plusDays(7)).stream()
+        return membershipJpaRepository.findByEndDateBetween(date, date.plusDays(7)).stream()
                 .filter(m -> Boolean.TRUE.equals(m.getAutoRenewal()))
-                .map(MembershipPersistenceMapper::toDomain)
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findByEndDateBetween(LocalDate startDate, LocalDate endDate) {
-        return SpringDataMembershipRepository.findByEndDateBetween(startDate, endDate).stream()
-                .map(MembershipPersistenceMapper::toDomain)
+        return membershipJpaRepository.findByEndDateBetween(startDate, endDate).stream()
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Membership> findByStartDateBetween(LocalDate startDate, LocalDate endDate) {
-        return SpringDataMembershipRepository.findAll().stream()
+        return membershipJpaRepository.findAll().stream()
                 .filter(m -> m.getStartDate() != null 
                         && !m.getStartDate().isBefore(startDate) 
                         && !m.getStartDate().isAfter(endDate))
-                .map(MembershipPersistenceMapper::toDomain)
+                .map(membershipPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public long countByPlanId(String planId) {
-        return SpringDataMembershipRepository.findAll().stream()
+        return membershipJpaRepository.findAll().stream()
                 .filter(m -> m.getPlan() != null && m.getPlan().getId().equals(planId))
                 .count();
     }
 
     @Override
     public long countByPaymentStatus(String paymentStatus) {
-        return SpringDataMembershipRepository.countByPaymentStatus(MembershipPaymentStatus.valueOf(paymentStatus));
+        return membershipJpaRepository.countByPaymentStatus(MembershipPaymentStatus.valueOf(paymentStatus));
     }
 
     @Override
     public long countActiveMemberships() {
-        return SpringDataMembershipRepository.countByIsActiveTrue();
+        return membershipJpaRepository.countByIsActiveTrue();
     }
 }

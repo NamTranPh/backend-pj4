@@ -55,6 +55,15 @@ public class UserJpaEntity {
     @Column(name = "account_status")
     private AccountStatus accountStatus;
 
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts;
+
+    @Column(name = "first_failure_at")
+    private LocalDateTime firstFailureAt;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -125,6 +134,9 @@ public class UserJpaEntity {
     public void setRole(UserRole role) { this.role = role; }
     public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
     public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
+    public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
+    public void setFirstFailureAt(LocalDateTime firstFailureAt) { this.firstFailureAt = firstFailureAt; }
+    public void setLockedUntil(LocalDateTime lockedUntil) { this.lockedUntil = lockedUntil; }
     public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
 }
 

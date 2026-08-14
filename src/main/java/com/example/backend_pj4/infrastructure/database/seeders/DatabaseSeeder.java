@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import com.example.backend_pj4.common.constants.enums.AccountStatus;
 import com.example.backend_pj4.common.constants.enums.UserRole;
 import com.example.backend_pj4.infrastructure.database.entities.UserJpaEntity;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataUserRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.UserJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DatabaseSeeder implements CommandLineRunner {
 
-    private final SpringDataUserRepository userRepository;
+    private final UserJpaRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override

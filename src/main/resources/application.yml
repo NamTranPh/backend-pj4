@@ -32,16 +32,21 @@ spring:
         enabled: false   # Không dùng Redis repository -> tắt để bỏ đống cảnh báo khi khởi động
 
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
     properties:
       mail:
         smtp:
-          auth: ${MAIL_SMTP_AUTH:false}
+          auth: true
           starttls:
-            enable: ${MAIL_SMTP_STARTTLS_ENABLE:false}
+            enable: true
+
+  servlet:
+    multipart:
+      max-file-size: ${MULTIPART_MAX_FILE_SIZE:5000MB}
+      max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:5000MB}
 
   jpa:
     hibernate:
@@ -105,9 +110,11 @@ minio:
   bucket-raw: ${MINIO_BUCKET_RAW:movie-raw}
   bucket-processed: ${MINIO_BUCKET_PROCESSED:movie-processed}
   bucket-public: ${MINIO_BUCKET_PUBLIC:movie-public}
+  bucket-avatar: ${MINIO_BUCKET_AVATAR:avatars}
 
 mail:
-  from: ${MAIL_FROM:no-reply@localhost}
+  from-address: ${MAIL_FROM_ADDRESS:no-reply@localhost}
+  from-name: ${MAIL_FROM_NAME:System}
 
 # Actuator health check (DB / Redis / MinIO)
 management:

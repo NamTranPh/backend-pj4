@@ -9,15 +9,15 @@ import org.springframework.stereotype.Repository;
 import com.example.backend_pj4.domain.model.Notification;
 import com.example.backend_pj4.domain.repository.NotificationRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.NotificationPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataNotificationRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.NotificationJpaRepository;
 
 @Repository
 public class JpaNotificationRepositoryAdapter implements NotificationRepository {
 
-    private final SpringDataNotificationRepository jpaRepository;
+    private final NotificationJpaRepository jpaRepository;
     private final NotificationPersistenceMapper mapper;
 
-    public JpaNotificationRepositoryAdapter(SpringDataNotificationRepository jpaRepository, NotificationPersistenceMapper mapper) {
+    public JpaNotificationRepositoryAdapter(NotificationJpaRepository jpaRepository, NotificationPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

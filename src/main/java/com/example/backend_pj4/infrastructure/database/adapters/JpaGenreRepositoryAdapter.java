@@ -9,57 +9,57 @@ import org.springframework.stereotype.Repository;
 import com.example.backend_pj4.domain.model.Genre;
 import com.example.backend_pj4.domain.repository.GenreRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.GenrePersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataGenreRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.GenreJpaRepository;
 
 @Repository
 public class JpaGenreRepositoryAdapter implements GenreRepository {
 
-    private final SpringDataGenreRepository SpringDataGenreRepository;
-    private final GenrePersistenceMapper GenrePersistenceMapper;
+    private final GenreJpaRepository genreJpaRepository;
+    private final GenrePersistenceMapper genrePersistenceMapper;
 
-    public JpaGenreRepositoryAdapter(SpringDataGenreRepository SpringDataGenreRepository, GenrePersistenceMapper GenrePersistenceMapper) {
-        this.SpringDataGenreRepository = SpringDataGenreRepository;
-        this.GenrePersistenceMapper = GenrePersistenceMapper;
+    public JpaGenreRepositoryAdapter(GenreJpaRepository genreJpaRepository, GenrePersistenceMapper genrePersistenceMapper) {
+        this.genreJpaRepository = genreJpaRepository;
+        this.genrePersistenceMapper = genrePersistenceMapper;
     }
 
     @Override
     public Genre save(Genre genre) {
-        return GenrePersistenceMapper.toDomain(SpringDataGenreRepository.save(GenrePersistenceMapper.toEntity(genre)));
+        return genrePersistenceMapper.toDomain(genreJpaRepository.save(genrePersistenceMapper.toEntity(genre)));
     }
 
     @Override
     public Optional<Genre> findById(String id) {
-        return SpringDataGenreRepository.findById(id).map(GenrePersistenceMapper::toDomain);
+        return genreJpaRepository.findById(id).map(genrePersistenceMapper::toDomain);
     }
 
     @Override
     public List<Genre> findAll() {
-        return SpringDataGenreRepository.findAll().stream().map(GenrePersistenceMapper::toDomain).collect(Collectors.toList());
+        return genreJpaRepository.findAll().stream().map(genrePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(String id) {
-        SpringDataGenreRepository.deleteById(id);
+        genreJpaRepository.deleteById(id);
     }
 
     @Override
     public Optional<Genre> findByName(String name) {
-        return SpringDataGenreRepository.findByName(name).map(GenrePersistenceMapper::toDomain);
+        return genreJpaRepository.findByName(name).map(genrePersistenceMapper::toDomain);
     }
 
     @Override
     public boolean existsByName(String name) {
-        return SpringDataGenreRepository.existsByName(name);
+        return genreJpaRepository.existsByName(name);
     }
 
     @Override
     public List<Genre> findByNameContaining(String name) {
-        return SpringDataGenreRepository.findByNameContainingIgnoreCase(name).stream().map(GenrePersistenceMapper::toDomain).collect(Collectors.toList());
+        return genreJpaRepository.findByNameContainingIgnoreCase(name).stream().map(genrePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
     public List<Genre> findAllByIds(List<String> ids) {
-        return SpringDataGenreRepository.findAllById(ids).stream().map(GenrePersistenceMapper::toDomain).collect(Collectors.toList());
+        return genreJpaRepository.findAllById(ids).stream().map(genrePersistenceMapper::toDomain).collect(Collectors.toList());
     }
 }
 

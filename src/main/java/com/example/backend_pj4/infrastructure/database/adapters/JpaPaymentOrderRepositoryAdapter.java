@@ -10,15 +10,15 @@ import com.example.backend_pj4.common.constants.enums.PaymentOrderStatus;
 import com.example.backend_pj4.domain.model.PaymentOrder;
 import com.example.backend_pj4.domain.repository.PaymentOrderRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.PaymentOrderPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataPaymentOrderRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.PaymentOrderJpaRepository;
 
 @Repository
 public class JpaPaymentOrderRepositoryAdapter implements PaymentOrderRepository {
 
-    private final SpringDataPaymentOrderRepository jpaRepository;
+    private final PaymentOrderJpaRepository jpaRepository;
     private final PaymentOrderPersistenceMapper mapper;
 
-    public JpaPaymentOrderRepositoryAdapter(SpringDataPaymentOrderRepository jpaRepository, PaymentOrderPersistenceMapper mapper) {
+    public JpaPaymentOrderRepositoryAdapter(PaymentOrderJpaRepository jpaRepository, PaymentOrderPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

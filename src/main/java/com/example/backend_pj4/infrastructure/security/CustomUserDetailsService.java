@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.backend_pj4.common.constants.enums.AccountStatus;
 import com.example.backend_pj4.infrastructure.database.entities.UserJpaEntity;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataUserRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.UserJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final SpringDataUserRepository userRepository;
+    private final UserJpaRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

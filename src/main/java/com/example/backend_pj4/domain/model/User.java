@@ -21,6 +21,9 @@ public class User {
     private UserRole role;
     private Boolean emailVerified;
     private AccountStatus accountStatus;
+    private Integer failedLoginAttempts;
+    private LocalDateTime firstFailureAt;
+    private LocalDateTime lockedUntil;
     private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -9,15 +9,15 @@ import com.example.backend_pj4.common.constants.enums.OtpType;
 import com.example.backend_pj4.domain.model.OtpVerification;
 import com.example.backend_pj4.domain.repository.OtpVerificationRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.OtpVerificationPersistenceMapper;
-import com.example.backend_pj4.infrastructure.database.repositories.SpringDataOtpVerificationRepository;
+import com.example.backend_pj4.infrastructure.database.repositories.OtpVerificationJpaRepository;
 
 @Repository
 public class JpaOtpVerificationRepositoryAdapter implements OtpVerificationRepository {
 
-    private final SpringDataOtpVerificationRepository jpaRepository;
+    private final OtpVerificationJpaRepository jpaRepository;
     private final OtpVerificationPersistenceMapper mapper;
 
-    public JpaOtpVerificationRepositoryAdapter(SpringDataOtpVerificationRepository jpaRepository, OtpVerificationPersistenceMapper mapper) {
+    public JpaOtpVerificationRepositoryAdapter(OtpVerificationJpaRepository jpaRepository, OtpVerificationPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }

@@ -25,4 +25,7 @@ public class MinioProperties {
 
     /** Bucket public (poster, thumbnail) cho phép đọc trực tiếp. */
     private String bucketPublic;
+
+    /** Bucket chứa avatar/profile images. */
+    private String bucketAvatar;
 }
