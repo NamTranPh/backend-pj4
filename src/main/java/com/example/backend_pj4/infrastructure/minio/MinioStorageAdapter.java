@@ -1,17 +1,27 @@
 package com.example.backend_pj4.infrastructure.minio;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 
 import com.example.backend_pj4.application.port.out.FileStorageService;
 import com.example.backend_pj4.infrastructure.config.properties.MinioProperties;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 import io.minio.BucketExistsArgs;
+import io.minio.CreateMultipartUploadResponse;
+import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import io.minio.http.Method;
+import io.minio.messages.Part;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -19,10 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 public class MinioStorageAdapter implements FileStorageService {
 
     private final MinioClient minioClient;
+    private final CustomMinioClient customMinioClient;
     private final MinioProperties minioProperties;
 
-    public MinioStorageAdapter(MinioClient minioClient, MinioProperties minioProperties) {
+    public MinioStorageAdapter(MinioClient minioClient, CustomMinioClient customMinioClient, MinioProperties minioProperties) {
         this.minioClient = minioClient;
+        this.customMinioClient = customMinioClient;
         this.minioProperties = minioProperties;
     }
 
@@ -62,6 +74,61 @@ public class MinioStorageAdapter implements FileStorageService {
             base = base.substring(0, base.length() - 1);
         }
         return base + "/" + bucket + "/" + objectKey;
+    }
+
+    @Override
+    public String initiateMultipartUpload(String bucket, String objectKey) {
+        try {
+            ensureBucketExists(bucket);
+            Multimap<String, String> headers = HashMultimap.create();
+            headers.put("Content-Type", "application/octet-stream");
+            CreateMultipartUploadResponse response = customMinioClient
+                    .initMultipartUpload(bucket, null, objectKey, headers, null)
+                    .get();
+            return response.result().uploadId();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initiate multipart upload", e);
+        }
+    }
+
+    @Override
+    public String getPresignedUploadUrl(String bucket, String objectKey, String uploadId, int partNumber, int expirySeconds) {
+        try {
+            Map<String, String> queryParams = new HashMap<>();
+            queryParams.put("uploadId", uploadId);
+            queryParams.put("partNumber", String.valueOf(partNumber));
+
+            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .method(Method.PUT)
+                    .bucket(bucket)
+                    .object(objectKey)
+                    .expiry(expirySeconds, TimeUnit.SECONDS)
+                    .extraQueryParams(queryParams)
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate presigned URL", e);
+        }
+    }
+
+    @Override
+    public void completeMultipartUpload(String bucket, String objectKey, String uploadId, List<PartETag> parts) {
+        try {
+            Part[] minioParts = parts.stream()
+                    .map(p -> new Part(p.partNumber(), p.etag()))
+                    .toArray(Part[]::new);
+            customMinioClient.mergeMultipartUpload(bucket, null, objectKey, uploadId, minioParts, null, null).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to complete multipart upload", e);
+        }
+    }
+
+    @Override
+    public void abortMultipartUpload(String bucket, String objectKey, String uploadId) {
+        try {
+            customMinioClient.cancelMultipartUpload(bucket, null, objectKey, uploadId, null, null).get();
+        } catch (Exception e) {
+            log.warn("Failed to abort multipart upload: bucket={}, key={}, uploadId={}", bucket, objectKey, uploadId, e);
+        }
     }
 
     private void ensureBucketExists(String bucket) {

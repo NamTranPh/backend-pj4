@@ -26,7 +26,7 @@ import com.example.backend_pj4.presentation.upload.response.UploadResponse;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/v1/uploads")
+@RequestMapping("/v1/uploads")
 public class UploadController {
 
     private final UploadFileUseCase uploadFileUseCase;

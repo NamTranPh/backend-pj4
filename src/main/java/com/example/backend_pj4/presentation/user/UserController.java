@@ -34,7 +34,7 @@ import com.example.backend_pj4.presentation.user.request.UpdateProfileRequest;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/v1/users")
 public class UserController {
 
     private final GetCurrentUserUseCase getCurrentUserUseCase;

@@ -50,7 +50,7 @@ public class EmailOtpSender implements OtpSender {
                   <title>Xác thực tài khoản</title>
                 </head>
                 <body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,sans-serif;">
-                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:40px 16px;">
+                  <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:40px 16px;">
                     <tr>
                       <td align="center">
                         <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e0e0e0;">
@@ -71,7 +71,7 @@ public class EmailOtpSender implements OtpSender {
                                 Sử dụng mã OTP dưới đây để tiếp tục đăng ký.
                               </p>
                               <!-- OTP Box -->
-                              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                              <table width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                                 <tr>
                                   <td style="background:#f0f4f9;border:1px solid #d0dce8;border-radius:10px;padding:24px;text-align:center;">
                                     <p style="margin:0 0 8px;font-size:12px;color:#888;letter-spacing:1.5px;text-transform:uppercase;">
@@ -87,7 +87,7 @@ public class EmailOtpSender implements OtpSender {
                                 </tr>
                               </table>
                               <!-- Warning -->
-                              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                              <table width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                                 <tr>
                                   <td style="background:#fff8ec;border-left:3px solid #f0a500;border-radius:4px;padding:14px 16px;">
                                     <p style="margin:0;font-size:13px;color:#7a5200;line-height:1.6;">
@@ -135,7 +135,7 @@ public class EmailOtpSender implements OtpSender {
                   <title>Đặt lại mật khẩu</title>
                 </head>
                 <body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,sans-serif;">
-                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:40px 16px;">
+                  <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:40px 16px;">
                     <tr>
                       <td align="center">
                         <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e0e0e0;">
@@ -156,7 +156,7 @@ public class EmailOtpSender implements OtpSender {
                                 Sử dụng mã OTP dưới đây để tiếp tục. Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này.
                               </p>
                               <!-- OTP Box -->
-                              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                              <table width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                                 <tr>
                                   <td style="background:#fff4f4;border:1px solid #f5c6c6;border-radius:10px;padding:24px;text-align:center;">
                                     <p style="margin:0 0 8px;font-size:12px;color:#888;letter-spacing:1.5px;text-transform:uppercase;">
@@ -172,7 +172,7 @@ public class EmailOtpSender implements OtpSender {
                                 </tr>
                               </table>
                               <!-- Warning -->
-                              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                              <table width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                                 <tr>
                                   <td style="background:#fff8ec;border-left:3px solid #f0a500;border-radius:4px;padding:14px 16px;">
                                     <p style="margin:0;font-size:13px;color:#7a5200;line-height:1.6;">

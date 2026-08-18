@@ -16,6 +16,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "movie", indexes = {
+        @Index(name = "idx_movie_slug", columnList = "slug", unique = true),
         @Index(name = "idx_movie_movie_type", columnList = "movie_type"),
         @Index(name = "idx_movie_release_year", columnList = "release_year"),
         @Index(name = "idx_movie_rating", columnList = "rating"),
@@ -30,6 +31,9 @@ public class MovieJpaEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private String id;
+
+    @Column(name = "slug", unique = true, nullable = false, length = 255)
+    private String slug;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -191,6 +195,7 @@ public class MovieJpaEntity {
         this.watchingHistory = watchingHistory != null ? watchingHistory : new ArrayList<>();
     }
 
+    public void setSlug(String slug) { this.slug = slug; }
     public void setTitle(String title) { this.title = title; }
     public void setOriginalTitle(String originalTitle) { this.originalTitle = originalTitle; }
     public void setDescription(String description) { this.description = description; }

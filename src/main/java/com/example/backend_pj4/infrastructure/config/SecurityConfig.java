@@ -62,22 +62,24 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép public các route client xem phim
                         .requestMatchers(
-                                "/api/v1/auth/**",
-                                "/api/v1/movie/**",
-                                "/api/v1/genres/**",
+                                "/v1/auth/**",
+                                "/v1/movies/**",
+                                "/v1/genres/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/actuator/health"
                         )
                         .permitAll()
                         .requestMatchers("/docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         // Luồng auth admin: login/refresh/logout mở, còn lại (kể cả /me) yêu cầu ADMIN
                         .requestMatchers(
-                                "/api/v1/admin/auth/login",
-                                "/api/v1/admin/auth/refresh-token",
-                                "/api/v1/admin/auth/logout")
+                                "/v1/admin/auth/login",
+                                "/v1/admin/auth/refresh-token",
+                                "/v1/admin/auth/logout")
                         .permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
                         // Các API khác phải có token
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

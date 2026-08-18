@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/v1/auth")
 public class AuthController {
 
     private final RegisterUseCase registerUseCase;

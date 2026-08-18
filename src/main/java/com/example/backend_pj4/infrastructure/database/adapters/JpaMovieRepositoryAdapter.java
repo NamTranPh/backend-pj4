@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.backend_pj4.common.constants.enums.MovieType;
@@ -14,6 +16,7 @@ import com.example.backend_pj4.domain.model.Movie;
 import com.example.backend_pj4.domain.repository.MovieRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.MoviePersistenceMapper;
 import com.example.backend_pj4.infrastructure.database.repositories.MovieJpaRepository;
+import com.example.backend_pj4.infrastructure.database.specifications.MovieSpecification;
 
 @Repository
 public class JpaMovieRepositoryAdapter implements MovieRepository {
@@ -37,8 +40,38 @@ public class JpaMovieRepositoryAdapter implements MovieRepository {
     }
 
     @Override
+    public Optional<Movie> findBySlug(String slug) {
+        return movieJpaRepository.findBySlug(slug).map(moviePersistenceMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsBySlug(String slug) {
+        return movieJpaRepository.existsBySlug(slug);
+    }
+
+    @Override
+    public Optional<Movie> findByIdIncludingDeleted(String id) {
+        return movieJpaRepository.findByIdIncludingDeleted(id).map(moviePersistenceMapper::toDomain);
+    }
+
+    @Override
     public List<Movie> findAll() {
         return movieJpaRepository.findAll().stream().map(moviePersistenceMapper::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Movie> findAll(Pageable pageable) {
+        return movieJpaRepository.findAll(pageable).map(moviePersistenceMapper::toDomain);
+    }
+
+    @Override
+    public Page<Movie> findAllFiltered(String search, MovieType movieType, VideoStatus status,
+                                        String genreId, Integer year, String country,
+                                        boolean publicOnly, Pageable pageable) {
+        return movieJpaRepository.findAll(
+                MovieSpecification.buildFilter(search, movieType, status, genreId, year, country, publicOnly),
+                pageable
+        ).map(moviePersistenceMapper::toDomain);
     }
 
     @Override

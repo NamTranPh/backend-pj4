@@ -29,7 +29,7 @@ spring:
       password: ${REDIS_PASSWORD:}
       database: ${REDIS_DATABASE:0}
       repositories:
-        enabled: false   # Không dùng Redis repository -> tắt để bỏ đống cảnh báo khi khởi động
+        enabled: false # Không dùng Redis repository -> tắt để bỏ đống cảnh báo khi khởi động
 
   mail:
     host: ${SMTP_HOST:localhost}
@@ -51,11 +51,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update #   Khi đã dùng Flyway để quản lý schema => không dùng update nữa. dung lan 2 validate hoặc lan dau none
-    show-sql: true
+    show-sql: false # True -> Hibernate show SQL — mỗi lần JPA query DB nó in ra câu SQL, False thì tắt đi
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
+        format_sql: false # True -> Hibernate show SQL — mỗi lần JPA query DB nó in ra câu SQL, False thì tắt đi
     database-platform: org.hibernate.dialect.MySQLDialect
 
   security:
@@ -124,7 +124,7 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: always      # DEV: xem chi tiết từng thành phần. Prod nên đổi thành when-authorized
+      show-details: always # DEV: xem chi tiết từng thành phần. Prod nên đổi thành when-authorized
       show-components: always
 
 # Swagger Configuration

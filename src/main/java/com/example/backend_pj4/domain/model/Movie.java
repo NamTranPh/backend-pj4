@@ -15,6 +15,7 @@ import lombok.Getter;
 @Builder(toBuilder = true)
 public class Movie {
     private String id;
+    private String slug;
     private String title;
     private String originalTitle;
     private String description;

@@ -27,7 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/v1/admin/auth")
+@RequestMapping("/v1/admin/auth")
 public class AdminAuthController {
 
     private final AdminLoginUseCase adminLoginUseCase;

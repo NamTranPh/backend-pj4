@@ -27,6 +27,7 @@ public class MoviePersistenceMapper {
         if (entity == null) return null;
         return Movie.builder()
                 .id(entity.getId())
+                .slug(entity.getSlug())
                 .title(entity.getTitle())
                 .originalTitle(entity.getOriginalTitle())
                 .description(entity.getDescription())
@@ -63,6 +64,7 @@ public class MoviePersistenceMapper {
         if (domain == null) return null;
         MovieJpaEntity entity = new MovieJpaEntity();
         entity.setId(domain.getId());
+        entity.setSlug(domain.getSlug());
         entity.setTitle(domain.getTitle());
         entity.setOriginalTitle(domain.getOriginalTitle());
         entity.setDescription(domain.getDescription());
@@ -102,6 +104,7 @@ public class MoviePersistenceMapper {
         if (entity == null) return null;
         return Movie.builder()
                 .id(entity.getId())
+                .slug(entity.getSlug())
                 .title(entity.getTitle())
                 .posterUrl(entity.getPosterUrl())
                 .movieType(entity.getMovieType())

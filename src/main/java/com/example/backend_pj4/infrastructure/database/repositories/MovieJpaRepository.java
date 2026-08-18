@@ -2,8 +2,11 @@ package com.example.backend_pj4.infrastructure.database.repositories;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,7 +15,9 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 import com.example.backend_pj4.infrastructure.database.entities.MovieJpaEntity;
 
-public interface MovieJpaRepository extends JpaRepository<MovieJpaEntity, String> {
+public interface MovieJpaRepository extends JpaRepository<MovieJpaEntity, String>, JpaSpecificationExecutor<MovieJpaEntity> {
+    java.util.Optional<MovieJpaEntity> findBySlug(String slug);
+    boolean existsBySlug(String slug);
     List<MovieJpaEntity> findByTitleContainingIgnoreCase(String title);
     List<MovieJpaEntity> findByMovieType(MovieType movieType);
     List<MovieJpaEntity> findByStatus(VideoStatus status);
@@ -41,6 +46,17 @@ public interface MovieJpaRepository extends JpaRepository<MovieJpaEntity, String
 
     long countByMovieType(MovieType movieType);
     long countByStatus(VideoStatus status);
+
+    @Query(value = "SELECT * FROM movie WHERE id = :id", nativeQuery = true)
+    java.util.Optional<MovieJpaEntity> findByIdIncludingDeleted(@Param("id") String id);
+
+    @Modifying
+    @Query(value = "UPDATE episode SET deleted_at = NOW() WHERE movie_id = :movieId AND deleted_at IS NULL", nativeQuery = true)
+    void softDeleteEpisodesByMovieId(@Param("movieId") String movieId);
+
+    @Modifying
+    @Query(value = "UPDATE episode SET deleted_at = NULL WHERE movie_id = :movieId AND deleted_at IS NOT NULL", nativeQuery = true)
+    void restoreEpisodesByMovieId(@Param("movieId") String movieId);
 }
 
 

@@ -31,6 +31,31 @@ public enum ErrorCode {
     REFRESH_TOKEN_REVOKED("Refresh token has been revoked.", HttpStatus.UNAUTHORIZED),
     ADMIN_ROLE_REQUIRED("Admin role is required.", HttpStatus.FORBIDDEN),
 
+    // ===== GENRE =====
+    GENRE_NOT_FOUND("Genre not found.", HttpStatus.NOT_FOUND),
+    GENRE_NAME_ALREADY_EXISTS("Genre name already exists.", HttpStatus.CONFLICT),
+
+    // ===== MOVIE =====
+    MOVIE_NOT_FOUND("Movie not found.", HttpStatus.NOT_FOUND),
+    MOVIE_NOT_SERIES("Movie is not a series type.", HttpStatus.BAD_REQUEST),
+    MOVIE_ALREADY_DELETED("Movie is already deleted.", HttpStatus.BAD_REQUEST),
+    MOVIE_NOT_DELETED("Movie is not deleted, cannot restore.", HttpStatus.BAD_REQUEST),
+    INVALID_GENRE_IDS("One or more genre IDs are invalid.", HttpStatus.BAD_REQUEST),
+
+    // ===== VIDEO UPLOAD =====
+    UPLOAD_SESSION_NOT_FOUND("Upload session not found.", HttpStatus.NOT_FOUND),
+    UPLOAD_SESSION_EXPIRED("Upload session has expired.", HttpStatus.BAD_REQUEST),
+    UPLOAD_INVALID_FILE_SIZE("File size is invalid.", HttpStatus.BAD_REQUEST),
+    UPLOAD_MISSING_PARTS("Some parts are missing.", HttpStatus.BAD_REQUEST),
+    UPLOAD_ALREADY_COMPLETED("Upload is already completed.", HttpStatus.CONFLICT),
+
+    // ===== EPISODE =====
+    EPISODE_NOT_FOUND("Episode not found.", HttpStatus.NOT_FOUND),
+    EPISODE_NUMBER_ALREADY_EXISTS("Episode number already exists for this movie.", HttpStatus.CONFLICT),
+
+    // ===== FILE =====
+    INVALID_FILE_TYPE("Invalid file type.", HttpStatus.BAD_REQUEST),
+
     // ===== SYSTEM & FRAMEWORK =====
     BAD_CREDENTIALS("Bad credentials.", HttpStatus.UNAUTHORIZED),
     VALIDATION_FAILED("Validation failed.", HttpStatus.BAD_REQUEST),

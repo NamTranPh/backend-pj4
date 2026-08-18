@@ -13,8 +13,10 @@ public class GenrePersistenceMapper {
         return Genre.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .slug(entity.getSlug())
                 .icon(entity.getIcon())
                 .description(entity.getDescription())
+                .status(entity.getStatus())
                 .deletedAt(entity.getDeletedAt())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
@@ -26,8 +28,10 @@ public class GenrePersistenceMapper {
         GenreJpaEntity entity = new GenreJpaEntity();
         entity.setId(domain.getId());
         entity.setName(domain.getName());
+        entity.setSlug(domain.getSlug());
         entity.setIcon(domain.getIcon());
         entity.setDescription(domain.getDescription());
+        entity.setStatus(domain.getStatus());
         entity.setDeletedAt(domain.getDeletedAt());
         return entity;
     }
