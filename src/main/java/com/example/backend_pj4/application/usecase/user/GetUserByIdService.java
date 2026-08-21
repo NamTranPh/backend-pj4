@@ -14,16 +14,18 @@ import com.example.backend_pj4.domain.repository.UserRepository;
 public class GetUserByIdService implements GetUserByIdUseCase {
 
     private final UserRepository userRepository;
+    private final UserResultMapper userResultMapper;
 
-    public GetUserByIdService(UserRepository userRepository) {
+    public GetUserByIdService(UserRepository userRepository, UserResultMapper userResultMapper) {
         this.userRepository = userRepository;
+        this.userResultMapper = userResultMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserProfileResult execute(String userId) {
         return userRepository.findById(userId)
-                .map(UserResultMapper::toResult)
+                .map(userResultMapper::toResult)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }

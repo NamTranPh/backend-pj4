@@ -3,18 +3,25 @@ package com.example.backend_pj4.application.mapper;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 import com.example.backend_pj4.application.dto.episode.EpisodeResult;
 import com.example.backend_pj4.application.dto.genre.GenreResult;
 import com.example.backend_pj4.application.dto.movie.MovieDetailResult;
 import com.example.backend_pj4.application.dto.movie.MovieResult;
+import com.example.backend_pj4.application.service.StorageUrlResolver;
 import com.example.backend_pj4.domain.model.Movie;
 
-public final class MovieResultMapper {
+@Component
+public class MovieResultMapper {
 
-    private MovieResultMapper() {
+    private final StorageUrlResolver storageUrlResolver;
+
+    public MovieResultMapper(StorageUrlResolver storageUrlResolver) {
+        this.storageUrlResolver = storageUrlResolver;
     }
 
-    public static MovieResult toResult(Movie movie) {
+    public MovieResult toResult(Movie movie) {
         List<GenreResult> genres = movie.getGenres() != null
                 ? movie.getGenres().stream().map(GenreResultMapper::toResult).toList()
                 : Collections.emptyList();
@@ -32,8 +39,8 @@ public final class MovieResultMapper {
                 movie.getCountry(),
                 movie.getLanguage(),
                 movie.getTrailerUrl(),
-                movie.getPosterUrl(),
-                movie.getBackdropUrl(),
+                storageUrlResolver.resolvePublicImage(movie.getPosterUrl()),
+                storageUrlResolver.resolvePublicImage(movie.getBackdropUrl()),
                 movie.getMovieType(),
                 movie.getTotalEpisodes(),
                 movie.getStatus(),
@@ -48,7 +55,7 @@ public final class MovieResultMapper {
         );
     }
 
-    public static MovieDetailResult toDetailResult(Movie movie, List<EpisodeResult> episodes) {
+    public MovieDetailResult toDetailResult(Movie movie, List<EpisodeResult> episodes) {
         List<GenreResult> genres = movie.getGenres() != null
                 ? movie.getGenres().stream().map(GenreResultMapper::toResult).toList()
                 : Collections.emptyList();
@@ -68,8 +75,8 @@ public final class MovieResultMapper {
                 movie.getCountry(),
                 movie.getLanguage(),
                 movie.getTrailerUrl(),
-                movie.getPosterUrl(),
-                movie.getBackdropUrl(),
+                storageUrlResolver.resolvePublicImage(movie.getPosterUrl()),
+                storageUrlResolver.resolvePublicImage(movie.getBackdropUrl()),
                 movie.getMovieType(),
                 movie.getTotalEpisodes(),
                 movie.getStatus(),

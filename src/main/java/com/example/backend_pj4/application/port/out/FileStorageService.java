@@ -7,6 +7,7 @@ public interface FileStorageService {
     String upload(String bucket, String folder, String filename, InputStream data, long size, String contentType);
     void delete(String bucket, String objectKey);
     String getPublicUrl(String bucket, String objectKey);
+    String getPresignedGetUrl(String bucket, String objectKey, int expirySeconds);
 
     String initiateMultipartUpload(String bucket, String objectKey);
     String getPresignedUploadUrl(String bucket, String objectKey, String uploadId, int partNumber, int expirySeconds);

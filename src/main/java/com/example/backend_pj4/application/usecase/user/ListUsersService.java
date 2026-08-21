@@ -14,16 +14,18 @@ import com.example.backend_pj4.domain.repository.UserRepository;
 public class ListUsersService implements ListUsersUseCase {
 
     private final UserRepository userRepository;
+    private final UserResultMapper userResultMapper;
 
-    public ListUsersService(UserRepository userRepository) {
+    public ListUsersService(UserRepository userRepository, UserResultMapper userResultMapper) {
         this.userRepository = userRepository;
+        this.userResultMapper = userResultMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<UserProfileResult> execute() {
         return userRepository.findAll().stream()
-                .map(UserResultMapper::toResult)
+                .map(userResultMapper::toResult)
                 .toList();
     }
 }

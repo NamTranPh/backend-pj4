@@ -11,17 +11,16 @@ import com.example.backend_pj4.common.constants.enums.MovieType;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.domain.model.Movie;
 import com.example.backend_pj4.domain.repository.MovieRepository;
-import com.example.backend_pj4.infrastructure.database.repositories.MovieJpaRepository;
 
 @Service
 public class RestoreMovieService implements RestoreMovieUseCase {
 
     private final MovieRepository movieRepository;
-    private final MovieJpaRepository movieJpaRepository;
+    private final MovieResultMapper movieResultMapper;
 
-    public RestoreMovieService(MovieRepository movieRepository, MovieJpaRepository movieJpaRepository) {
+    public RestoreMovieService(MovieRepository movieRepository, MovieResultMapper movieResultMapper) {
         this.movieRepository = movieRepository;
-        this.movieJpaRepository = movieJpaRepository;
+        this.movieResultMapper = movieResultMapper;
     }
 
     @Override
@@ -35,11 +34,11 @@ public class RestoreMovieService implements RestoreMovieUseCase {
         }
 
         if (movie.getMovieType() == MovieType.SERIES) {
-            movieJpaRepository.restoreEpisodesByMovieId(id);
+            movieRepository.restoreEpisodesByMovieId(id);
         }
 
         Movie restored = movie.toBuilder().deletedAt(null).build();
         Movie saved = movieRepository.save(restored);
-        return MovieResultMapper.toResult(saved);
+        return movieResultMapper.toResult(saved);
     }
 }

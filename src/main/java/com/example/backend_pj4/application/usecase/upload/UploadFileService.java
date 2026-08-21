@@ -14,6 +14,8 @@ import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.constants.enums.UploadType;
 import com.example.backend_pj4.common.constants.enums.UserRole;
 import com.example.backend_pj4.common.exceptions.CustomException;
+import com.example.backend_pj4.domain.model.User;
+import com.example.backend_pj4.domain.repository.UserRepository;
 import com.example.backend_pj4.infrastructure.config.properties.MinioProperties;
 
 @Service
@@ -25,11 +27,14 @@ public class UploadFileService implements UploadFileUseCase {
 
     private final FileStorageService fileStorageService;
     private final MinioProperties minioProperties;
+    private final UserRepository userRepository;
 
     public UploadFileService(FileStorageService fileStorageService,
-                             MinioProperties minioProperties) {
+                             MinioProperties minioProperties,
+                             UserRepository userRepository) {
         this.fileStorageService = fileStorageService;
         this.minioProperties = minioProperties;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -50,9 +55,17 @@ public class UploadFileService implements UploadFileUseCase {
         String filename = UUID.randomUUID() + "." + ext;
 
         String objectKey = fileStorageService.upload(bucket, folder, filename, command.data(), command.size(), contentType);
-        String publicUrl = fileStorageService.getPublicUrl(bucket, objectKey);
 
-        return new UploadResult(publicUrl, objectKey);
+        if (type == UploadType.AVATAR && command.userId() != null) {
+            User user = userRepository.findById(command.userId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+            userRepository.save(user.toBuilder().profileUrl(objectKey).build());
+        }
+
+        String previewUrl = (type == UploadType.AVATAR || type == UploadType.POSTER)
+                ? fileStorageService.getPublicUrl(bucket, objectKey)
+                : fileStorageService.getPresignedGetUrl(bucket, objectKey, 3600);
+        return new UploadResult(previewUrl, objectKey);
     }
 
     private void validateContentType(UploadType type, String contentType) {

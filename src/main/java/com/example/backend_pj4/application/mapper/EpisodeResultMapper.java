@@ -1,14 +1,21 @@
 package com.example.backend_pj4.application.mapper;
 
+import org.springframework.stereotype.Component;
+
 import com.example.backend_pj4.application.dto.episode.EpisodeResult;
+import com.example.backend_pj4.application.service.StorageUrlResolver;
 import com.example.backend_pj4.domain.model.Episode;
 
-public final class EpisodeResultMapper {
+@Component
+public class EpisodeResultMapper {
 
-    private EpisodeResultMapper() {
+    private final StorageUrlResolver storageUrlResolver;
+
+    public EpisodeResultMapper(StorageUrlResolver storageUrlResolver) {
+        this.storageUrlResolver = storageUrlResolver;
     }
 
-    public static EpisodeResult toResult(Episode episode) {
+    public EpisodeResult toResult(Episode episode) {
         return new EpisodeResult(
                 episode.getId(),
                 episode.getMovieId(),
@@ -17,7 +24,7 @@ public final class EpisodeResultMapper {
                 episode.getDescription(),
                 episode.getDuration(),
                 episode.getStatus(),
-                episode.getThumbnailUrl(),
+                storageUrlResolver.resolvePublicImage(episode.getThumbnailUrl()),
                 episode.getRawFileKey(),
                 episode.getMasterPlaylistKey(),
                 episode.getAirDate(),

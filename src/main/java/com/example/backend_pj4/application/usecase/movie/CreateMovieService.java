@@ -10,6 +10,7 @@ import com.example.backend_pj4.application.command.movie.CreateMovieCommand;
 import com.example.backend_pj4.application.dto.movie.MovieResult;
 import com.example.backend_pj4.application.mapper.MovieResultMapper;
 import com.example.backend_pj4.application.port.in.movie.CreateMovieUseCase;
+
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
@@ -28,11 +29,13 @@ public class CreateMovieService implements CreateMovieUseCase {
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
     private final UserRepository userRepository;
+    private final MovieResultMapper movieResultMapper;
 
-    public CreateMovieService(MovieRepository movieRepository, GenreRepository genreRepository, UserRepository userRepository) {
+    public CreateMovieService(MovieRepository movieRepository, GenreRepository genreRepository, UserRepository userRepository, MovieResultMapper movieResultMapper) {
         this.movieRepository = movieRepository;
         this.genreRepository = genreRepository;
         this.userRepository = userRepository;
+        this.movieResultMapper = movieResultMapper;
     }
 
     @Override
@@ -76,6 +79,6 @@ public class CreateMovieService implements CreateMovieUseCase {
                 .build();
 
         Movie saved = movieRepository.save(movie);
-        return MovieResultMapper.toResult(saved);
+        return movieResultMapper.toResult(saved);
     }
 }

@@ -21,10 +21,12 @@ public class CreateEpisodeService implements CreateEpisodeUseCase {
 
     private final MovieRepository movieRepository;
     private final EpisodeRepository episodeRepository;
+    private final EpisodeResultMapper episodeResultMapper;
 
-    public CreateEpisodeService(MovieRepository movieRepository, EpisodeRepository episodeRepository) {
+    public CreateEpisodeService(MovieRepository movieRepository, EpisodeRepository episodeRepository, EpisodeResultMapper episodeResultMapper) {
         this.movieRepository = movieRepository;
         this.episodeRepository = episodeRepository;
+        this.episodeResultMapper = episodeResultMapper;
     }
 
     @Override
@@ -53,6 +55,6 @@ public class CreateEpisodeService implements CreateEpisodeUseCase {
                 .build();
 
         Episode saved = episodeRepository.save(episode);
-        return EpisodeResultMapper.toResult(saved);
+        return episodeResultMapper.toResult(saved);
     }
 }

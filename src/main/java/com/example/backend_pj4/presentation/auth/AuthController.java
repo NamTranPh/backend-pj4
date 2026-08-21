@@ -20,10 +20,14 @@ import com.example.backend_pj4.presentation.auth.response.LoginResponse;
 import com.example.backend_pj4.presentation.auth.response.RegisterResponse;
 
 import jakarta.servlet.http.HttpServletResponse;
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Auth")
 @RestController
-@RequestMapping("/v1/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final RegisterUseCase registerUseCase;
@@ -62,6 +66,7 @@ public class AuthController {
         this.authCookieService = authCookieService;
     }
 
+    @Operation(summary = "Đăng ký tài khoản người dùng mới. Quyền truy cập: Public (Công khai).")
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResult result = registerUseCase.execute(
@@ -70,6 +75,7 @@ public class AuthController {
                 .body(new RegisterResponse(result.userId(), result.email(), result.otpSent()));
     }
 
+    @Operation(summary = "Xác thực mã OTP đăng ký tài khoản. Quyền truy cập: Public (Công khai).")
     @PostMapping("/verify-registration")
     public ResponseEntity<Void> verifyRegistration(@Valid @RequestBody VerifyRegistrationRequest request) {
         verifyRegistrationUseCase.execute(
@@ -77,6 +83,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Gửi lại mã OTP xác thực đăng ký tài khoản. Quyền truy cập: Public (Công khai).")
     @PostMapping("/resend-registration-otp")
     public ResponseEntity<Void> resendRegistrationOtp(@Valid @RequestBody ResendRegistrationOtpRequest request) {
         resendRegistrationOtpUseCase.execute(
@@ -84,6 +91,7 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Đăng nhập tài khoản người dùng. Quyền truy cập: Public (Công khai).")
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
                                                 HttpServletResponse response) {
@@ -93,6 +101,8 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.expiresIn()));
     }
 
+    @Operation(summary = "Làm mới Access Token bằng Refresh Token Cookie. Quyền truy cập: Người dùng đã đăng nhập.")
+    @AuthRequired
     @PostMapping("/refresh-token")
     public ResponseEntity<LoginResponse> refreshToken(
             @CookieValue(name = "${auth.cookie.refresh-name}", required = false) String refreshTokenCookie,
@@ -103,6 +113,8 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.expiresIn()));
     }
 
+    @Operation(summary = "Đăng xuất tài khoản và xóa Refresh Token Cookie. Quyền truy cập: Người dùng đã đăng nhập.")
+    @AuthRequired
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(name = "${auth.cookie.refresh-name}", required = false) String refreshTokenCookie,
@@ -112,12 +124,14 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Gửi mã OTP yêu cầu quên mật khẩu. Quyền truy cập: Public (Công khai).")
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         forgotPasswordUseCase.execute(new ForgotPasswordCommand(request.email()));
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Đặt lại mật khẩu mới bằng mã OTP. Quyền truy cập: Public (Công khai).")
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         resetPasswordUseCase.execute(
@@ -125,6 +139,8 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Đổi mật khẩu tài khoản. Quyền truy cập: Người dùng đã đăng nhập.")
+    @AuthRequired
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request,
                                                 @AuthenticationPrincipal UserDetails userDetails) {

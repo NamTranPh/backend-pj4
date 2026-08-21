@@ -20,10 +20,12 @@ public class UploadEpisodeThumbnailService implements UploadEpisodeThumbnailUseC
     private static final String BUCKET = "movie-public";
     private final EpisodeRepository episodeRepository;
     private final FileStorageService fileStorageService;
+    private final EpisodeResultMapper episodeResultMapper;
 
-    public UploadEpisodeThumbnailService(EpisodeRepository episodeRepository, FileStorageService fileStorageService) {
+    public UploadEpisodeThumbnailService(EpisodeRepository episodeRepository, FileStorageService fileStorageService, EpisodeResultMapper episodeResultMapper) {
         this.episodeRepository = episodeRepository;
         this.fileStorageService = fileStorageService;
+        this.episodeResultMapper = episodeResultMapper;
     }
 
     @Override
@@ -43,10 +45,9 @@ public class UploadEpisodeThumbnailService implements UploadEpisodeThumbnailUseC
         String folder = "movies/" + movieId + "/episodes/" + episodeId;
         String ext = filename.contains(".") ? filename.substring(filename.lastIndexOf(".")) : ".jpg";
         String objectKey = fileStorageService.upload(BUCKET, folder, "thumbnail" + ext, data, size, contentType);
-        String url = fileStorageService.getPublicUrl(BUCKET, objectKey);
 
-        Episode updated = episode.toBuilder().thumbnailUrl(url).build();
+        Episode updated = episode.toBuilder().thumbnailUrl(objectKey).build();
         Episode saved = episodeRepository.save(updated);
-        return EpisodeResultMapper.toResult(saved);
+        return episodeResultMapper.toResult(saved);
     }
 }

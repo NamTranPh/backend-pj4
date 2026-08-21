@@ -1,8 +1,6 @@
 # Set up Connection
 server:
   port: ${SERVER_PORT:3004} # lấy từ .env, default 3004
-  servlet:
-    context-path: /api
 
 spring:
   application:

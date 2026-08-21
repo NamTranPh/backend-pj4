@@ -173,6 +173,16 @@ public class JpaMovieRepositoryAdapter implements MovieRepository {
     public long countByStatus(VideoStatus status) {
         return movieJpaRepository.countByStatus(status);
     }
+
+    @Override
+    public void softDeleteEpisodesByMovieId(String movieId) {
+        movieJpaRepository.softDeleteEpisodesByMovieId(movieId);
+    }
+
+    @Override
+    public void restoreEpisodesByMovieId(String movieId) {
+        movieJpaRepository.restoreEpisodesByMovieId(movieId);
+    }
 }
 
 

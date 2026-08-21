@@ -31,10 +31,15 @@ import com.example.backend_pj4.application.port.in.user.UpdateUserProfileUseCase
 import com.example.backend_pj4.presentation.user.request.ToggleBanRequest;
 import com.example.backend_pj4.presentation.user.request.UpdateProfileRequest;
 
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Account")
+@AuthRequired
 @RestController
-@RequestMapping("/v1/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final GetCurrentUserUseCase getCurrentUserUseCase;
@@ -58,11 +63,13 @@ public class UserController {
         this.deleteAvatarUseCase = deleteAvatarUseCase;
     }
 
+    @Operation(summary = "Lấy thông tin profile cá nhân của tôi. Quyền truy cập: Người dùng đã đăng nhập.")
     @GetMapping("/me")
     public ResponseEntity<UserProfileResult> getMe(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(getCurrentUserUseCase.execute(userDetails.getUsername()));
     }
 
+    @Operation(summary = "Cập nhật thông tin profile cá nhân. Quyền truy cập: Người dùng đã đăng nhập.")
     @PatchMapping("/me")
     public ResponseEntity<UserProfileResult> updateMe(@Valid @RequestBody UpdateProfileRequest request,
                                                        @AuthenticationPrincipal UserDetails userDetails) {
@@ -73,7 +80,7 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
-
+    @Operation(summary = "Xóa ảnh đại diện avatar cá nhân. Quyền truy cập: Người dùng đã đăng nhập.")
     @DeleteMapping("/me/avatar")
     public ResponseEntity<Void> deleteAvatar(@AuthenticationPrincipal UserDetails userDetails) {
         String userId = getCurrentUserUseCase.execute(userDetails.getUsername()).id();
@@ -81,18 +88,21 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Lấy danh sách tất cả người dùng. Quyền truy cập: ADMIN.")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserProfileResult>> getUsers() {
         return ResponseEntity.ok(listUsersUseCase.execute());
     }
 
+    @Operation(summary = "Lấy chi tiết người dùng theo ID. Quyền truy cập: ADMIN.")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserProfileResult> getById(@PathVariable String id) {
         return ResponseEntity.ok(getUserByIdUseCase.execute(id));
     }
 
+    @Operation(summary = "Khóa hoặc mở khóa tài khoản người dùng theo ID. Quyền truy cập: ADMIN.")
     @PatchMapping("/{id}/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> toggleBan(@PathVariable String id,

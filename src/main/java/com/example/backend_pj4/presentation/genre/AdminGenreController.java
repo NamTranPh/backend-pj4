@@ -24,10 +24,15 @@ import com.example.backend_pj4.application.port.in.genre.UpdateGenreUseCase;
 import com.example.backend_pj4.presentation.genre.request.CreateGenreRequest;
 import com.example.backend_pj4.presentation.genre.request.UpdateGenreRequest;
 
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Genres - Admin")
+@AuthRequired
 @RestController
-@RequestMapping("/v1/admin/genres")
+@RequestMapping("/api/v1/admin/genres")
 public class AdminGenreController {
 
     private final CreateGenreUseCase createGenreUseCase;
@@ -50,6 +55,7 @@ public class AdminGenreController {
         this.deleteGenreUseCase = deleteGenreUseCase;
     }
 
+    @Operation(summary = "Tạo mới thể loại phim. Quyền truy cập: ADMIN.")
     @PostMapping
     public ResponseEntity<GenreResult> create(@Valid @RequestBody CreateGenreRequest request) {
         GenreResult result = createGenreUseCase.execute(
@@ -57,6 +63,7 @@ public class AdminGenreController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @Operation(summary = "Cập nhật thể loại phim theo ID. Quyền truy cập: ADMIN.")
     @PutMapping("/{id}")
     public ResponseEntity<GenreResult> update(
             @PathVariable String id,
@@ -67,11 +74,13 @@ public class AdminGenreController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Lấy chi tiết thể loại phim theo Slug. Quyền truy cập: ADMIN.")
     @GetMapping("/{slug}")
     public ResponseEntity<GenreResult> getBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(getGenreByIdUseCase.execute(slug));
     }
 
+    @Operation(summary = "Lấy danh sách tất cả thể loại phim cho quản trị viên. Quyền truy cập: ADMIN.")
     @GetMapping
     public Page<GenreResult> list(
             @RequestParam(required = false) String search,
@@ -81,6 +90,7 @@ public class AdminGenreController {
         return listGenresUseCase.execute(search, Math.max(0, page - 1), limit, false);
     }
 
+    @Operation(summary = "Xóa mềm thể loại phim theo ID. Quyền truy cập: ADMIN.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         deleteGenreUseCase.execute(id);

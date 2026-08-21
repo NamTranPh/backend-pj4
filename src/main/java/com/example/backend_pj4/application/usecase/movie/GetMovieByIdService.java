@@ -23,10 +23,14 @@ public class GetMovieByIdService implements GetMovieByIdUseCase {
 
     private final MovieRepository movieRepository;
     private final EpisodeRepository episodeRepository;
+    private final MovieResultMapper movieResultMapper;
+    private final EpisodeResultMapper episodeResultMapper;
 
-    public GetMovieByIdService(MovieRepository movieRepository, EpisodeRepository episodeRepository) {
+    public GetMovieByIdService(MovieRepository movieRepository, EpisodeRepository episodeRepository, MovieResultMapper movieResultMapper, EpisodeResultMapper episodeResultMapper) {
         this.movieRepository = movieRepository;
         this.episodeRepository = episodeRepository;
+        this.movieResultMapper = movieResultMapper;
+        this.episodeResultMapper = episodeResultMapper;
     }
 
     @Override
@@ -40,10 +44,10 @@ public class GetMovieByIdService implements GetMovieByIdUseCase {
         if (movie.getMovieType() == MovieType.SERIES) {
             episodes = episodeRepository.findByMovieIdOrderByEpisodeNumber(movie.getId())
                     .stream()
-                    .map(EpisodeResultMapper::toResult)
+                    .map(episodeResultMapper::toResult)
                     .toList();
         }
 
-        return MovieResultMapper.toDetailResult(movie, episodes);
+        return movieResultMapper.toDetailResult(movie, episodes);
     }
 }

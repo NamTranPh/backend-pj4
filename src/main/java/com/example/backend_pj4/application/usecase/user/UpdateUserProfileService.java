@@ -16,9 +16,11 @@ import com.example.backend_pj4.domain.repository.UserRepository;
 public class UpdateUserProfileService implements UpdateUserProfileUseCase {
 
     private final UserRepository userRepository;
+    private final UserResultMapper userResultMapper;
 
-    public UpdateUserProfileService(UserRepository userRepository) {
+    public UpdateUserProfileService(UserRepository userRepository, UserResultMapper userResultMapper) {
         this.userRepository = userRepository;
+        this.userResultMapper = userResultMapper;
     }
 
     @Override
@@ -34,6 +36,6 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase {
         if (command.profileUrl() != null) builder.profileUrl(command.profileUrl());
 
         User saved = userRepository.save(builder.build());
-        return UserResultMapper.toResult(saved);
+        return userResultMapper.toResult(saved);
     }
 }

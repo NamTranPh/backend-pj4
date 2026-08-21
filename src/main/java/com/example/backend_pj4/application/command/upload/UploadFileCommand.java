@@ -10,5 +10,6 @@ public record UploadFileCommand(
         String contentType,
         String originalFilename,
         UploadType type,
-        UserRole userRole
+        UserRole userRole,
+        String userId
 ) {}

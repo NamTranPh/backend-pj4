@@ -20,10 +20,12 @@ public class UploadMovieImageService implements UploadMovieImageUseCase {
     private static final String BUCKET = "movie-public";
     private final MovieRepository movieRepository;
     private final FileStorageService fileStorageService;
+    private final MovieResultMapper movieResultMapper;
 
-    public UploadMovieImageService(MovieRepository movieRepository, FileStorageService fileStorageService) {
+    public UploadMovieImageService(MovieRepository movieRepository, FileStorageService fileStorageService, MovieResultMapper movieResultMapper) {
         this.movieRepository = movieRepository;
         this.fileStorageService = fileStorageService;
+        this.movieResultMapper = movieResultMapper;
     }
 
     @Override
@@ -39,16 +41,15 @@ public class UploadMovieImageService implements UploadMovieImageUseCase {
         String folder = "movies/" + movieId;
         String ext = filename.contains(".") ? filename.substring(filename.lastIndexOf(".")) : ".jpg";
         String objectKey = fileStorageService.upload(BUCKET, folder, imageType + ext, data, size, contentType);
-        String url = fileStorageService.getPublicUrl(BUCKET, objectKey);
 
         Movie.MovieBuilder builder = movie.toBuilder();
         if ("poster".equals(imageType)) {
-            builder.posterUrl(url);
+            builder.posterUrl(objectKey);
         } else if ("backdrop".equals(imageType)) {
-            builder.backdropUrl(url);
+            builder.backdropUrl(objectKey);
         }
 
         Movie saved = movieRepository.save(builder.build());
-        return MovieResultMapper.toResult(saved);
+        return movieResultMapper.toResult(saved);
     }
 }

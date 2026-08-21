@@ -14,9 +14,11 @@ import com.example.backend_pj4.domain.repository.EpisodeRepository;
 public class ListEpisodesByMovieService implements ListEpisodesByMovieUseCase {
 
     private final EpisodeRepository episodeRepository;
+    private final EpisodeResultMapper episodeResultMapper;
 
-    public ListEpisodesByMovieService(EpisodeRepository episodeRepository) {
+    public ListEpisodesByMovieService(EpisodeRepository episodeRepository, EpisodeResultMapper episodeResultMapper) {
         this.episodeRepository = episodeRepository;
+        this.episodeResultMapper = episodeResultMapper;
     }
 
     @Override
@@ -24,7 +26,7 @@ public class ListEpisodesByMovieService implements ListEpisodesByMovieUseCase {
     public List<EpisodeResult> execute(String movieId) {
         return episodeRepository.findByMovieIdOrderByEpisodeNumber(movieId)
                 .stream()
-                .map(EpisodeResultMapper::toResult)
+                .map(episodeResultMapper::toResult)
                 .toList();
     }
 }

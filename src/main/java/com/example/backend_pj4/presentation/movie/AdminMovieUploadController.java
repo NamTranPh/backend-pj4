@@ -26,10 +26,15 @@ import com.example.backend_pj4.presentation.movie.request.GetPartUrlsRequest;
 import com.example.backend_pj4.presentation.movie.request.RecordPartRequest;
 import com.example.backend_pj4.presentation.movie.request.StartUploadRequest;
 
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Movie Uploads - Admin")
+@AuthRequired
 @RestController
-@RequestMapping("/v1/admin/movies/{movieId}/uploads")
+@RequestMapping("/api/v1/admin/movies/{movieId}/uploads")
 public class AdminMovieUploadController {
 
     private final StartUploadUseCase startUploadUseCase;
@@ -55,6 +60,7 @@ public class AdminMovieUploadController {
         this.getUploadStatusUseCase = getUploadStatusUseCase;
     }
 
+    @Operation(summary = "Khởi tạo phiên upload video cho phim. Quyền truy cập: ADMIN.")
     @PostMapping
     public ResponseEntity<UploadSessionResult> startUpload(
             @PathVariable String movieId,
@@ -65,11 +71,13 @@ public class AdminMovieUploadController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @Operation(summary = "Lấy trạng thái tiến độ phiên upload video. Quyền truy cập: ADMIN.")
     @GetMapping("/{uploadId}/status")
     public ResponseEntity<UploadSessionResult> getStatus(@PathVariable String uploadId) {
         return ResponseEntity.ok(getUploadStatusUseCase.execute(uploadId));
     }
 
+    @Operation(summary = "Lấy danh sách Presigned PUT URLs để upload từng chunk video. Quyền truy cập: ADMIN.")
     @PostMapping("/{uploadId}/part-urls")
     public ResponseEntity<List<PresignedUrlResult>> getPartUrls(
             @PathVariable String uploadId,
@@ -78,6 +86,7 @@ public class AdminMovieUploadController {
         return ResponseEntity.ok(getPartUrlsUseCase.execute(uploadId, request.partNumbers()));
     }
 
+    @Operation(summary = "Ghi nhận 1 part chunk video đã upload xong. Quyền truy cập: ADMIN.")
     @PostMapping("/{uploadId}/parts/{partNumber}/completed")
     public ResponseEntity<Void> recordPart(
             @PathVariable String uploadId,
@@ -89,11 +98,13 @@ public class AdminMovieUploadController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Xác nhận hoàn tất phiên upload và ghép file video trên MinIO. Quyền truy cập: ADMIN.")
     @PostMapping("/{uploadId}/complete")
     public ResponseEntity<UploadSessionResult> completeUpload(@PathVariable String uploadId) {
         return ResponseEntity.ok(completeUploadUseCase.execute(uploadId));
     }
 
+    @Operation(summary = "Hủy bỏ phiên upload video. Quyền truy cập: ADMIN.")
     @DeleteMapping("/{uploadId}")
     public ResponseEntity<Void> cancelUpload(@PathVariable String uploadId) {
         cancelUploadUseCase.execute(uploadId);

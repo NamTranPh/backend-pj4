@@ -20,6 +20,7 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import io.minio.SetBucketPolicyArgs;
 import io.minio.http.Method;
 import io.minio.messages.Part;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +75,20 @@ public class MinioStorageAdapter implements FileStorageService {
             base = base.substring(0, base.length() - 1);
         }
         return base + "/" + bucket + "/" + objectKey;
+    }
+
+    @Override
+    public String getPresignedGetUrl(String bucket, String objectKey, int expirySeconds) {
+        try {
+            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .method(Method.GET)
+                    .bucket(bucket)
+                    .object(objectKey)
+                    .expiry(expirySeconds, TimeUnit.SECONDS)
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate presigned GET URL", e);
+        }
     }
 
     @Override
@@ -137,8 +152,36 @@ public class MinioStorageAdapter implements FileStorageService {
             if (!exists) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
             }
+            if (isPublicBucket(bucket)) {
+                setPublicBucketPolicy(bucket);
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to ensure bucket exists: " + bucket, e);
+        }
+    }
+
+    private boolean isPublicBucket(String bucket) {
+        return bucket != null && (bucket.equals(minioProperties.getBucketPublic()) || bucket.equals(minioProperties.getBucketAvatar()));
+    }
+
+    private void setPublicBucketPolicy(String bucket) {
+        try {
+            String policy = """
+                {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {"AWS": ["*"]},
+                      "Action": ["s3:GetObject"],
+                      "Resource": ["arn:aws:s3:::%s/*"]
+                    }
+                  ]
+                }
+                """.formatted(bucket);
+            minioClient.setBucketPolicy(SetBucketPolicyArgs.builder().bucket(bucket).config(policy).build());
+        } catch (Exception e) {
+            log.warn("Failed to set public bucket policy for bucket: {}", bucket, e);
         }
     }
 }

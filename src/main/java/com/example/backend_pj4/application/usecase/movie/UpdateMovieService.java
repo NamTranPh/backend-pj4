@@ -22,10 +22,12 @@ public class UpdateMovieService implements UpdateMovieUseCase {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+    private final MovieResultMapper movieResultMapper;
 
-    public UpdateMovieService(MovieRepository movieRepository, GenreRepository genreRepository) {
+    public UpdateMovieService(MovieRepository movieRepository, GenreRepository genreRepository, MovieResultMapper movieResultMapper) {
         this.movieRepository = movieRepository;
         this.genreRepository = genreRepository;
+        this.movieResultMapper = movieResultMapper;
     }
 
     @Override
@@ -66,6 +68,6 @@ public class UpdateMovieService implements UpdateMovieUseCase {
         }
 
         Movie saved = movieRepository.save(builder.build());
-        return MovieResultMapper.toResult(saved);
+        return movieResultMapper.toResult(saved);
     }
 }

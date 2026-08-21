@@ -9,9 +9,12 @@ import java.lang.annotation.Target;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@PreAuthorize("isAuthenticated()") // Spring Security kiểm tra user đã auth chưa
+@PreAuthorize("isAuthenticated()")
+@SecurityRequirement(name = "bearerAuth")
 public @interface AuthRequired {
 }

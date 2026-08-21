@@ -35,10 +35,15 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.presentation.movie.request.CreateMovieRequest;
 import com.example.backend_pj4.presentation.movie.request.UpdateMovieRequest;
 
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Movies - Admin")
+@AuthRequired
 @RestController
-@RequestMapping("/v1/admin/movies")
+@RequestMapping("/api/v1/admin/movies")
 public class AdminMovieController {
 
     private final CreateMovieUseCase createMovieUseCase;
@@ -67,6 +72,7 @@ public class AdminMovieController {
         this.uploadMovieImageUseCase = uploadMovieImageUseCase;
     }
 
+    @Operation(summary = "Tạo phim mới. Quyền truy cập: ADMIN.")
     @PostMapping
     public ResponseEntity<MovieResult> create(
             @Valid @RequestBody CreateMovieRequest request,
@@ -81,6 +87,7 @@ public class AdminMovieController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @Operation(summary = "Cập nhật thông tin phim theo ID. Quyền truy cập: ADMIN.")
     @PutMapping("/{id}")
     public ResponseEntity<MovieResult> update(
             @PathVariable String id,
@@ -95,11 +102,13 @@ public class AdminMovieController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Lấy chi tiết phim cho quản trị viên theo Slug. Quyền truy cập: ADMIN.")
     @GetMapping("/{slug}")
     public ResponseEntity<MovieDetailResult> getBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(getMovieByIdUseCase.execute(slug));
     }
 
+    @Operation(summary = "Lấy danh sách tất cả phim (bao gồm nháp/ẩn) cho quản trị viên. Quyền truy cập: ADMIN.")
     @GetMapping
     public Page<MovieResult> list(
             @RequestParam(required = false) String search,
@@ -115,17 +124,20 @@ public class AdminMovieController {
                 Math.max(0, page - 1), limit, false);
     }
 
+    @Operation(summary = "Xóa mềm phim theo ID. Quyền truy cập: ADMIN.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         deleteMovieUseCase.execute(id);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Khôi phục phim đã xóa theo ID. Quyền truy cập: ADMIN.")
     @PatchMapping("/{id}/restore")
     public ResponseEntity<MovieResult> restore(@PathVariable String id) {
         return ResponseEntity.ok(restoreMovieUseCase.execute(id));
     }
 
+    @Operation(summary = "Upload ảnh Poster cho phim. Quyền truy cập: ADMIN.")
     @PostMapping("/{id}/poster")
     public ResponseEntity<MovieResult> uploadPoster(
             @PathVariable String id,
@@ -137,6 +149,7 @@ public class AdminMovieController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Upload ảnh Backdrop / Banner cho phim. Quyền truy cập: ADMIN.")
     @PostMapping("/{id}/backdrop")
     public ResponseEntity<MovieResult> uploadBackdrop(
             @PathVariable String id,

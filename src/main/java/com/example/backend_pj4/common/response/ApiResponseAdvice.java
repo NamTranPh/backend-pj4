@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.SneakyThrows;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.example.backend_pj4.presentation")
 public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
 
     private final ObjectMapper objectMapper;

@@ -1,3 +1,7 @@
+/**
+ * Xây dựng bộ lọc dữ liệu động (Dynamic Specification Builder) cho Phim
+ * Hỗ trợ tìm kiếm theo tiêu đề, lọc theo loại phim, trạng thái video, thể loại, năm phát hành và quốc gia.
+ */
 package com.example.backend_pj4.infrastructure.database.specifications;
 
 import java.util.ArrayList;

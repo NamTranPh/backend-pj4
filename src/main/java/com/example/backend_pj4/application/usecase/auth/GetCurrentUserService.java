@@ -14,16 +14,18 @@ import com.example.backend_pj4.domain.repository.UserRepository;
 public class GetCurrentUserService implements GetCurrentUserUseCase {
 
     private final UserRepository userRepository;
+    private final UserResultMapper userResultMapper;
 
-    public GetCurrentUserService(UserRepository userRepository) {
+    public GetCurrentUserService(UserRepository userRepository, UserResultMapper userResultMapper) {
         this.userRepository = userRepository;
+        this.userResultMapper = userResultMapper;
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserProfileResult execute(String email) {
         return userRepository.findByEmailIgnoreCase(email)
-                .map(UserResultMapper::toResult)
+                .map(userResultMapper::toResult)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }

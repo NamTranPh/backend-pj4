@@ -40,10 +40,15 @@ import com.example.backend_pj4.presentation.movie.request.GetPartUrlsRequest;
 import com.example.backend_pj4.presentation.movie.request.RecordPartRequest;
 import com.example.backend_pj4.presentation.movie.request.StartUploadRequest;
 
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Episodes - Admin")
+@AuthRequired
 @RestController
-@RequestMapping("/v1/admin/movies/{movieId}/episodes")
+@RequestMapping("/api/v1/admin/movies/{movieId}/episodes")
 public class AdminEpisodeController {
 
     private final CreateEpisodeUseCase createEpisodeUseCase;
@@ -86,6 +91,7 @@ public class AdminEpisodeController {
 
     // ===== CRUD =====
 
+    @Operation(summary = "Tạo mới tập phim cho một bộ phim. Quyền truy cập: ADMIN.")
     @PostMapping
     public ResponseEntity<EpisodeResult> create(
             @PathVariable String movieId,
@@ -97,6 +103,7 @@ public class AdminEpisodeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @Operation(summary = "Cập nhật thông tin tập phim theo ID. Quyền truy cập: ADMIN.")
     @PutMapping("/{id}")
     public ResponseEntity<EpisodeResult> update(
             @PathVariable String movieId,
@@ -109,11 +116,13 @@ public class AdminEpisodeController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Lấy danh sách tất cả các tập của một bộ phim. Quyền truy cập: ADMIN.")
     @GetMapping
     public List<EpisodeResult> list(@PathVariable String movieId) {
         return listEpisodesByMovieUseCase.execute(movieId);
     }
 
+    @Operation(summary = "Xóa mềm tập phim theo ID. Quyền truy cập: ADMIN.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String movieId, @PathVariable String id) {
         deleteEpisodeUseCase.execute(movieId, id);
@@ -122,6 +131,7 @@ public class AdminEpisodeController {
 
     // ===== Thumbnail =====
 
+    @Operation(summary = "Upload ảnh Thumbnail cho tập phim. Quyền truy cập: ADMIN.")
     @PostMapping("/{id}/thumbnail")
     public ResponseEntity<EpisodeResult> uploadThumbnail(
             @PathVariable String movieId,
@@ -136,6 +146,7 @@ public class AdminEpisodeController {
 
     // ===== Video Upload (reuse upload services with targetType=episode) =====
 
+    @Operation(summary = "Khởi tạo phiên upload video cho tập phim. Quyền truy cập: ADMIN.")
     @PostMapping("/{id}/uploads")
     public ResponseEntity<UploadSessionResult> startUpload(
             @PathVariable String id,
@@ -146,11 +157,13 @@ public class AdminEpisodeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @Operation(summary = "Lấy trạng thái tiến độ phiên upload video tập phim. Quyền truy cập: ADMIN.")
     @GetMapping("/{id}/uploads/{uploadId}/status")
     public ResponseEntity<UploadSessionResult> getUploadStatus(@PathVariable String uploadId) {
         return ResponseEntity.ok(getUploadStatusUseCase.execute(uploadId));
     }
 
+    @Operation(summary = "Lấy danh sách Presigned PUT URLs để upload từng chunk video tập phim. Quyền truy cập: ADMIN.")
     @PostMapping("/{id}/uploads/{uploadId}/part-urls")
     public ResponseEntity<List<PresignedUrlResult>> getPartUrls(
             @PathVariable String uploadId,
@@ -159,6 +172,7 @@ public class AdminEpisodeController {
         return ResponseEntity.ok(getPartUrlsUseCase.execute(uploadId, request.partNumbers()));
     }
 
+    @Operation(summary = "Ghi nhận 1 part chunk video tập phim đã upload xong. Quyền truy cập: ADMIN.")
     @PostMapping("/{id}/uploads/{uploadId}/parts/{partNumber}/completed")
     public ResponseEntity<Void> recordPart(
             @PathVariable String uploadId,
@@ -170,11 +184,13 @@ public class AdminEpisodeController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Xác nhận hoàn tất phiên upload và ghép file video tập phim trên MinIO. Quyền truy cập: ADMIN.")
     @PostMapping("/{id}/uploads/{uploadId}/complete")
     public ResponseEntity<UploadSessionResult> completeUpload(@PathVariable String uploadId) {
         return ResponseEntity.ok(completeUploadUseCase.execute(uploadId));
     }
 
+    @Operation(summary = "Hủy bỏ phiên upload video tập phim. Quyền truy cập: ADMIN.")
     @DeleteMapping("/{id}/uploads/{uploadId}")
     public ResponseEntity<Void> cancelUpload(@PathVariable String uploadId) {
         cancelUploadUseCase.execute(uploadId);

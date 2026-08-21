@@ -16,9 +16,11 @@ import com.example.backend_pj4.domain.repository.EpisodeRepository;
 public class UpdateEpisodeService implements UpdateEpisodeUseCase {
 
     private final EpisodeRepository episodeRepository;
+    private final EpisodeResultMapper episodeResultMapper;
 
-    public UpdateEpisodeService(EpisodeRepository episodeRepository) {
+    public UpdateEpisodeService(EpisodeRepository episodeRepository, EpisodeResultMapper episodeResultMapper) {
         this.episodeRepository = episodeRepository;
+        this.episodeResultMapper = episodeResultMapper;
     }
 
     @Override
@@ -53,6 +55,6 @@ public class UpdateEpisodeService implements UpdateEpisodeUseCase {
         }
 
         Episode saved = episodeRepository.save(builder.build());
-        return EpisodeResultMapper.toResult(saved);
+        return episodeResultMapper.toResult(saved);
     }
 }

@@ -42,4 +42,6 @@ public interface MovieRepository {
     List<Movie> findByCreatedBy(String userId);
     long countByMovieType(MovieType movieType);
     long countByStatus(VideoStatus status);
+    void softDeleteEpisodesByMovieId(String movieId);
+    void restoreEpisodesByMovieId(String movieId);
 }

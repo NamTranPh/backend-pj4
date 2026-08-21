@@ -18,9 +18,11 @@ import com.example.backend_pj4.domain.repository.MovieRepository;
 public class ListMoviesService implements ListMoviesUseCase {
 
     private final MovieRepository movieRepository;
+    private final MovieResultMapper movieResultMapper;
 
-    public ListMoviesService(MovieRepository movieRepository) {
+    public ListMoviesService(MovieRepository movieRepository, MovieResultMapper movieResultMapper) {
         this.movieRepository = movieRepository;
+        this.movieResultMapper = movieResultMapper;
     }
 
     @Override
@@ -30,6 +32,6 @@ public class ListMoviesService implements ListMoviesUseCase {
                                      int page, int size, boolean publicOnly) {
         Pageable pageable = PageRequest.of(page, Math.min(size, 50), Sort.by("createdAt").descending());
         return movieRepository.findAllFiltered(search, movieType, status, genreId, year, country, publicOnly, pageable)
-                .map(MovieResultMapper::toResult);
+                .map(movieResultMapper::toResult);
     }
 }

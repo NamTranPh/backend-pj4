@@ -23,10 +23,15 @@ import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.presentation.upload.request.UploadRequest;
 import com.example.backend_pj4.presentation.upload.response.UploadResponse;
 
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Uploads")
+@AuthRequired
 @RestController
-@RequestMapping("/v1/uploads")
+@RequestMapping("/api/v1/uploads")
 public class UploadController {
 
     private final UploadFileUseCase uploadFileUseCase;
@@ -38,6 +43,7 @@ public class UploadController {
         this.getCurrentUserUseCase = getCurrentUserUseCase;
     }
 
+    @Operation(summary = "Upload file media (Avatar/Poster/Video). Quyền truy cập: Người dùng đã đăng nhập (Upload POSTER/VIDEO yêu cầu ADMIN).")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UploadResponse> upload(
             @Valid @ModelAttribute UploadRequest request,
@@ -57,9 +63,10 @@ public class UploadController {
                 request.file().getContentType(),
                 request.file().getOriginalFilename(),
                 request.type(),
-                userRole
+                userRole,
+                currentUser.id()
         ));
 
-        return ResponseEntity.ok(new UploadResponse(result.fileUrl(), result.objectKey()));
+        return ResponseEntity.ok(new UploadResponse(result.previewUrl(), result.objectKey()));
     }
 }

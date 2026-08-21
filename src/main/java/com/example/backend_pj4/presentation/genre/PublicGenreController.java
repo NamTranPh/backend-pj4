@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend_pj4.application.dto.genre.GenreResult;
 import com.example.backend_pj4.application.port.in.genre.ListGenresUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Genres")
 @RestController
-@RequestMapping("/v1/genres")
+@RequestMapping("/api/v1/genres")
 public class PublicGenreController {
 
     private final ListGenresUseCase listGenresUseCase;
@@ -19,6 +22,7 @@ public class PublicGenreController {
         this.listGenresUseCase = listGenresUseCase;
     }
 
+    @Operation(summary = "Lấy danh sách thể loại phim (Công khai). Quyền truy cập: Public (Công khai).")
     @GetMapping
     public Page<GenreResult> list(
             @RequestParam(required = false) String search,
