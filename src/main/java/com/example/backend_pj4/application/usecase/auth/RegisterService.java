@@ -57,6 +57,7 @@ public class RegisterService implements RegisterUseCase {
                 .role(UserRole.USER)
                 .emailVerified(false)
                 .accountStatus(AccountStatus.INACTIVE)
+                .isBanned(false)
                 .build();
 
         User saved = userRepository.save(newUser);

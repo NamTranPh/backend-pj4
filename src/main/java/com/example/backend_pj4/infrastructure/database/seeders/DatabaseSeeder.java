@@ -36,6 +36,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         admin.setRole(UserRole.ADMIN);
         admin.setEmailVerified(true);
         admin.setAccountStatus(AccountStatus.ACTIVE);
+        admin.setIsBanned(false);
 
         userRepository.save(admin);
         log.info("Created admin user: email={} (password hardcoded in seeder)", adminEmail);

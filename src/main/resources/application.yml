@@ -133,6 +133,8 @@ springdoc:
     path: /docs
     enabled: true
     operationsSorter: method
+    tags-sorter: alpha
+    operations-sorter: alpha
 
 logging:
   level:

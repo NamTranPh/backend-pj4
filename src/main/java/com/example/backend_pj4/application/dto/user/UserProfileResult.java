@@ -11,6 +11,7 @@ public record UserProfileResult(
         String profileUrl,
         String role,
         String accountStatus,
+        boolean isBanned,
         boolean emailVerified,
         LocalDateTime createdAt
 ) {}

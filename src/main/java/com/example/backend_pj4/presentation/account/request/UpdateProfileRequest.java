@@ -1,4 +1,4 @@
-package com.example.backend_pj4.presentation.user.request;
+package com.example.backend_pj4.presentation.account.request;
 
 import jakarta.validation.constraints.Size;
 

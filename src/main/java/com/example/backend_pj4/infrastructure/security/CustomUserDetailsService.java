@@ -28,12 +28,13 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
         boolean active = user.getAccountStatus() == AccountStatus.ACTIVE;
+        boolean banned = Boolean.TRUE.equals(user.getIsBanned());
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
                 .authorities(getAuthorities(user))
                 .accountExpired(false)
-                .accountLocked(!active)
+                .accountLocked(banned)
                 .credentialsExpired(false)
                 .disabled(!active)
                 .build();

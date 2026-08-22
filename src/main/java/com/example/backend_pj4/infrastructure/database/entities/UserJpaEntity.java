@@ -55,6 +55,9 @@ public class UserJpaEntity {
     @Column(name = "account_status")
     private AccountStatus accountStatus;
 
+    @Column(name = "is_banned", nullable = false)
+    private Boolean isBanned = false;
+
     @Column(name = "failed_login_attempts")
     private Integer failedLoginAttempts;
 
@@ -63,6 +66,9 @@ public class UserJpaEntity {
 
     @Column(name = "locked_until")
     private LocalDateTime lockedUntil;
+
+    @Column(name = "last_active_at")
+    private LocalDateTime lastActiveAt;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -134,9 +140,11 @@ public class UserJpaEntity {
     public void setRole(UserRole role) { this.role = role; }
     public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
     public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
+    public void setIsBanned(Boolean isBanned) { this.isBanned = isBanned; }
     public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
     public void setFirstFailureAt(LocalDateTime firstFailureAt) { this.firstFailureAt = firstFailureAt; }
     public void setLockedUntil(LocalDateTime lockedUntil) { this.lockedUntil = lockedUntil; }
+    public void setLastActiveAt(LocalDateTime lastActiveAt) { this.lastActiveAt = lastActiveAt; }
     public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
 }
 

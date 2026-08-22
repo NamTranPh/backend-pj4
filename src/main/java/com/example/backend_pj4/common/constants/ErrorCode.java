@@ -23,6 +23,7 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS("Email already exists.", HttpStatus.CONFLICT),
     EMAIL_NOT_VERIFIED("Email is not verified.", HttpStatus.FORBIDDEN),
     ACCOUNT_NOT_ACTIVE("Account is not active.", HttpStatus.FORBIDDEN),
+    ACCOUNT_BANNED("Account has been banned.", HttpStatus.FORBIDDEN),
     ACCOUNT_TEMPORARILY_LOCKED("Account is temporarily locked due to too many failed attempts.", HttpStatus.TOO_MANY_REQUESTS),
     OTP_INVALID("OTP code is invalid.", HttpStatus.BAD_REQUEST),
     OTP_EXPIRED("OTP code has expired.", HttpStatus.BAD_REQUEST),

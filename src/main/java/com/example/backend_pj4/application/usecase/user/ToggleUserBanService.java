@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend_pj4.application.port.in.user.ToggleUserBanUseCase;
 import com.example.backend_pj4.application.port.out.RefreshTokenStore;
 import com.example.backend_pj4.common.constants.ErrorCode;
-import com.example.backend_pj4.common.constants.enums.AccountStatus;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.domain.model.User;
 import com.example.backend_pj4.domain.repository.UserRepository;
@@ -28,13 +27,11 @@ public class ToggleUserBanService implements ToggleUserBanUseCase {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        AccountStatus newStatus = ban ? AccountStatus.BANNED : AccountStatus.ACTIVE;
-
-        if (user.getAccountStatus() == newStatus) {
+        if (Boolean.TRUE.equals(user.getIsBanned()) == ban) {
             return;
         }
 
-        User updated = user.toBuilder().accountStatus(newStatus).build();
+        User updated = user.toBuilder().isBanned(ban).build();
         userRepository.save(updated);
 
         if (ban) {

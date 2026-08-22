@@ -60,6 +60,9 @@ public class AdminLoginService implements AdminLoginUseCase {
             throw new CustomException(ErrorCode.ADMIN_ROLE_REQUIRED);
         }
 
+        if (Boolean.TRUE.equals(user.getIsBanned())) {
+            throw new CustomException(ErrorCode.ACCOUNT_BANNED);
+        }
         if (user.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new CustomException(ErrorCode.ACCOUNT_NOT_ACTIVE);
         }

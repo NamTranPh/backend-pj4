@@ -70,6 +70,9 @@ public class LoginService implements LoginUseCase {
         if (!Boolean.TRUE.equals(user.getEmailVerified())) {
             throw new CustomException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
+        if (Boolean.TRUE.equals(user.getIsBanned())) {
+            throw new CustomException(ErrorCode.ACCOUNT_BANNED);
+        }
         if (user.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new CustomException(ErrorCode.ACCOUNT_NOT_ACTIVE);
         }

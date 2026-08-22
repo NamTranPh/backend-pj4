@@ -21,9 +21,11 @@ public class UserPersistenceMapper {
                 .role(entity.getRole())
                 .emailVerified(entity.getEmailVerified())
                 .accountStatus(entity.getAccountStatus())
+                .isBanned(entity.getIsBanned())
                 .failedLoginAttempts(entity.getFailedLoginAttempts())
                 .firstFailureAt(entity.getFirstFailureAt())
                 .lockedUntil(entity.getLockedUntil())
+                .lastActiveAt(entity.getLastActiveAt())
                 .deletedAt(entity.getDeletedAt())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
@@ -43,9 +45,11 @@ public class UserPersistenceMapper {
         entity.setRole(domain.getRole());
         entity.setEmailVerified(domain.getEmailVerified());
         entity.setAccountStatus(domain.getAccountStatus());
+        entity.setIsBanned(domain.getIsBanned());
         entity.setFailedLoginAttempts(domain.getFailedLoginAttempts());
         entity.setFirstFailureAt(domain.getFirstFailureAt());
         entity.setLockedUntil(domain.getLockedUntil());
+        entity.setLastActiveAt(domain.getLastActiveAt());
         entity.setDeletedAt(domain.getDeletedAt());
         return entity;
     }

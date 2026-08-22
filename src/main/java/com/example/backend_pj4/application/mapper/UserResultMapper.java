@@ -25,6 +25,7 @@ public class UserResultMapper {
                 storageUrlResolver.resolveAvatar(user.getProfileUrl()),
                 user.getRole() != null ? user.getRole().name() : null,
                 user.getAccountStatus() != null ? user.getAccountStatus().name() : null,
+                Boolean.TRUE.equals(user.getIsBanned()),
                 Boolean.TRUE.equals(user.getEmailVerified()),
                 user.getCreatedAt()
         );
