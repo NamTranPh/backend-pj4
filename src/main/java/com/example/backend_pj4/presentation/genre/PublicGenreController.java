@@ -11,7 +11,7 @@ import com.example.backend_pj4.application.port.in.genre.ListGenresUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@Tag(name = "Genres")
+@Tag(name = "Genres - Public")
 @RestController
 @RequestMapping("/api/v1/genres")
 public class PublicGenreController {

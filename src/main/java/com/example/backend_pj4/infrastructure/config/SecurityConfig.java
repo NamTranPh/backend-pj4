@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -60,11 +61,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép public các route client xem phim
-                        .requestMatchers(
-                                "/api/v1/auth/**",
+                        // Public API: chỉ GET cho browse phim, thể loại, gói membership
+                        .requestMatchers(HttpMethod.GET,
                                 "/api/v1/movies/**",
                                 "/api/v1/genres/**",
+                                "/api/v1/membership-plans/**"
+                        )
+                        .permitAll()
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/stream/**",
+                                "/api/v1/payments/payos/webhook",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/actuator/health"

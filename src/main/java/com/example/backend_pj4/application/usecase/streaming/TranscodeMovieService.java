@@ -2,6 +2,7 @@ package com.example.backend_pj4.application.usecase.streaming;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend_pj4.application.port.out.VideoTranscoder;
 import com.example.backend_pj4.application.port.out.VideoTranscoder.TranscodeCommand;
@@ -28,6 +29,7 @@ public class TranscodeMovieService {
     }
 
     @Async("transcodeExecutor")
+    @Transactional
     public void transcodeAsync(String movieId, String rawFileKey) {
         try {
             log.info("Starting transcode for movie={}", movieId);

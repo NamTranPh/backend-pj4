@@ -24,8 +24,9 @@ public class UpdateWatchProgressService implements UpdateWatchProgressUseCase {
     @Override
     @Transactional
     public void execute(UpdateWatchProgressCommand command) {
-        var existing = historyWatchingRepository
-                .findByUserIdAndMovieIdAndEpisodeId(command.userId(), command.movieId(), command.episodeId());
+        var existing = (command.episodeId() == null || command.episodeId().isBlank())
+                ? historyWatchingRepository.findByUserIdAndMovieIdAndEpisodeIsNull(command.userId(), command.movieId())
+                : historyWatchingRepository.findByUserIdAndMovieIdAndEpisodeId(command.userId(), command.movieId(), command.episodeId());
 
         BigDecimal progress = BigDecimal.ZERO;
         if (command.durationSeconds() != null && command.durationSeconds() > 0) {

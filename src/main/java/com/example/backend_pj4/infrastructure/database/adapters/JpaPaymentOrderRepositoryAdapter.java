@@ -1,5 +1,6 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -71,6 +72,12 @@ public class JpaPaymentOrderRepositoryAdapter implements PaymentOrderRepository 
     @Override
     public List<PaymentOrder> findPendingOrders() {
         return jpaRepository.findPendingOrders().stream().map(mapper::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PaymentOrder> findPendingByGatewaySince(String gateway, LocalDateTime since, int limit) {
+        return jpaRepository.findPendingByGatewaySince(gateway, since, limit).stream()
+                .map(mapper::toDomain).collect(Collectors.toList());
     }
 
     @Override

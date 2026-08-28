@@ -87,6 +87,17 @@ public class JpaMembershipPlanRepositoryAdapter implements MembershipPlanReposit
     }
 
     @Override
+    public Optional<MembershipPlan> findBySlug(String slug) {
+        return membershipPlanJpaRepository.findBySlug(slug)
+                .map(membershipPlanPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsBySlug(String slug) {
+        return membershipPlanJpaRepository.existsBySlug(slug);
+    }
+
+    @Override
     public boolean existsByPlanName(String planName) {
         return membershipPlanJpaRepository.existsByName(planName);
     }

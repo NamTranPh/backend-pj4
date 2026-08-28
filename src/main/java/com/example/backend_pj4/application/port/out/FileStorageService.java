@@ -8,6 +8,7 @@ public interface FileStorageService {
     void delete(String bucket, String objectKey);
     String getPublicUrl(String bucket, String objectKey);
     String getPresignedGetUrl(String bucket, String objectKey, int expirySeconds);
+    InputStream getObject(String bucket, String key);
 
     String initiateMultipartUpload(String bucket, String objectKey);
     String getPresignedUploadUrl(String bucket, String objectKey, String uploadId, int partNumber, int expirySeconds);

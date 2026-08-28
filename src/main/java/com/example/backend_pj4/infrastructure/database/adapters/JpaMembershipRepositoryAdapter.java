@@ -76,6 +76,14 @@ public class JpaMembershipRepositoryAdapter implements MembershipRepository {
     }
 
     @Override
+    public List<Membership> findActiveByPlanId(String planId) {
+        return membershipJpaRepository.findByIsActiveTrue().stream()
+                .filter(m -> m.getPlan() != null && m.getPlan().getId().equals(planId))
+                .map(membershipPersistenceMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<Membership> findByPaymentStatus(String paymentStatus) {
         return membershipJpaRepository.findByPaymentStatus(MembershipPaymentStatus.valueOf(paymentStatus)).stream()
                 .map(membershipPersistenceMapper::toDomain)

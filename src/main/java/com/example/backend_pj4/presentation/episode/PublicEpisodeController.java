@@ -20,7 +20,7 @@ import com.example.backend_pj4.domain.repository.MovieRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@Tag(name = "Public Episodes")
+@Tag(name = "Episodes - Public")
 @RestController
 @RequestMapping("/api/v1/movies/{movieSlug}/episodes")
 public class PublicEpisodeController {

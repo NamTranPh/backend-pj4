@@ -19,6 +19,10 @@ public interface MembershipPlanRepository {
     List<MembershipPlan> findByPriceRange(Double minPrice, Double maxPrice);
     List<MembershipPlan> findByDurationDaysLessThanEqual(Integer maxDays);
     
+    // Slug queries
+    Optional<MembershipPlan> findBySlug(String slug);
+    boolean existsBySlug(String slug);
+
     // Validation
     boolean existsByPlanName(String planName);
 }

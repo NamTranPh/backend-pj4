@@ -14,7 +14,11 @@ import com.example.backend_pj4.application.port.in.movie.CompleteUploadUseCase;
 import com.example.backend_pj4.application.port.out.FileStorageService;
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.exceptions.CustomException;
+import com.example.backend_pj4.domain.model.Episode;
+import com.example.backend_pj4.domain.model.Movie;
 import com.example.backend_pj4.domain.model.UploadSession;
+import com.example.backend_pj4.domain.repository.EpisodeRepository;
+import com.example.backend_pj4.domain.repository.MovieRepository;
 import com.example.backend_pj4.domain.repository.UploadSessionRepository;
 
 @Service
@@ -23,10 +27,19 @@ public class CompleteUploadService implements CompleteUploadUseCase {
     private static final String BUCKET = "movie-raw";
     private final UploadSessionRepository uploadSessionRepository;
     private final FileStorageService fileStorageService;
+    private final MovieRepository movieRepository;
+    private final EpisodeRepository episodeRepository;
 
-    public CompleteUploadService(UploadSessionRepository uploadSessionRepository, FileStorageService fileStorageService) {
+    public CompleteUploadService(
+            UploadSessionRepository uploadSessionRepository,
+            FileStorageService fileStorageService,
+            MovieRepository movieRepository,
+            EpisodeRepository episodeRepository
+    ) {
         this.uploadSessionRepository = uploadSessionRepository;
         this.fileStorageService = fileStorageService;
+        this.movieRepository = movieRepository;
+        this.episodeRepository = episodeRepository;
     }
 
     @Override
@@ -55,6 +68,8 @@ public class CompleteUploadService implements CompleteUploadUseCase {
         UploadSession completed = session.toBuilder().status("COMPLETED").build();
         UploadSession saved = uploadSessionRepository.save(completed);
 
+        updateTargetRawFileKey(saved);
+
         List<UploadPartResult> partResults = saved.getParts().stream()
                 .map(p -> new UploadPartResult(p.getPartNumber(), p.getEtag(), p.getSizeBytes(), p.getUploadedAt()))
                 .toList();
@@ -66,5 +81,21 @@ public class CompleteUploadService implements CompleteUploadUseCase {
                 saved.getStatus(), partResults,
                 saved.getExpiresAt(), saved.getCreatedAt()
         );
+    }
+
+    private void updateTargetRawFileKey(UploadSession session) {
+        String targetType = session.getTargetType();
+        String targetId = session.getTargetId();
+        String rawFileKey = session.getRawFileKey();
+
+        if ("MOVIE".equalsIgnoreCase(targetType)) {
+            Movie movie = movieRepository.findById(targetId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.MOVIE_NOT_FOUND));
+            movieRepository.save(movie.toBuilder().rawFileKey(rawFileKey).build());
+        } else if ("EPISODE".equalsIgnoreCase(targetType)) {
+            Episode episode = episodeRepository.findById(targetId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.EPISODE_NOT_FOUND));
+            episodeRepository.save(episode.toBuilder().rawFileKey(rawFileKey).build());
+        }
     }
 }

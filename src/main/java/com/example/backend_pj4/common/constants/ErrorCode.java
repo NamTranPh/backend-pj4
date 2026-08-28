@@ -42,6 +42,12 @@ public enum ErrorCode {
     MOVIE_ALREADY_DELETED("Movie is already deleted.", HttpStatus.BAD_REQUEST),
     MOVIE_NOT_DELETED("Movie is not deleted, cannot restore.", HttpStatus.BAD_REQUEST),
     INVALID_GENRE_IDS("One or more genre IDs are invalid.", HttpStatus.BAD_REQUEST),
+    INVALID_STATUS_TRANSITION("Cannot set this status directly. Use the publish endpoint.", HttpStatus.BAD_REQUEST),
+    MOVIE_ALREADY_PROCESSING("Movie is already being processed.", HttpStatus.CONFLICT),
+    MOVIE_NO_VIDEO("Movie has no uploaded video.", HttpStatus.BAD_REQUEST),
+    MOVIE_NO_READY_EPISODES("Series has no episodes ready for playback.", HttpStatus.BAD_REQUEST),
+    EPISODE_ALREADY_PROCESSING("Episode is already being processed.", HttpStatus.CONFLICT),
+    EPISODE_NO_VIDEO("Episode has no uploaded video.", HttpStatus.BAD_REQUEST),
 
     // ===== VIDEO UPLOAD =====
     UPLOAD_SESSION_NOT_FOUND("Upload session not found.", HttpStatus.NOT_FOUND),
@@ -53,6 +59,27 @@ public enum ErrorCode {
     // ===== EPISODE =====
     EPISODE_NOT_FOUND("Episode not found.", HttpStatus.NOT_FOUND),
     EPISODE_NUMBER_ALREADY_EXISTS("Episode number already exists for this movie.", HttpStatus.CONFLICT),
+
+    // ===== FAVORITE =====
+    FAVORITE_ALREADY_EXISTS("Favorite already exists.", HttpStatus.CONFLICT),
+    FAVORITE_NOT_FOUND("Favorite not found.", HttpStatus.NOT_FOUND),
+
+    // ===== MEMBERSHIP =====
+    MEMBERSHIP_PLAN_NOT_FOUND("Membership plan not found.", HttpStatus.NOT_FOUND),
+    MEMBERSHIP_PLAN_NAME_ALREADY_EXISTS("Membership plan name already exists.", HttpStatus.CONFLICT),
+    MEMBERSHIP_REQUIRED("Membership is required.", HttpStatus.FORBIDDEN),
+    MEMBERSHIP_EXPIRED("Membership has expired.", HttpStatus.FORBIDDEN),
+
+    // ===== PAYMENT =====
+    PAYMENT_NOT_FOUND("Payment not found.", HttpStatus.NOT_FOUND),
+    PAYMENT_CREATION_FAILED("Payment creation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+    PAYMENT_VERIFICATION_FAILED("Payment verification failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // ===== STREAMING =====
+    EPISODE_NOT_READY("Episode is not ready for playback.", HttpStatus.BAD_REQUEST),
+    MOVIE_NOT_SINGLE("Movie is not a single type.", HttpStatus.BAD_REQUEST),
+    MOVIE_NOT_READY("Movie is not ready for playback.", HttpStatus.BAD_REQUEST),
+    PLAYBACK_TOKEN_INVALID("Playback token is invalid.", HttpStatus.UNAUTHORIZED),
 
     // ===== FILE =====
     INVALID_FILE_TYPE("Invalid file type.", HttpStatus.BAD_REQUEST),

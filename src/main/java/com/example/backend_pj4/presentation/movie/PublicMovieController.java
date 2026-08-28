@@ -16,7 +16,7 @@ import com.example.backend_pj4.common.constants.enums.MovieType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@Tag(name = "Movies")
+@Tag(name = "Movies - Public")
 @RestController
 @RequestMapping("/api/v1/movies")
 public class PublicMovieController {

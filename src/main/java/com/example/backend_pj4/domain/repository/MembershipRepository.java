@@ -21,6 +21,7 @@ public interface MembershipRepository {
     
     // Plan memberships
     List<Membership> findByPlanId(String planId);
+    List<Membership> findActiveByPlanId(String planId);
     
     // Status queries
     List<Membership> findByPaymentStatus(String paymentStatus);

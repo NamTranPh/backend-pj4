@@ -49,6 +49,11 @@ public class JpaHistoryWatchingRepositoryAdapter implements HistoryWatchingRepos
     }
 
     @Override
+    public Optional<HistoryWatching> findByUserIdAndMovieIdAndEpisodeIsNull(String userId, String movieId) {
+        return jpaRepository.findByUser_IdAndMovie_IdAndEpisodeIsNull(userId, movieId).map(mapper::toDomain);
+    }
+
+    @Override
     public Optional<HistoryWatching> findByUserIdAndMovieIdAndEpisodeId(String userId, String movieId, String episodeId) {
         return jpaRepository.findByUser_IdAndMovie_IdAndEpisode_Id(userId, movieId, episodeId).map(mapper::toDomain);
     }

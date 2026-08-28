@@ -53,8 +53,9 @@ public class FfmpegTranscoderAdapter implements VideoTranscoder {
 
             String masterKey = uploadHlsFiles(outputDir, command.outputBucket(), command.outputPrefix());
 
-            String resolutionStr = String.join(",",
-                    resolutions.stream().map(r -> r.label).toList());
+            String resolutionStr = "[" + resolutions.stream()
+                    .map(r -> "\"" + r.label + "\"")
+                    .collect(java.util.stream.Collectors.joining(",")) + "]";
 
             log.info("Transcode complete contentId={} masterKey={}", command.contentId(), masterKey);
             return new TranscodeResult(masterKey, resolutionStr, duration);

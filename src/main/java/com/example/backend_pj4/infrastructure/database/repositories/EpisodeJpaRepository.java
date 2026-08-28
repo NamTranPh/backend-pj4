@@ -14,6 +14,7 @@ public interface EpisodeJpaRepository extends JpaRepository<EpisodeJpaEntity, St
     List<EpisodeJpaEntity> findByMovie_IdOrderByEpisodeNumberAsc(String movieId);
     List<EpisodeJpaEntity> findByStatus(VideoStatus status);
     long countByMovie_Id(String movieId);
+    long countByMovie_IdAndStatus(String movieId, VideoStatus status);
 }
 
 

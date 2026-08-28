@@ -11,6 +11,7 @@ import lombok.Getter;
 public class MembershipPlan {
     private String id;
     private String name;
+    private String slug;
     private BigDecimal price;
     private Integer durationDays;
     private Integer maxDevices;

@@ -3,6 +3,8 @@ package com.example.backend_pj4.application.command.movie;
 import java.util.List;
 
 import com.example.backend_pj4.common.constants.enums.MovieType;
+import com.example.backend_pj4.common.constants.enums.VideoStatus;
+import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 
 public record UpdateMovieCommand(
         String id,
@@ -19,6 +21,9 @@ public record UpdateMovieCommand(
         MovieType movieType,
         Integer totalEpisodes,
         Boolean isFeatured,
+        Boolean isPremium,
+        VideoStatus status,
+        VideoVisibility visibility,
         List<String> genreIds
 ) {
 }

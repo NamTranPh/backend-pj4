@@ -21,6 +21,9 @@ public class MembershipPlanJpaEntity {
     @Column(name = "name", unique = true, nullable = false, length = 100)
     private String name;
 
+    @Column(name = "slug", unique = true, length = 150)
+    private String slug;
+
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -54,12 +57,13 @@ public class MembershipPlanJpaEntity {
 
     public void setId(String id) { this.id = id; }
 
-    public MembershipPlanJpaEntity(String id, String name, BigDecimal price, Integer durationDays,
+    public MembershipPlanJpaEntity(String id, String name, String slug, BigDecimal price, Integer durationDays,
                                 Integer maxDevices, Boolean canDownload, String videoQuality,
                                 String description, Boolean isActive, LocalDateTime createdAt,
                                 LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
+        this.slug = slug;
         this.price = price;
         this.durationDays = durationDays;
         this.maxDevices = maxDevices;
@@ -72,6 +76,7 @@ public class MembershipPlanJpaEntity {
     }
 
     public void setName(String name) { this.name = name; }
+    public void setSlug(String slug) { this.slug = slug; }
     public void setPrice(BigDecimal price) { this.price = price; }
     public void setDurationDays(Integer durationDays) { this.durationDays = durationDays; }
     public void setMaxDevices(Integer maxDevices) { this.maxDevices = maxDevices; }

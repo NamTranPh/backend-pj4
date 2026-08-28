@@ -11,6 +11,7 @@ public interface HistoryWatchingRepository {
     void deleteById(String id);
     List<HistoryWatching> findByUserId(String userId);
     Optional<HistoryWatching> findByUserIdAndMovieId(String userId, String movieId);
+    Optional<HistoryWatching> findByUserIdAndMovieIdAndEpisodeIsNull(String userId, String movieId);
     Optional<HistoryWatching> findByUserIdAndMovieIdAndEpisodeId(String userId, String movieId, String episodeId);
     List<HistoryWatching> findTop10ByUserId(String userId);
     long countByUserId(String userId);

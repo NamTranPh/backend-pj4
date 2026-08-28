@@ -48,7 +48,7 @@ public class HistoryWatchingPersistenceMapper {
             movie.setId(domain.getMovieId());
             entity.setMovie(movie);
         }
-        if (domain.getEpisodeId() != null) {
+        if (domain.getEpisodeId() != null && !domain.getEpisodeId().isBlank()) {
             EpisodeJpaEntity episode = new EpisodeJpaEntity();
             episode.setId(domain.getEpisodeId());
             entity.setEpisode(episode);

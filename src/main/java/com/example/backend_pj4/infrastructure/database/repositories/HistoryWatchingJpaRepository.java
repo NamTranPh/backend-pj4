@@ -13,6 +13,7 @@ import com.example.backend_pj4.infrastructure.database.entities.HistoryWatchingJ
 public interface HistoryWatchingJpaRepository extends JpaRepository<HistoryWatchingJpaEntity, String> {
     List<HistoryWatchingJpaEntity> findByUser_Id(String userId);
     Optional<HistoryWatchingJpaEntity> findByUser_IdAndMovie_Id(String userId, String movieId);
+    Optional<HistoryWatchingJpaEntity> findByUser_IdAndMovie_IdAndEpisodeIsNull(String userId, String movieId);
     Optional<HistoryWatchingJpaEntity> findByUser_IdAndMovie_IdAndEpisode_Id(String userId, String movieId, String episodeId);
     List<HistoryWatchingJpaEntity> findTop10ByUser_IdOrderByWatchedAtDesc(String userId);
     long countByUser_Id(String userId);

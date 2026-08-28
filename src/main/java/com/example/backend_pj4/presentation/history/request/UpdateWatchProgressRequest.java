@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record UpdateWatchProgressRequest(
         @NotBlank String movieId,
-        @NotBlank String episodeId,
+        String episodeId,
         @NotNull @Min(0) Integer positionSeconds,
         @NotNull @Min(1) Integer durationSeconds
 ) {

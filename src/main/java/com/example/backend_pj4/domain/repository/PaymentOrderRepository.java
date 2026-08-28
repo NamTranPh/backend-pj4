@@ -1,5 +1,6 @@
 package com.example.backend_pj4.domain.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,5 +18,6 @@ public interface PaymentOrderRepository {
     List<PaymentOrder> findByStatus(PaymentOrderStatus status);
     List<PaymentOrder> findByUserIdAndStatus(String userId, PaymentOrderStatus status);
     List<PaymentOrder> findPendingOrders();
+    List<PaymentOrder> findPendingByGatewaySince(String gateway, LocalDateTime since, int limit);
     long countByStatus(PaymentOrderStatus status);
 }

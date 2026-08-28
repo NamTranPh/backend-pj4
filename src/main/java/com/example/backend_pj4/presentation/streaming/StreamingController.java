@@ -62,6 +62,7 @@ public class StreamingController {
             @PathVariable String contentId,
             @RequestParam String token
     ) {
+        token = sanitizeToken(token);
         PlaybackTokenPayload payload = playbackTokenService.verifyToken(token);
         if (!payload.contentId().equals(contentId)) {
             throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
@@ -75,7 +76,7 @@ public class StreamingController {
             String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             is.close();
 
-            String rewritten = rewritePlaylistUrls(content, contentId, token);
+            String rewritten = rewritePlaylistUrls(content, contentId, token, "");
 
             return ResponseEntity.ok()
                     .contentType(HLS_MEDIA_TYPE)
@@ -93,6 +94,7 @@ public class StreamingController {
             @RequestParam String token,
             jakarta.servlet.http.HttpServletRequest request
     ) {
+        token = sanitizeToken(token);
         PlaybackTokenPayload payload = playbackTokenService.verifyToken(token);
         if (!payload.contentId().equals(contentId)) {
             throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
@@ -120,7 +122,9 @@ public class StreamingController {
             try {
                 String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
                 is.close();
-                String rewritten = rewritePlaylistUrls(content, contentId, token);
+                int prefixSlash = segmentPath.lastIndexOf('/');
+                String prefix = prefixSlash >= 0 ? segmentPath.substring(0, prefixSlash + 1) : "";
+                String rewritten = rewritePlaylistUrls(content, contentId, token, prefix);
                 InputStream rewrittenIs = new java.io.ByteArrayInputStream(
                         rewritten.getBytes(StandardCharsets.UTF_8));
                 return ResponseEntity.ok()
@@ -151,13 +155,19 @@ public class StreamingController {
         return episode.getMasterPlaylistKey();
     }
 
-    private String rewritePlaylistUrls(String content, String contentId, String token) {
+    private String sanitizeToken(String token) {
+        int comma = token.indexOf(',');
+        return comma > 0 ? token.substring(0, comma) : token;
+    }
+
+    private String rewritePlaylistUrls(String content, String contentId, String token, String segmentPrefix) {
         StringBuilder result = new StringBuilder();
         for (String line : content.split("\n")) {
             if (!line.startsWith("#") && !line.isBlank()) {
                 result.append("/api/v1/stream/")
                         .append(contentId)
                         .append("/segments/")
+                        .append(segmentPrefix)
                         .append(line.trim())
                         .append("?token=").append(token);
             } else {

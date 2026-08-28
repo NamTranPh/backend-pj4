@@ -51,15 +51,19 @@ public class HmacPlaybackTokenService implements PlaybackTokenService {
     @Override
     public PlaybackTokenPayload verifyToken(String token) {
         try {
+            log.debug("Verifying playback token, length={}", token.length());
             String[] parts = token.split("\\.", 2);
             if (parts.length != 2) {
+                log.warn("Playback token split failed, parts={}", parts.length);
                 throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
             }
 
             String payloadB64 = parts[0];
             String sig = parts[1];
 
-            if (!hmac(payloadB64).equals(sig)) {
+            String expectedSig = hmac(payloadB64);
+            if (!expectedSig.equals(sig)) {
+                log.warn("Playback token HMAC mismatch: expected={}, got={}", expectedSig, sig);
                 throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
             }
 
@@ -68,6 +72,7 @@ public class HmacPlaybackTokenService implements PlaybackTokenService {
 
             long exp = node.get("exp").asLong();
             if (System.currentTimeMillis() / 1000 > exp) {
+                log.warn("Playback token expired: exp={}, now={}", exp, System.currentTimeMillis() / 1000);
                 throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
             }
 

@@ -58,6 +58,15 @@ public class UpdateMovieService implements UpdateMovieUseCase {
         if (command.movieType() != null) builder.movieType(command.movieType());
         if (command.totalEpisodes() != null) builder.totalEpisodes(command.totalEpisodes());
         if (command.isFeatured() != null) builder.isFeatured(command.isFeatured());
+        if (command.isPremium() != null) builder.isPremium(command.isPremium());
+        if (command.status() != null) {
+            if (command.status() == com.example.backend_pj4.common.constants.enums.VideoStatus.READY
+                    || command.status() == com.example.backend_pj4.common.constants.enums.VideoStatus.PROCESSING) {
+                throw new CustomException(ErrorCode.INVALID_STATUS_TRANSITION);
+            }
+            builder.status(command.status());
+        }
+        if (command.visibility() != null) builder.visibility(command.visibility());
 
         if (command.genreIds() != null) {
             List<Genre> genres = genreRepository.findAllByIds(command.genreIds());

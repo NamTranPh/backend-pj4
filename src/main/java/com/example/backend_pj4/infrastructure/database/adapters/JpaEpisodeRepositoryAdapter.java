@@ -67,6 +67,11 @@ public class JpaEpisodeRepositoryAdapter implements EpisodeRepository {
     public long countByMovieId(String movieId) {
         return episodeJpaRepository.countByMovie_Id(movieId);
     }
+
+    @Override
+    public long countByMovieIdAndStatus(String movieId, VideoStatus status) {
+        return episodeJpaRepository.countByMovie_IdAndStatus(movieId, status);
+    }
 }
 
 

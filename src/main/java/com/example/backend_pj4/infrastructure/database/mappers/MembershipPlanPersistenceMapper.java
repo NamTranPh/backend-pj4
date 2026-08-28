@@ -17,6 +17,7 @@ public class MembershipPlanPersistenceMapper {
         return MembershipPlan.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .slug(entity.getSlug())
                 .price(entity.getPrice())
                 .durationDays(entity.getDurationDays())
                 .maxDevices(entity.getMaxDevices())
@@ -34,6 +35,7 @@ public class MembershipPlanPersistenceMapper {
         MembershipPlanJpaEntity entity = new MembershipPlanJpaEntity();
         entity.setId(domain.getId());
         entity.setName(domain.getName());
+        entity.setSlug(domain.getSlug());
         entity.setPrice(domain.getPrice());
         entity.setDurationDays(domain.getDurationDays());
         entity.setMaxDevices(domain.getMaxDevices());

@@ -13,6 +13,7 @@ import com.example.backend_pj4.infrastructure.config.properties.MinioProperties;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import io.minio.GetObjectArgs;
 import io.minio.BucketExistsArgs;
 import io.minio.CreateMultipartUploadResponse;
 import io.minio.GetPresignedObjectUrlArgs;
@@ -88,6 +89,18 @@ public class MinioStorageAdapter implements FileStorageService {
                     .build());
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate presigned GET URL", e);
+        }
+    }
+
+    @Override
+    public InputStream getObject(String bucket, String key) {
+        try {
+            return minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(key)
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get object from MinIO: bucket=" + bucket + ", key=" + key, e);
         }
     }
 

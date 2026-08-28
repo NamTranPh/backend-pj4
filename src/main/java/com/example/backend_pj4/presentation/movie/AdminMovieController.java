@@ -27,6 +27,7 @@ import com.example.backend_pj4.application.port.in.movie.CreateMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.DeleteMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.GetMovieByIdUseCase;
 import com.example.backend_pj4.application.port.in.movie.ListMoviesUseCase;
+import com.example.backend_pj4.application.port.in.movie.PublishMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.RestoreMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.UpdateMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.UploadMovieImageUseCase;
@@ -53,6 +54,7 @@ public class AdminMovieController {
     private final DeleteMovieUseCase deleteMovieUseCase;
     private final RestoreMovieUseCase restoreMovieUseCase;
     private final UploadMovieImageUseCase uploadMovieImageUseCase;
+    private final PublishMovieUseCase publishMovieUseCase;
 
     public AdminMovieController(
             CreateMovieUseCase createMovieUseCase,
@@ -61,7 +63,8 @@ public class AdminMovieController {
             ListMoviesUseCase listMoviesUseCase,
             DeleteMovieUseCase deleteMovieUseCase,
             RestoreMovieUseCase restoreMovieUseCase,
-            UploadMovieImageUseCase uploadMovieImageUseCase
+            UploadMovieImageUseCase uploadMovieImageUseCase,
+            PublishMovieUseCase publishMovieUseCase
     ) {
         this.createMovieUseCase = createMovieUseCase;
         this.updateMovieUseCase = updateMovieUseCase;
@@ -70,6 +73,7 @@ public class AdminMovieController {
         this.deleteMovieUseCase = deleteMovieUseCase;
         this.restoreMovieUseCase = restoreMovieUseCase;
         this.uploadMovieImageUseCase = uploadMovieImageUseCase;
+        this.publishMovieUseCase = publishMovieUseCase;
     }
 
     @Operation(summary = "Tạo phim mới. Quyền truy cập: ADMIN.")
@@ -98,7 +102,8 @@ public class AdminMovieController {
                 request.releaseYear(), request.duration(), request.director(),
                 request.actors(), request.country(), request.language(),
                 request.trailerUrl(), request.movieType(), request.totalEpisodes(),
-                request.isFeatured(), request.genreIds()));
+                request.isFeatured(), request.isPremium(), request.status(),
+                request.visibility(), request.genreIds()));
         return ResponseEntity.ok(result);
     }
 
@@ -135,6 +140,12 @@ public class AdminMovieController {
     @PatchMapping("/{id}/restore")
     public ResponseEntity<MovieResult> restore(@PathVariable String id) {
         return ResponseEntity.ok(restoreMovieUseCase.execute(id));
+    }
+
+    @Operation(summary = "Xuất bản phim. Phim lẻ: trigger transcode nếu chưa có. Phim bộ: chuyển READY nếu có tập đã sẵn sàng. Quyền truy cập: ADMIN.")
+    @PostMapping("/{id}/publish")
+    public ResponseEntity<MovieResult> publish(@PathVariable String id) {
+        return ResponseEntity.ok(publishMovieUseCase.execute(id));
     }
 
     @Operation(summary = "Upload ảnh Poster cho phim. Quyền truy cập: ADMIN.")

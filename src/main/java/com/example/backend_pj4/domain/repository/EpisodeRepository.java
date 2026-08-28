@@ -16,4 +16,5 @@ public interface EpisodeRepository {
     List<Episode> findByMovieIdOrderByEpisodeNumber(String movieId);
     List<Episode> findByStatus(VideoStatus status);
     long countByMovieId(String movieId);
+    long countByMovieIdAndStatus(String movieId, VideoStatus status);
 }

@@ -26,6 +26,7 @@ import com.example.backend_pj4.application.dto.movie.UploadSessionResult;
 import com.example.backend_pj4.application.port.in.episode.CreateEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.DeleteEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.ListEpisodesByMovieUseCase;
+import com.example.backend_pj4.application.port.in.episode.PublishEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.UpdateEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.UploadEpisodeThumbnailUseCase;
 import com.example.backend_pj4.application.port.in.movie.CancelUploadUseCase;
@@ -62,6 +63,7 @@ public class AdminEpisodeController {
     private final CompleteUploadUseCase completeUploadUseCase;
     private final CancelUploadUseCase cancelUploadUseCase;
     private final GetUploadStatusUseCase getUploadStatusUseCase;
+    private final PublishEpisodeUseCase publishEpisodeUseCase;
 
     public AdminEpisodeController(
             CreateEpisodeUseCase createEpisodeUseCase,
@@ -74,7 +76,8 @@ public class AdminEpisodeController {
             RecordUploadPartUseCase recordUploadPartUseCase,
             CompleteUploadUseCase completeUploadUseCase,
             CancelUploadUseCase cancelUploadUseCase,
-            GetUploadStatusUseCase getUploadStatusUseCase
+            GetUploadStatusUseCase getUploadStatusUseCase,
+            PublishEpisodeUseCase publishEpisodeUseCase
     ) {
         this.createEpisodeUseCase = createEpisodeUseCase;
         this.updateEpisodeUseCase = updateEpisodeUseCase;
@@ -87,6 +90,7 @@ public class AdminEpisodeController {
         this.completeUploadUseCase = completeUploadUseCase;
         this.cancelUploadUseCase = cancelUploadUseCase;
         this.getUploadStatusUseCase = getUploadStatusUseCase;
+        this.publishEpisodeUseCase = publishEpisodeUseCase;
     }
 
     // ===== CRUD =====
@@ -127,6 +131,12 @@ public class AdminEpisodeController {
     public ResponseEntity<Void> delete(@PathVariable String movieId, @PathVariable String id) {
         deleteEpisodeUseCase.execute(movieId, id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Xuất bản tập phim. Trigger transcode nếu video chưa được xử lý. Quyền truy cập: ADMIN.")
+    @PostMapping("/{id}/publish")
+    public ResponseEntity<EpisodeResult> publish(@PathVariable String id) {
+        return ResponseEntity.ok(publishEpisodeUseCase.execute(id));
     }
 
     // ===== Thumbnail =====
