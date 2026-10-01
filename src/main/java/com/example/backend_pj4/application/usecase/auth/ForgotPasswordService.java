@@ -27,8 +27,14 @@ public class ForgotPasswordService implements ForgotPasswordUseCase {
     public void execute(ForgotPasswordCommand command) {
         String email = command.email().toLowerCase().trim();
 
-        // Silent success if email doesn't exist — don't reveal whether an account exists
+        // Silent success if email doesn't exist — don't reveal whether an account exists.
+        // Còn trong cooldown thì cũng im lặng bỏ qua, không ném lỗi (ném sẽ tiết lộ email
+        // nào có tài khoản), nhưng vẫn chặn được spam mail.
         userRepository.findByEmailIgnoreCase(email).ifPresent(user -> {
+            if (otpHelper.isWithinResendCooldown(email, OtpType.PASSWORD_RESET)) {
+                log.debug("Forgot-password OTP suppressed by cooldown");
+                return;
+            }
             otpHelper.issueOtp(email, OtpType.PASSWORD_RESET);
         });
     }

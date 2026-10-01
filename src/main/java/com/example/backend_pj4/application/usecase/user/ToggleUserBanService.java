@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend_pj4.application.port.in.user.ToggleUserBanUseCase;
-import com.example.backend_pj4.application.port.out.RefreshTokenStore;
+import com.example.backend_pj4.domain.repository.RefreshTokenRepository;
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.domain.model.User;
@@ -14,11 +14,11 @@ import com.example.backend_pj4.domain.repository.UserRepository;
 public class ToggleUserBanService implements ToggleUserBanUseCase {
 
     private final UserRepository userRepository;
-    private final RefreshTokenStore refreshTokenStore;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public ToggleUserBanService(UserRepository userRepository, RefreshTokenStore refreshTokenStore) {
+    public ToggleUserBanService(UserRepository userRepository, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
-        this.refreshTokenStore = refreshTokenStore;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ToggleUserBanService implements ToggleUserBanUseCase {
         userRepository.save(updated);
 
         if (ban) {
-            refreshTokenStore.revokeAllByUserId(userId);
+            refreshTokenRepository.revokeAllByUserId(userId);
         }
     }
 }

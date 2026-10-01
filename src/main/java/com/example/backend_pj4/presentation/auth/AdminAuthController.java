@@ -23,6 +23,7 @@ import com.example.backend_pj4.infrastructure.security.AuthCookieService;
 import com.example.backend_pj4.presentation.auth.request.LoginRequest;
 import com.example.backend_pj4.presentation.auth.response.LoginResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,27 +56,29 @@ public class AdminAuthController {
     @Operation(summary = "Đăng nhập tài khoản Quản trị viên (Admin). Quyền truy cập: Public (Công khai).")
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+                                                HttpServletRequest httpRequest,
                                                 HttpServletResponse response) {
         AuthTokenResult result = adminLoginUseCase.execute(
-                new LoginCommand(request.email(), request.password()));
+                new LoginCommand(request.email(), request.password(),
+                        ClientInfo.userAgent(httpRequest), ClientInfo.ipAddress(httpRequest)));
         authCookieService.addAdminRefreshCookie(response, result.refreshToken());
         return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.expiresIn()));
     }
 
-    @Operation(summary = "Làm mới Admin Access Token bằng Refresh Token Cookie. Quyền truy cập: ADMIN.")
-    @AuthRequired
+    @Operation(summary = "Làm mới Admin Access Token bằng Refresh Token Cookie. Quyền truy cập: Public (xác thực bằng admin refresh token cookie, không cần access token).")
     @PostMapping("/refresh-token")
     public ResponseEntity<LoginResponse> refreshToken(
             @CookieValue(name = "${auth.cookie.admin-refresh-name}", required = false) String refreshTokenCookie,
+            HttpServletRequest httpRequest,
             HttpServletResponse response) {
         AuthTokenResult result = adminRefreshTokenUseCase.execute(
-                new RefreshTokenCommand(refreshTokenCookie));
+                new RefreshTokenCommand(refreshTokenCookie,
+                        ClientInfo.userAgent(httpRequest), ClientInfo.ipAddress(httpRequest)));
         authCookieService.addAdminRefreshCookie(response, result.refreshToken());
         return ResponseEntity.ok(new LoginResponse(result.accessToken(), result.expiresIn()));
     }
 
-    @Operation(summary = "Đăng xuất tài khoản Admin và xóa Cookie. Quyền truy cập: ADMIN.")
-    @AuthRequired
+    @Operation(summary = "Đăng xuất tài khoản Admin và xóa Cookie. Quyền truy cập: Public (xác thực bằng admin refresh token cookie, không cần access token).")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(name = "${auth.cookie.admin-refresh-name}", required = false) String refreshTokenCookie,

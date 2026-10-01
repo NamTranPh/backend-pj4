@@ -180,9 +180,12 @@ POST /api/v1/auth/reset-password
 
 ```
 POST /api/v1/auth/refresh-token
-  → Cookie: refreshToken
-  → Response: new accessToken
+  → Cookie: refresh_token        (admin: admin_refresh_token)
+  → KHÔNG cần header Authorization — endpoint này gọi được khi access token đã hết hạn
+  → Response: new accessToken + refresh token cookie mới (rotation)
 ```
+
+Tương tự cho CMS: `POST /api/v1/admin/auth/refresh-token`.
 
 ### 5. Video Upload Flow (Movie hoặc Episode)
 
@@ -263,11 +266,11 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 | 2   | Verify OTP đăng ký | POST   | `/api/v1/auth/verify-registration`     | Public | email, otpCode              | void (no body)          |
 | 3   | Resend OTP         | POST   | `/api/v1/auth/resend-registration-otp` | Public | email                       | message                 |
 | 4   | Login              | POST   | `/api/v1/auth/login`                   | Public | email, password             | LoginResponse + cookies |
-| 5   | Refresh Token      | POST   | `/api/v1/auth/refresh-token`           | User   | -                           | LoginResponse + cookies |
+| 5   | Refresh Token      | POST   | `/api/v1/auth/refresh-token`           | Cookie | -                           | LoginResponse + cookies |
 | 6   | Forgot Password    | POST   | `/api/v1/auth/forgot-password`         | Public | email                       | message                 |
 | 7   | Reset Password     | POST   | `/api/v1/auth/reset-password`          | Public | email, otpCode, newPassword | message                 |
 | 8   | Change Password    | POST   | `/api/v1/auth/change-password`         | User   | oldPassword, newPassword    | message                 |
-| 9   | Logout             | POST   | `/api/v1/auth/logout`                  | User   | -                           | message + clear cookies |
+| 9   | Logout             | POST   | `/api/v1/auth/logout`                  | Cookie | -                           | message + clear cookies |
 
 **Request/Response DTO:**
 
@@ -326,7 +329,7 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 | --- | ------------------- | ------ | ---------------------------------- | ------ | --------------- | ----------------------- |
 | 1   | Admin Login         | POST   | `/api/v1/admin/auth/login`         | Public | email, password | LoginResponse + cookies |
 | 2   | Admin Refresh Token | POST   | `/api/v1/admin/auth/refresh-token` | Cookie | -               | LoginResponse + cookies |
-| 3   | Admin Logout        | POST   | `/api/v1/admin/auth/logout`        | Admin  | -               | message + clear cookies |
+| 3   | Admin Logout        | POST   | `/api/v1/admin/auth/logout`        | Cookie | -               | message + clear cookies |
 | 4   | Admin Get Me        | GET    | `/api/v1/admin/auth/me`            | Admin  | -               | UserProfileResult       |
 
 ---
@@ -998,23 +1001,117 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ## Authentication
 
-**Method:** Bearer Token (JWT in Authorization header)
+**Access token — chỉ qua header Authorization:**
 
 ```
 Authorization: Bearer <accessToken>
 ```
 
-**Or:** Cookie-based (refreshToken in httpOnly cookie)
+> Backend **không** đọc access token từ cookie nữa. Cookie chỉ dùng cho refresh token.
 
-```
-Cookie: refreshToken=<token>
-```
+**Refresh token — httpOnly cookie, tách theo kênh:**
+
+| Kênh        | Tên cookie            | Path                 |
+| ----------- | --------------------- | -------------------- |
+| User        | `refresh_token`       | `/api/v1/auth`       |
+| Admin (CMS) | `admin_refresh_token` | `/api/v1/admin/auth` |
+
+### Claim trong JWT
+
+| Claim     | Access token          | Refresh token         | Ý nghĩa                                                                           |
+| --------- | --------------------- | --------------------- | --------------------------------------------------------------------------------- |
+| `sub`     | email                 | email                 | Chủ sở hữu token                                                                  |
+| `typ`     | `"access"`            | —                     | Phân biệt loại token. Refresh token gửi qua header `Authorization` sẽ bị từ chối. |
+| `type`    | —                     | `"refresh"`           | Giữ tên cũ cho refresh token                                                      |
+| `tokenId` | —                     | UUID                  | Khoá tra cứu trong refresh token store (để revoke)                                |
+| `ch`      | `"admin"` \| `"user"` | `"admin"` \| `"user"` | **Kênh phát token**                                                               |
+
+### Cô lập kênh (claim `ch`)
+
+`ch` cho biết token được phát ở **cửa đăng nhập nào**, không phải role:
+
+- Login `/api/v1/auth/login` → `ch="user"` → **không** gọi được `/api/v1/admin/**` (403), kể cả khi tài khoản đó có role ADMIN.
+- Login `/api/v1/admin/auth/login` → `ch="admin"` → gọi được **cả hai kênh** (admin có thể dùng API phía user để test hệ thống).
+
+| Tài khoản | Login ở                    | `ch`    | `/api/v1/admin/**`    | API user |
+| --------- | -------------------------- | ------- | --------------------- | -------- |
+| USER      | `/api/v1/auth/login`       | `user`  | ✗ 403                 | ✓        |
+| USER      | `/api/v1/admin/auth/login` | —       | `admin_role_required` | —        |
+| ADMIN     | `/api/v1/auth/login`       | `user`  | ✗ 403                 | ✓        |
+| ADMIN     | `/api/v1/admin/auth/login` | `admin` | ✓                     | ✓        |
+
+**Lưu ý FE:** hai frontend nên lưu access token ở key riêng biệt và không dùng chéo token của nhau.
 
 ---
 
 ## Cập nhật lịch sử
 
 Ghi cập nhật mới dưới đây (thứ tự mới nhất → cũ nhất)
+
+### 2026-09-21 - v4.2 - Auth: đổi mã lỗi để chống dò tài khoản
+
+**Endpoint, HTTP method, request/response DTO: KHÔNG ĐỔI.** Chỉ mã lỗi thay đổi.
+
+#### Vì sao đổi
+
+Trước bản này, chỉ cần gửi mật khẩu bừa rồi đọc mã lỗi là dò ra được email nào đã đăng ký trong hệ thống, email nào bị ban, và **tài khoản nào là admin** — không cần biết mật khẩu. Nay mọi thất bại **trước khi mật khẩu đúng** đều trả cùng một mã `bad_credentials`.
+
+#### Bảng thay đổi mã lỗi
+
+| Endpoint                                    | Tình huống                                       | Trước                                                                             | Sau                                                               |
+| ------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `POST /api/v1/auth/login`                   | Sai mật khẩu, tài khoản chưa xác thực email      | `email_not_verified` (403)                                                        | `bad_credentials` (401)                                           |
+| `POST /api/v1/auth/login`                   | Sai mật khẩu, tài khoản bị ban                   | `account_banned` (403)                                                            | `bad_credentials` (401)                                           |
+| `POST /api/v1/auth/login`                   | Sai mật khẩu, tài khoản không active             | `account_not_active` (403)                                                        | `bad_credentials` (401)                                           |
+| `POST /api/v1/admin/auth/login`             | Sai mật khẩu, tài khoản không phải admin         | `admin_role_required` (403)                                                       | `bad_credentials` (401)                                           |
+| `POST /api/v1/auth/resend-registration-otp` | Email chưa đăng ký / đã kích hoạt / còn cooldown | `user_not_found` (404), `email_already_exists` (409), `otp_resend_too_soon` (429) | **200 silent success** (không tiết lộ email có tồn tại hay không) |
+| `POST /api/v1/auth/reset-password`          | Email chưa đăng ký                               | `user_not_found` (404)                                                            | `otp_invalid` (400)                                               |
+
+#### Không đổi — luồng FE hiện tại vẫn chạy đúng
+
+| Tình huống                                            | Mã lỗi                             |
+| ----------------------------------------------------- | ---------------------------------- |
+| **Đúng** mật khẩu, chưa xác thực email                | `email_not_verified` (403)         |
+| **Đúng** mật khẩu, bị ban                             | `account_banned` (403)             |
+| **Đúng** mật khẩu, không active                       | `account_not_active` (403)         |
+| **Đúng** mật khẩu ở cửa admin, không phải admin       | `admin_role_required` (403)        |
+| Tài khoản đang bị khoá tạm (dù mật khẩu đúng hay sai) | `account_temporarily_locked` (429) |
+
+Luồng "login → nếu `email_not_verified` thì chuyển sang màn nhập OTP" **vẫn hoạt động** — chỉ khác là người dùng phải nhập đúng mật khẩu mới được chuyển, đúng như mong đợi về bảo mật.
+
+#### Lưu ý cho FE
+
+- `POST /api/v1/auth/resend-registration-otp` giờ **luôn trả 200**. FE nên hiển thị thông báo trung lập kiểu "Nếu email hợp lệ, mã OTP đã được gửi" thay vì khẳng định đã gửi thành công.
+- `account_temporarily_locked` (429) vẫn được trả **trước** khi kiểm tra mật khẩu — đây là rate limit chống brute-force, không phải trạng thái tài khoản.
+
+#### Thay đổi nội bộ không ảnh hưởng FE
+
+- Mỗi phiên đăng nhập nay được gắn `session_id` cố định (giữ nguyên qua mọi lần refresh) cùng `user_agent`, `ip_address`, `last_used_at` — chuẩn bị cho tính năng **Quản lý phiên đăng nhập** (liệt kê thiết bị, đăng xuất từ xa). Endpoint cho tính năng này **chưa có**, sẽ bổ sung sau.
+- Refresh token của kênh admin không còn dùng được ở `POST /api/v1/auth/refresh-token` và ngược lại — trả `refresh_token_revoked` (401).
+- Refresh token hết hạn được dọn tự động hằng ngày lúc 02:30.
+
+### 2026-09-07 - v4.1 - Auth Security Hardening
+
+**⚠️ BREAKING (một phần):** access token phát trước bản này bị từ chối vì thiếu claim `typ`/`ch`. **Refresh token cũ vẫn hợp lệ** (backend lấy kênh từ DB, không đọc `ch` của token gửi lên).
+
+|               | Token phát trước bản này | Sau khi deploy                                 |
+| ------------- | ------------------------ | ---------------------------------------------- |
+| Access token  | thiếu `typ`/`ch`         | **bị từ chối** — mỗi client nhận 1 lần 401/403 |
+| Refresh token | có `type` + `tokenId`    | **vẫn dùng được**                              |
+
+- **FE có interceptor auto-refresh** (bắt 401/403 → gọi `/refresh-token` → retry request gốc): người dùng **không bị đăng xuất**, chỉ chậm một nhịp.
+- **FE chưa có interceptor:** người dùng phải login lại. Nên bổ sung interceptor — access token hết hạn mỗi 15 phút, không có nó thì user bị đá ra mỗi 15 phút dù không deploy gì.
+
+- **Claim mới trong JWT:** `typ` (access token) và `ch` (kênh phát token: `admin`/`user`). Xem mục [Authentication](#authentication).
+- **Cô lập kênh:** access token lấy từ `/api/v1/auth/login` (`ch=user`) **không** gọi được `/api/v1/admin/**` nữa, kể cả tài khoản role ADMIN. Token lấy từ `/api/v1/admin/auth/login` (`ch=admin`) dùng được cả hai kênh.
+- **Refresh token không dùng thay access token được nữa** — gửi refresh token qua header `Authorization` sẽ bị từ chối.
+- **Access token không đọc từ cookie nữa** — chỉ header `Authorization: Bearer`. Cookie `access_token` bị bỏ hoàn toàn.
+- **`POST /api/v1/auth/refresh-token`, `/logout`, `/api/v1/admin/auth/refresh-token`, `/logout`:** đổi từ "cần đăng nhập" thành **không cần access token** (trước đây trả 403 khi access token hết hạn — đúng lúc FE cần gọi refresh nhất). Chỉ cần refresh token cookie hợp lệ.
+- **Error code có thể gặp thêm:**
+  - `otp_max_attempts_exceeded` (429) tại `/verify-registration` và `/reset-password` — nhập sai OTP quá số lần cho phép, phải xin OTP mới.
+  - `otp_resend_too_soon` (429) tại `/register` — gọi lại `/register` cùng email khi OTP cũ còn trong thời gian cooldown.
+  - `email_not_verified` tại `/api/v1/admin/auth/login`.
+- **`/actuator/**`** giờ yêu cầu quyền ADMIN (trước đây public). `/actuator/health` vẫn public.
 
 ### 2026-08-25 - v4.0
 

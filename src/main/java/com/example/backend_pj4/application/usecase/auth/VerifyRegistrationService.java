@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend_pj4.application.command.auth.VerifyRegistrationCommand;
 import com.example.backend_pj4.application.port.in.auth.VerifyRegistrationUseCase;
+import com.example.backend_pj4.application.port.out.OtpAttemptLimiter;
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.constants.enums.AccountStatus;
 import com.example.backend_pj4.common.constants.enums.OtpType;
@@ -22,13 +23,16 @@ public class VerifyRegistrationService implements VerifyRegistrationUseCase {
     private final UserRepository userRepository;
     private final OtpVerificationRepository otpRepository;
     private final OtpHelper otpHelper;
+    private final OtpAttemptLimiter otpAttemptLimiter;
 
     public VerifyRegistrationService(UserRepository userRepository,
                                       OtpVerificationRepository otpRepository,
-                                      OtpHelper otpHelper) {
+                                      OtpHelper otpHelper,
+                                      OtpAttemptLimiter otpAttemptLimiter) {
         this.userRepository = userRepository;
         this.otpRepository = otpRepository;
         this.otpHelper = otpHelper;
+        this.otpAttemptLimiter = otpAttemptLimiter;
     }
 
     @Override
@@ -46,10 +50,15 @@ public class VerifyRegistrationService implements VerifyRegistrationUseCase {
             throw new CustomException(ErrorCode.OTP_EXPIRED);
         }
 
+        // Đếm trước khi so sánh: OTP 6 số sẽ brute-force được nếu không giới hạn số lần thử
+        otpAttemptLimiter.checkAndIncrement(email, OtpType.REGISTRATION);
+
         String expectedHash = otpHelper.hashOtp(command.otpCode(), email);
         if (!expectedHash.equals(otp.getCodeHash())) {
             throw new CustomException(ErrorCode.OTP_INVALID);
         }
+
+        otpAttemptLimiter.reset(email, OtpType.REGISTRATION);
 
         OtpVerification used = otp.toBuilder().usedAt(LocalDateTime.now()).build();
         otpRepository.save(used);

@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.backend_pj4.application.command.auth.ChangePasswordCommand;
 import com.example.backend_pj4.application.port.in.auth.ChangePasswordUseCase;
 import com.example.backend_pj4.application.port.out.PasswordHasher;
-import com.example.backend_pj4.application.port.out.RefreshTokenStore;
+import com.example.backend_pj4.domain.repository.RefreshTokenRepository;
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.domain.model.User;
@@ -17,14 +17,14 @@ public class ChangePasswordService implements ChangePasswordUseCase {
 
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
-    private final RefreshTokenStore refreshTokenStore;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public ChangePasswordService(UserRepository userRepository,
                                   PasswordHasher passwordHasher,
-                                  RefreshTokenStore refreshTokenStore) {
+                                  RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
-        this.refreshTokenStore = refreshTokenStore;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     @Override
@@ -46,6 +46,6 @@ public class ChangePasswordService implements ChangePasswordUseCase {
                 .build();
         userRepository.save(updated);
 
-        refreshTokenStore.revokeAllByUserId(user.getId());
+        refreshTokenRepository.revokeAllByUserId(user.getId());
     }
 }

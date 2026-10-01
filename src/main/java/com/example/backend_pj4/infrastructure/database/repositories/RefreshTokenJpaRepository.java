@@ -8,25 +8,27 @@ import org.springframework.data.repository.query.Param;
 import com.example.backend_pj4.infrastructure.database.entities.RefreshTokenJpaEntity;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 public interface RefreshTokenJpaRepository extends JpaRepository<RefreshTokenJpaEntity, String> {
 
     Optional<RefreshTokenJpaEntity> findByTokenId(String tokenId);
 
-    @Query("SELECT r FROM RefreshTokenJpaEntity r WHERE r.userId = :userId AND r.revokedAt IS NULL AND r.expiresAt > :now")
-    List<RefreshTokenJpaEntity> findActiveByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
-
-    @Modifying
+    // clearAutomatically + flushAutomatically: bulk update đi thẳng DB, bỏ qua persistence
+    // context. Không có 2 cờ này thì entity đã nạp trước đó vẫn giữ giá trị cũ.
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshTokenJpaEntity r SET r.revokedAt = :now WHERE r.tokenId = :tokenId AND r.revokedAt IS NULL")
     void revokeByTokenId(@Param("tokenId") String tokenId, @Param("now") LocalDateTime now);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshTokenJpaEntity r SET r.revokedAt = :now WHERE r.userId = :userId AND r.revokedAt IS NULL")
     void revokeAllByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE RefreshTokenJpaEntity r SET r.revokedAt = :now WHERE r.sessionId = :sessionId AND r.revokedAt IS NULL")
+    void revokeAllBySessionId(@Param("sessionId") String sessionId, @Param("now") LocalDateTime now);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM RefreshTokenJpaEntity r WHERE r.expiresAt < :now")
-    void deleteExpired(@Param("now") LocalDateTime now);
+    int deleteExpired(@Param("now") LocalDateTime now);
 }

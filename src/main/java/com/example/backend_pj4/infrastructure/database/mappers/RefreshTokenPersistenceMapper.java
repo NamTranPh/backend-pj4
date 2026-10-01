@@ -14,9 +14,13 @@ public class RefreshTokenPersistenceMapper {
                 .id(entity.getId())
                 .userId(entity.getUserId())
                 .tokenId(entity.getTokenId())
+                .sessionId(entity.getSessionId())
                 .admin(entity.isAdmin())
                 .expiresAt(entity.getExpiresAt())
                 .revokedAt(entity.getRevokedAt())
+                .userAgent(entity.getUserAgent())
+                .ipAddress(entity.getIpAddress())
+                .lastUsedAt(entity.getLastUsedAt())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
@@ -27,9 +31,13 @@ public class RefreshTokenPersistenceMapper {
         entity.setId(domain.getId());
         entity.setUserId(domain.getUserId());
         entity.setTokenId(domain.getTokenId());
+        entity.setSessionId(domain.getSessionId());
         entity.setAdmin(domain.isAdmin());
         entity.setExpiresAt(domain.getExpiresAt());
         entity.setRevokedAt(domain.getRevokedAt());
+        entity.setUserAgent(domain.getUserAgent());
+        entity.setIpAddress(domain.getIpAddress());
+        entity.setLastUsedAt(domain.getLastUsedAt());
         return entity;
     }
 }

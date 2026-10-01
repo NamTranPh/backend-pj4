@@ -5,36 +5,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend_pj4.application.command.auth.LogoutCommand;
 import com.example.backend_pj4.application.port.in.admin.AdminLogoutUseCase;
-import com.example.backend_pj4.application.port.out.RefreshTokenStore;
+import com.example.backend_pj4.application.usecase.auth.RefreshTokenRevoker;
 import com.example.backend_pj4.infrastructure.security.JwtTokenProvider;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Service
 public class AdminLogoutService implements AdminLogoutUseCase {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenStore refreshTokenStore;
+    private final RefreshTokenRevoker revoker;
 
-    public AdminLogoutService(JwtTokenProvider jwtTokenProvider, RefreshTokenStore refreshTokenStore) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.refreshTokenStore = refreshTokenStore;
+    public AdminLogoutService(RefreshTokenRevoker revoker) {
+        this.revoker = revoker;
     }
 
     @Override
     @Transactional
     public void execute(LogoutCommand command) {
-        if (command.rawRefreshToken() == null || command.rawRefreshToken().isBlank()) {
-            return;
-        }
-        try {
-            String tokenId = jwtTokenProvider.getTokenIdFromToken(command.rawRefreshToken());
-            if (tokenId != null) {
-                refreshTokenStore.revokeByTokenId(tokenId);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to revoke admin refresh token during logout", e);
-        }
+        revoker.revoke(command.rawRefreshToken(), JwtTokenProvider.CHANNEL_ADMIN);
     }
 }

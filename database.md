@@ -431,21 +431,31 @@
 
 ### 15. refresh_token (Refresh Token Sessions)
 
-| STT | Column     | Type          | Constraint                | Description          |
-| --- | ---------- | ------------- | ------------------------- | -------------------- |
-| 1   | id         | UUID (String) | PRIMARY KEY               | ID record            |
-| 2   | user_id    | VARCHAR(255)  | NOT NULL                  | ID người dùng        |
-| 3   | token_id   | VARCHAR(255)  | NOT NULL, UNIQUE          | ID token từ JWT      |
-| 4   | is_admin   | BOOLEAN       | NOT NULL                  | Token admin hay user |
-| 5   | expires_at | TIMESTAMP     | NOT NULL                  | Thời điểm hết hạn    |
-| 6   | revoked_at | TIMESTAMP     | -                         | Ngày revoke (logout) |
-| 7   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP | Ngày tạo             |
+| STT | Column       | Type          | Constraint                | Description                               |
+| --- | ------------ | ------------- | ------------------------- | ----------------------------------------- |
+| 1   | id           | UUID (String) | PRIMARY KEY               | ID record                                 |
+| 2   | user_id      | VARCHAR(255)  | NOT NULL                  | ID người dùng                             |
+| 3   | token_id     | VARCHAR(255)  | NOT NULL, UNIQUE          | ID token từ JWT, đổi mỗi lần rotation     |
+| 4   | session_id   | VARCHAR(36)   | -                         | ID phiên, GIỮ NGUYÊN qua mọi lần rotation |
+| 5   | is_admin     | BOOLEAN       | NOT NULL                  | Token kênh admin hay kênh user            |
+| 6   | expires_at   | TIMESTAMP     | NOT NULL                  | Thời điểm hết hạn                         |
+| 7   | revoked_at   | TIMESTAMP     | -                         | Ngày revoke (logout / rotation / ban)     |
+| 8   | user_agent   | VARCHAR(512)  | -                         | Trình duyệt, thiết bị lúc đăng nhập       |
+| 9   | ip_address   | VARCHAR(45)   | -                         | IP client (45 ký tự đủ cho IPv6)          |
+| 10  | last_used_at | TIMESTAMP     | -                         | Lần refresh gần nhất của phiên            |
+| 11  | created_at   | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP | Ngày tạo                                  |
 
 **Index:**
 
 - PRIMARY KEY: id
 - UNIQUE: idx_refresh_token_token_id (token_id)
 - INDEX: idx_refresh_token_user_id (user_id)
+- INDEX: idx_refresh_token_session_id (session_id)
+
+> **Phân biệt `token_id` và `session_id`:** `token_id` định danh một tờ vé cụ thể, đổi mỗi
+> 15 phút do rotation. `session_id` định danh một phiên đăng nhập (một thiết bị), cố định từ
+> lúc login tới lúc logout. Thu hồi một token dùng `token_id`; "Đăng xuất thiết bị này" dùng
+> `session_id`.
 
 > user_id là plain column, không có FK relation trong JPA entity.
 
@@ -633,6 +643,36 @@ TTL: 24 hours
 ---
 
 ## Cập nhật lịch sử
+
+### 2026-09-21 - v3.3
+
+Bảng `refresh_token`: thêm 4 column + 1 index, chuẩn bị cho tính năng Quản lý phiên đăng nhập (liệt kê thiết bị đang đăng nhập, đăng xuất từ xa). Chưa có API/UI.
+
+```sql
+ALTER TABLE refresh_token
+  ADD COLUMN session_id   VARCHAR(36)  NULL,
+  ADD COLUMN user_agent   VARCHAR(512) NULL,
+  ADD COLUMN ip_address   VARCHAR(45)  NULL,
+  ADD COLUMN last_used_at TIMESTAMP    NULL,
+  ADD INDEX idx_refresh_token_session_id (session_id);
+```
+
+| Column         | Kiểu         | Null | Mô tả                                                                                                                                                                                                                                                                                     |
+| -------------- | ------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `session_id`   | VARCHAR(36)  | ✓    | **Cố định xuyên suốt một phiên đăng nhập.** Rotation sinh `token_id` mới mỗi 15 phút và thu hồi cái cũ, nên sau một ngày một phiên đã đẻ ~96 `token_id` rời rạc. Không có `session_id` thì không nối chúng lại thành "một thiết bị" được, và nút "Đăng xuất thiết bị này" không cài được. |
+| `user_agent`   | VARCHAR(512) | ✓    | Header `User-Agent` lúc đăng nhập/refresh, cắt bớt nếu dài hơn 512.                                                                                                                                                                                                                       |
+| `ip_address`   | VARCHAR(45)  | ✓    | Ưu tiên phần tử đầu của `X-Forwarded-For`, fallback `getRemoteAddr()`. Dài 45 để chứa được IPv6. **Chỉ dùng để hiển thị**, không dùng làm căn cứ phân quyền vì client tự đặt header được.                                                                                                 |
+| `last_used_at` | TIMESTAMP    | ✓    | Cập nhật mỗi lần rotation, để hiển thị "hoạt động 2 phút trước".                                                                                                                                                                                                                          |
+
+Quan hệ giữa hai cột định danh: một `session_id` có nhiều `token_id` theo thời gian (rotation sinh `token_id` mới mỗi 15 phút, thu hồi cái cũ), còn `session_id` giữ nguyên từ lúc login tới lúc logout.
+
+### 2026-09-07 - v3.2
+
+- **Không có thay đổi schema.** Ghi chú lại thay đổi ngữ nghĩa của 3 column đã tồn tại trong bảng `user`:
+  - `locked_until` — trước đây **chỉ được đọc, không nơi nào ghi** (lớp fallback chống brute-force là code chết). Từ bản này được ghi khi số lần đăng nhập sai vượt `auth.login.max-failures` trong cửa sổ `auth.login.failure-window-minutes`, giá trị = `now + auth.login.lock-minutes`.
+  - `failed_login_attempts`, `first_failure_at` — reset về `0`/`NULL` khi khoá tài khoản hoặc khi đăng nhập thành công; bộ đếm bắt đầu lại từ 1 khi `first_failure_at` đã ra ngoài cửa sổ đếm.
+  - Áp dụng cho **cả** luồng user (`/api/v1/auth/login`) và luồng admin (`/api/v1/admin/auth/login`) — trước đây admin chỉ đếm trên Redis.
+- Số lần thử sai OTP được đếm trên **Redis** (key `{prefix}:otp-attempt:{type}:{email}`, TTL = `auth.otp.ttl-minutes`), **không thêm column** vào bảng `otp_verification`.
 
 ### 2026-08-25 - v3.1
 

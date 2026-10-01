@@ -1,7 +1,6 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -35,12 +34,6 @@ public class JpaRefreshTokenRepositoryAdapter implements RefreshTokenRepository 
     }
 
     @Override
-    public List<RefreshToken> findActiveByUserId(String userId) {
-        return springDataRepo.findActiveByUserId(userId, LocalDateTime.now())
-                .stream().map(mapper::toDomain).toList();
-    }
-
-    @Override
     @Transactional
     public void revokeByTokenId(String tokenId) {
         springDataRepo.revokeByTokenId(tokenId, LocalDateTime.now());
@@ -54,7 +47,13 @@ public class JpaRefreshTokenRepositoryAdapter implements RefreshTokenRepository 
 
     @Override
     @Transactional
-    public void deleteExpired() {
-        springDataRepo.deleteExpired(LocalDateTime.now());
+    public void revokeAllBySessionId(String sessionId) {
+        springDataRepo.revokeAllBySessionId(sessionId, LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
+    public int deleteExpired() {
+        return springDataRepo.deleteExpired(LocalDateTime.now());
     }
 }

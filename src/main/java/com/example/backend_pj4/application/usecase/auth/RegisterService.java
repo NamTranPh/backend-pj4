@@ -41,6 +41,7 @@ public class RegisterService implements RegisterUseCase {
             if (user.getAccountStatus() != AccountStatus.INACTIVE || Boolean.TRUE.equals(user.getEmailVerified())) {
                 throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
             }
+            otpHelper.assertResendCooldown(email, OtpType.REGISTRATION);
             User updated = user.toBuilder()
                     .password(passwordHasher.hash(command.password()))
                     .name(command.name())
