@@ -6,8 +6,11 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.RefreshToken;
 import com.example.backend_pj4.domain.repository.RefreshTokenRepository;
+import com.example.backend_pj4.domain.repository.filter.SessionFilter;
 import com.example.backend_pj4.infrastructure.database.mappers.RefreshTokenPersistenceMapper;
 import com.example.backend_pj4.infrastructure.database.repositories.RefreshTokenJpaRepository;
 
@@ -29,8 +32,21 @@ public class JpaRefreshTokenRepositoryAdapter implements RefreshTokenRepository 
     }
 
     @Override
+    public PageResult<RefreshToken> find(SessionFilter filter, PageQuery query) {
+        return PageableMapper.toPageResult(
+                springDataRepo.findActiveSessionsByUserId(
+                        filter.userId(), LocalDateTime.now(), PageableMapper.toPageable(query)),
+                mapper::toDomain);
+    }
+
+    @Override
     public Optional<RefreshToken> findByTokenId(String tokenId) {
         return springDataRepo.findByTokenId(tokenId).map(mapper::toDomain);
+    }
+
+    @Override
+    public boolean existsActiveSession(String userId, String sessionId) {
+        return springDataRepo.existsActiveSession(userId, sessionId, LocalDateTime.now());
     }
 
     @Override

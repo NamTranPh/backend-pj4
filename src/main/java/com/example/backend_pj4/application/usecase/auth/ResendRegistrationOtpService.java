@@ -38,7 +38,7 @@ public class ResendRegistrationOtpService implements ResendRegistrationOtpUseCas
     public void execute(ResendRegistrationOtpCommand command) {
         String email = command.email().toLowerCase().trim();
 
-        User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
+        User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
             log.debug("Resend registration OTP bỏ qua: email chưa đăng ký");
             return;

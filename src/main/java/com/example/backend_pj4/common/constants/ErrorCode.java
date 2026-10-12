@@ -20,6 +20,7 @@ public enum ErrorCode {
     NEW_PASSWORD_REQUIRED("New password is required.", HttpStatus.BAD_REQUEST),
     OLD_PASSWORD_INCORRECT("Old password is incorrect.", HttpStatus.UNAUTHORIZED),
     NEW_PASSWORD_SAME_AS_OLD("New password must be different old password.", HttpStatus.BAD_REQUEST),
+    PASSWORD_TOO_SHORT("Password is too short.", HttpStatus.BAD_REQUEST),
     EMAIL_ALREADY_EXISTS("Email already exists.", HttpStatus.CONFLICT),
     EMAIL_NOT_VERIFIED("Email is not verified.", HttpStatus.FORBIDDEN),
     ACCOUNT_NOT_ACTIVE("Account is not active.", HttpStatus.FORBIDDEN),
@@ -73,6 +74,9 @@ public enum ErrorCode {
     // ===== PAYMENT =====
     PAYMENT_NOT_FOUND("Payment not found.", HttpStatus.NOT_FOUND),
     PAYMENT_CREATION_FAILED("Payment creation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+    // 503 chứ không 500: đây là vấn đề cấu hình phía vận hành, không phải lỗi của người gọi
+    PAYMENT_GATEWAY_NOT_CONFIGURED("Payment gateway is not configured.", HttpStatus.SERVICE_UNAVAILABLE),
+    PLAYBACK_TOKEN_SECRET_MISSING("Playback token signing key is not configured.", HttpStatus.SERVICE_UNAVAILABLE),
     PAYMENT_VERIFICATION_FAILED("Payment verification failed.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // ===== STREAMING =====
@@ -83,6 +87,7 @@ public enum ErrorCode {
 
     // ===== FILE =====
     INVALID_FILE_TYPE("Invalid file type.", HttpStatus.BAD_REQUEST),
+    FILE_TOO_LARGE("File exceeds the maximum allowed size.", HttpStatus.PAYLOAD_TOO_LARGE),
 
     // ===== SYSTEM & FRAMEWORK =====
     BAD_CREDENTIALS("Bad credentials.", HttpStatus.UNAUTHORIZED),
@@ -90,6 +95,7 @@ public enum ErrorCode {
     RESOURCE_NOT_FOUND("Resource not found.", HttpStatus.NOT_FOUND),
     ACCESS_DENIED("Access denied.", HttpStatus.FORBIDDEN),
     BAD_REQUEST("Bad request.", HttpStatus.BAD_REQUEST),
+    TOO_MANY_REQUESTS("Too many requests. Please slow down.", HttpStatus.TOO_MANY_REQUESTS),
     INTERNAL_SERVER_ERROR("Internal server error.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String message;

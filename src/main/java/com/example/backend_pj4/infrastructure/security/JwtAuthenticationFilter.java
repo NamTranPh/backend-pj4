@@ -84,6 +84,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
+        // Đổi mật khẩu làm tăng token_version; access token cũ mang ver cũ nên chết ngay thay vì
+        // còn sống thêm tới 15 phút. Token phát trước bản nâng cấp không có claim ver -> coi là 0,
+        // khớp với người dùng chưa từng đổi mật khẩu, nên không phải breaking change.
+        if (userDetails instanceof AppUserDetails appUser
+                && jwtTokenProvider.getTokenVersionFromToken(jwt) != appUser.getTokenVersion()) {
+            log.debug("Rejected stale token version on {}", request.getRequestURI());
+            return;
+        }
+
         if (jwtTokenProvider.validateToken(jwt, userDetails)
                 && userDetails.isAccountNonLocked()
                 && userDetails.isEnabled()) {

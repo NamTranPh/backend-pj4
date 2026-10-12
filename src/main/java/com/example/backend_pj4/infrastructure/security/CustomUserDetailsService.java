@@ -29,15 +29,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         boolean active = user.getAccountStatus() == AccountStatus.ACTIVE;
         boolean banned = Boolean.TRUE.equals(user.getIsBanned());
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getPassword())
-                .authorities(getAuthorities(user))
-                .accountExpired(false)
-                .accountLocked(banned)
-                .credentialsExpired(false)
-                .disabled(!active)
-                .build();
+        return new AppUserDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getPassword(),
+                active,
+                !banned,
+                getAuthorities(user),
+                user.getTokenVersion() != null ? user.getTokenVersion() : 0);
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(UserJpaEntity user) {

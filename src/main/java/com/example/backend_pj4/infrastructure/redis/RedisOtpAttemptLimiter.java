@@ -44,7 +44,8 @@ public class RedisOtpAttemptLimiter implements OtpAttemptLimiter {
                 redisTemplate.expire(key, otpProperties.getTtlMinutes(), TimeUnit.MINUTES);
             }
         } catch (Exception e) {
-            // Redis chết thì không chặn luồng nghiệp vụ (giống RedisLoginLockManager).
+            // Redis chết thì không chặn luồng nghiệp vụ: giới hạn số lần thử là lớp bảo vệ bổ sung,
+            // không phải điều kiện để đăng nhập hay xác thực OTP hoạt động.
             log.warn("Redis OTP attempt check failed for email={} type={}", email, type, e);
             return;
         }

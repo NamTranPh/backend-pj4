@@ -2,10 +2,10 @@ package com.example.backend_pj4.presentation.movie;
 
 import java.io.IOException;
 
-import org.springframework.data.domain.Page;
+import com.example.backend_pj4.common.pagination.PageResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.example.backend_pj4.common.annotation.AuthResultUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +27,10 @@ import com.example.backend_pj4.application.dto.movie.MovieResult;
 import com.example.backend_pj4.application.port.in.movie.CreateMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.DeleteMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.GetMovieByIdUseCase;
-import com.example.backend_pj4.application.port.in.movie.ListMoviesUseCase;
+import com.example.backend_pj4.application.port.in.movie.ListMoviesQuery;
+import com.example.backend_pj4.domain.repository.filter.MovieFilter;
+import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.common.request.PageableFactory;
 import com.example.backend_pj4.application.port.in.movie.PublishMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.RestoreMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.UpdateMovieUseCase;
@@ -50,7 +54,7 @@ public class AdminMovieController {
     private final CreateMovieUseCase createMovieUseCase;
     private final UpdateMovieUseCase updateMovieUseCase;
     private final GetMovieByIdUseCase getMovieByIdUseCase;
-    private final ListMoviesUseCase listMoviesUseCase;
+    private final ListMoviesQuery listMoviesQuery;
     private final DeleteMovieUseCase deleteMovieUseCase;
     private final RestoreMovieUseCase restoreMovieUseCase;
     private final UploadMovieImageUseCase uploadMovieImageUseCase;
@@ -60,7 +64,7 @@ public class AdminMovieController {
             CreateMovieUseCase createMovieUseCase,
             UpdateMovieUseCase updateMovieUseCase,
             GetMovieByIdUseCase getMovieByIdUseCase,
-            ListMoviesUseCase listMoviesUseCase,
+            ListMoviesQuery listMoviesQuery,
             DeleteMovieUseCase deleteMovieUseCase,
             RestoreMovieUseCase restoreMovieUseCase,
             UploadMovieImageUseCase uploadMovieImageUseCase,
@@ -69,7 +73,7 @@ public class AdminMovieController {
         this.createMovieUseCase = createMovieUseCase;
         this.updateMovieUseCase = updateMovieUseCase;
         this.getMovieByIdUseCase = getMovieByIdUseCase;
-        this.listMoviesUseCase = listMoviesUseCase;
+        this.listMoviesQuery = listMoviesQuery;
         this.deleteMovieUseCase = deleteMovieUseCase;
         this.restoreMovieUseCase = restoreMovieUseCase;
         this.uploadMovieImageUseCase = uploadMovieImageUseCase;
@@ -80,7 +84,7 @@ public class AdminMovieController {
     @PostMapping
     public ResponseEntity<MovieResult> create(
             @Valid @RequestBody CreateMovieRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthResultUser UserDetails userDetails
     ) {
         MovieResult result = createMovieUseCase.execute(new CreateMovieCommand(
                 request.title(), request.originalTitle(), request.description(),
@@ -115,18 +119,17 @@ public class AdminMovieController {
 
     @Operation(summary = "Lấy danh sách tất cả phim (bao gồm nháp/ẩn) cho quản trị viên. Quyền truy cập: ADMIN.")
     @GetMapping
-    public Page<MovieResult> list(
-            @RequestParam(required = false) String search,
+    public PageResult<MovieResult> list(
+            @ModelAttribute PageQueryParamDto params,
             @RequestParam(required = false) MovieType type,
             @RequestParam(required = false) VideoStatus status,
             @RequestParam(required = false) String genreId,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) String country,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit
+            @RequestParam(required = false) String country
     ) {
-        return listMoviesUseCase.execute(search, type, status, genreId, year, country,
-                Math.max(0, page - 1), limit, false);
+        return listMoviesQuery.execute(
+                new MovieFilter(params.search(), type, status, genreId, year, country, false),
+                PageableFactory.create(params, ListMoviesQuery.SORTABLE, ListMoviesQuery.DEFAULT_SORT));
     }
 
     @Operation(summary = "Xóa mềm phim theo ID. Quyền truy cập: ADMIN.")

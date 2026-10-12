@@ -28,6 +28,8 @@ public class JwtTokenProvider {
     /** Claim phân biệt access token với refresh token. */
     public static final String CLAIM_TOKEN_TYPE = "typ";
     public static final String CLAIM_CHANNEL = "ch";
+    /** Phiên bản mật khẩu. Thiếu claim này (token phát trước bản nâng cấp) coi như 0. */
+    public static final String CLAIM_TOKEN_VERSION = "ver";
     public static final String TOKEN_TYPE_ACCESS = "access";
 
     private final JwtProperties jwtProperties;
@@ -42,10 +44,11 @@ public class JwtTokenProvider {
      *
      * @param channel CHANNEL_ADMIN nếu token phát từ cửa CMS, CHANNEL_USER nếu phát từ cửa người dùng.
      */
-    public String generateAccessToken(String subject, String channel) {
+    public String generateAccessToken(String subject, String channel, int tokenVersion) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS);
         claims.put(CLAIM_CHANNEL, channel);
+        claims.put(CLAIM_TOKEN_VERSION, tokenVersion);
         return createToken(claims, subject, jwtProperties.getExpiration());
     }
 
@@ -92,6 +95,12 @@ public class JwtTokenProvider {
     /** Claim "typ" của access token. */
     public String getAccessTokenTypeFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get(CLAIM_TOKEN_TYPE, String.class));
+    }
+
+    /** Thiếu claim {@code ver} thì coi như 0 — token cũ vẫn hợp lệ nếu người dùng chưa đổi mật khẩu. */
+    public int getTokenVersionFromToken(String token) {
+        Integer version = getClaimFromToken(token, claims -> claims.get(CLAIM_TOKEN_VERSION, Integer.class));
+        return version != null ? version : 0;
     }
 
     public String getChannelFromToken(String token) {

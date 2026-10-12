@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend_pj4.application.command.movie.StartUploadCommand;
 import com.example.backend_pj4.common.constants.UploadConstants;
-import com.example.backend_pj4.application.dto.movie.UploadPartResult;
 import com.example.backend_pj4.application.dto.movie.UploadSessionResult;
 import com.example.backend_pj4.application.port.in.movie.StartUploadUseCase;
 import com.example.backend_pj4.application.port.out.FileStorageService;

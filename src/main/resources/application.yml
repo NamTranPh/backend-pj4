@@ -47,9 +47,15 @@ spring:
       max-request-size: ${MULTIPART_MAX_REQUEST_SIZE:5000MB}
 
   jpa:
+    # false theo AGENTS.md §13: mặc định của Spring Boot là true, giữ session mở suốt request
+    # nên lazy loading ở tầng view vẫn chạy được và che mất chỗ nạp dữ liệu thiếu. Tắt đi thì
+    # chỗ nào nạp thiếu sẽ lộ ngay bằng LazyInitializationException thay vì âm thầm bắn thêm query.
+    open-in-view: false
     hibernate:
-      ddl-auto: update #   Khi đã dùng Flyway để quản lý schema => không dùng update nữa. dung lan 2 validate hoặc lan dau none
-    show-sql: false # True -> Hibernate show SQL — mỗi lần JPA query DB nó in ra câu SQL, False thì tắt đi
+      # production đặt JPA_DDL_AUTO=validate (AGENTS.md §33 cấm update ở production)
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    # bật JPA_SHOW_SQL=true khi cần đếm số câu truy vấn thật
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -68,6 +74,7 @@ jwt:
   expiration: ${JWT_ACCESS_EXPIRATION:900000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:2592000000}
   issuer: ${JWT_ISSUER:http://localhost:3004}
+  reuse-grace-seconds: ${JWT_REUSE_GRACE_SECONDS:10}
 
 auth:
   cookie:
@@ -85,10 +92,39 @@ auth:
     resend-cooldown-seconds: ${AUTH_OTP_RESEND_COOLDOWN_SECONDS:60}
     max-attempts: ${AUTH_OTP_MAX_ATTEMPTS:5}
     pepper: ${AUTH_OTP_PEPPER:dev-only-otp-pepper}
+  password:
+    # Admin do quản trị viên tự tạo nên giữ ngưỡng cơ bản; đăng ký công khai siết chặt hơn
+    min-length-user: ${AUTH_PASSWORD_MIN_LENGTH_USER:8}
+    min-length-admin: ${AUTH_PASSWORD_MIN_LENGTH_ADMIN:6}
+  rate-limit:
+    enabled: ${AUTH_RATE_LIMIT_ENABLED:true}
+    max-requests: ${AUTH_RATE_LIMIT_MAX_REQUESTS:20}
+    window-seconds: ${AUTH_RATE_LIMIT_WINDOW_SECONDS:60}
   login:
     max-failures: ${AUTH_LOGIN_MAX_FAILURES:6}
     failure-window-minutes: ${AUTH_LOGIN_FAILURE_WINDOW_MINUTES:10}
     lock-minutes: ${AUTH_LOGIN_LOCK_MINUTES:10}
+
+# PayOS và phát video HLS.
+# Thiếu section này thì @ConfigurationProperties(prefix = "app.payos") và "app.playback" không
+# nhận được gì từ .env: biến PAYOS_CLIENT_ID chỉ map được tới payos.client-id, thiếu tiền tố "app.".
+app:
+  payos:
+    client-id: ${PAYOS_CLIENT_ID:}
+    api-key: ${PAYOS_API_KEY:}
+    checksum-key: ${PAYOS_CHECKSUM_KEY:}
+    base-url: ${PAYOS_BASE_URL:https://api-merchant.payos.vn}
+    return-url: ${PAYOS_RETURN_URL:http://localhost:5173/payment/success}
+    cancel-url: ${PAYOS_CANCEL_URL:http://localhost:5173/payment/cancel}
+    payment-link-ttl-minutes: ${PAYOS_PAYMENT_LINK_TTL_MINUTES:15}
+    reconcile-interval-ms: ${PAYOS_RECONCILE_INTERVAL_MS:300000}
+    reconcile-batch-limit: ${PAYOS_RECONCILE_BATCH_LIMIT:100}
+    reconcile-lookback-hours: ${PAYOS_RECONCILE_LOOKBACK_HOURS:720}
+  playback:
+    # Để rỗng chứ không đặt giá trị giả: rỗng thì ConfigurationWarningLogger báo ngay,
+    # còn giá trị giả sẽ ký token bằng khoá ai cũng đoán được.
+    token-secret: ${PLAYBACK_TOKEN_SECRET:}
+    token-ttl-seconds: ${PLAYBACK_TOKEN_TTL_SECONDS:300}
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
@@ -120,7 +156,8 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: always # DEV: xem chi tiết từng thành phần. Prod nên đổi thành when-authorized
+      # production đặt ACTUATOR_HEALTH_DETAILS=when-authorized để không lộ chi tiết thành phần
+      show-details: ${ACTUATOR_HEALTH_DETAILS:always}
       show-components: always
 
 # Swagger Configuration

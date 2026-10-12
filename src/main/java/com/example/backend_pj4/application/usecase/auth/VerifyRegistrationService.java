@@ -63,7 +63,7 @@ public class VerifyRegistrationService implements VerifyRegistrationUseCase {
         OtpVerification used = otp.toBuilder().usedAt(LocalDateTime.now()).build();
         otpRepository.save(used);
 
-        User user = userRepository.findByEmailIgnoreCase(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         User verified = user.toBuilder()

@@ -2,8 +2,8 @@
 
 > **Mục đích:** Tài liệu API cho Frontend - danh sách endpoint, request/response, flow
 
-**Cập nhật lần cuối:** 2026-08-26  
-**Version:** 4.1
+**Cập nhật lần cuối:** 2026-10-05  
+**Version:** 4.6
 
 ---
 
@@ -1047,6 +1047,145 @@ Authorization: Bearer <accessToken>
 ## Cập nhật lịch sử
 
 Ghi cập nhật mới dưới đây (thứ tự mới nhất → cũ nhất)
+
+### 2026-10-04 - v4.5 - Chuẩn hoá phân trang cho MỌI API danh sách
+
+#### Tham số chung — áp cho tất cả API lấy danh sách
+
+| Tham số   | Mặc định   | Ghi chú                                                   |
+| --------- | ---------- | --------------------------------------------------------- |
+| `page`    | `1`        | Đếm **từ 1**                                              |
+| `limit`   | **`15`**   | Trần tối đa **50**; xin lớn hơn thì bị ép về 50           |
+| `search`  | —          | Không truyền thì không lọc                                |
+| `sortBy`  | tuỳ module | Phải nằm trong danh sách hợp lệ bên dưới, sai thì **400** |
+| `sortDir` | `desc`     | `asc` hoặc `desc`                                         |
+
+```
+GET /api/v1/movies?page=2&limit=20&search=co%20dau&sortBy=title&sortDir=asc
+```
+
+Không truyền gì thì mặc định là trang 1, 15 dòng, sắp xếp theo field mặc định của module, giảm dần.
+
+#### Field được phép sắp xếp theo module
+
+| Module                            | `sortBy` hợp lệ                                            | Mặc định        |
+| --------------------------------- | ---------------------------------------------------------- | --------------- |
+| Movie (public + admin)            | `createdAt`, `title`, `viewCount`, `rating`, `releaseYear` | `createdAt`     |
+| Genre (public + admin)            | `createdAt`, `name`                                        | `createdAt`     |
+| User (admin)                      | `createdAt`, `email`, `name`, `lastActiveAt`               | `createdAt`     |
+| Episode                           | `episodeNumber`, `createdAt`, `title`                      | `episodeNumber` |
+| Membership Plan                   | `createdAt`, `name`, `price`, `durationDays`               | `price`         |
+| Notification                      | `createdAt`, `isRead`                                      | `createdAt`     |
+| Watch History / Continue Watching | `watchedAt`, `progress`                                    | `watchedAt`     |
+| Favorite                          | `createdAt`                                                | `createdAt`     |
+| Session                           | `lastUsedAt` (cố định, không đổi được)                     | `lastUsedAt`    |
+
+`sortBy` ngoài danh sách trả **400** với `code: bad_request`.
+
+#### Endpoint MỚI có phân trang (trước đây trả mảng trần)
+
+- `GET /api/v1/admin/movies/{movieId}/episodes`
+- `GET /api/v1/movies/{movieSlug}/episodes`
+- `GET /api/v1/me/favorites`
+- `GET /api/v1/admin/membership-plans`
+- `GET /api/v1/membership-plans`
+- `GET /api/v1/me/watch-history/continue-watching`
+- `GET /api/v1/account/sessions`
+
+> **FE cũ KHÔNG vỡ:** `data` vẫn là mảng như trước, chỉ thêm `pagination` (trước là `null`) và mảng bị giới hạn 15 phần tử đầu. Muốn lấy tiếp thì truyền `page=2`.
+
+#### Tham số MỚI trên endpoint đã có
+
+| Endpoint                       | Thêm                                                 |
+| ------------------------------ | ---------------------------------------------------- |
+| `GET /api/v1/admin/users`      | `search` (email, tên)                                |
+| `GET /api/v1/me/notifications` | `search` (tiêu đề, nội dung) + `isRead` (true/false) |
+| Tất cả endpoint danh sách      | `sortBy`, `sortDir`                                  |
+
+#### ⚠️ Thay đổi cần để ý
+
+| Thay đổi                                | Ảnh hưởng                                                                                                                                                                   |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `limit` mặc định **10 hoặc 20 → 15**    | Danh sách trả về ít/nhiều hơn trước nếu FE không truyền `limit`                                                                                                             |
+| `continue-watching` **sửa lỗi đếm sai** | Trước đây lấy 10 bản ghi rồi mới loại phim đã xem xong, nên có khi chỉ trả về 3-4 phim. Nay lọc ngay trong truy vấn → trả **đủ** số lượng yêu cầu và `totalItems` chính xác |
+| `sortBy` sai → **400**                  | Nếu FE đang truyền `sortBy` tuỳ ý thì phải đổi sang field trong bảng trên                                                                                                   |
+
+#### `search` cho favorites và watch-history (bổ sung 2026-10-05)
+
+Hai endpoint dưới đây giờ nhận `search`, **lọc theo TÊN PHIM**:
+
+| Endpoint                       | `search` lọc theo |
+| ------------------------------ | ----------------- |
+| `GET /api/v1/me/favorites`     | tên phim          |
+| `GET /api/v1/me/watch-history` | tên phim          |
+
+```
+GET /api/v1/me/favorites?search=co%20dau&page=1&limit=15
+```
+
+Kết quả chỉ nằm **trong** danh sách yêu thích / lịch sử xem của chính người dùng — không phải tìm trên toàn bộ kho phim. Không truyền `search` thì không lọc, hành vi như trước.
+
+`GET /api/v1/me/watch-history/continue-watching` **không** có `search` (danh sách ngắn, không cần).
+
+> 🔴 **Sửa lỗi `addedAt` ở `me/favorites`:** trước đây trả **ngày tạo phim**, nay trả đúng **ngày người dùng thêm phim vào yêu thích**. Nếu FE đang hiển thị "Đã thêm ..." thì giá trị sẽ khác trước — đây là sửa lỗi, không phải breaking change.
+
+### 2026-10-04 - v4.4 - Quản lý phiên đăng nhập + mật khẩu tách ngưỡng + claim `ver`
+
+#### Endpoint MỚI — Quản lý thiết bị đang đăng nhập
+
+| Endpoint                               | Method | Auth | Response              |
+| -------------------------------------- | ------ | ---- | --------------------- |
+| `/api/v1/account/sessions`             | GET    | User | `List<SessionResult>` |
+| `/api/v1/account/sessions/{sessionId}` | DELETE | User | 204 No Content        |
+
+**`SessionResult`:**
+
+```json
+{
+  "sessionId": "9f2c1a8e-...",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0) ... Chrome/120",
+  "ipAddress": "203.0.113.9",
+  "admin": false,
+  "current": true,
+  "lastUsedAt": "2026-10-04T09:12:00",
+  "createdAt": "2026-10-01T20:30:00",
+  "expiresAt": "2026-10-31T20:30:00"
+}
+```
+
+- `current: true` là **thiết bị đang dùng** — FE nên gắn nhãn "Thiết bị này" và ẩn nút đăng xuất cho dòng đó.
+- Danh sách chỉ gồm phiên **còn hiệu lực** (chưa đăng xuất, chưa hết hạn). Mỗi lần đăng nhập trên một thiết bị tạo một phiên; refresh token xoay vòng mỗi 15 phút **không** tạo phiên mới.
+- `DELETE` chỉ đăng xuất được phiên **của chính mình**. Phiên của người khác và phiên không tồn tại đều trả `resource_not_found` (404).
+
+#### Thay đổi — mật khẩu
+
+| Endpoint                            | Ngưỡng tối thiểu                              |
+| ----------------------------------- | --------------------------------------------- |
+| `POST /api/v1/auth/register`        | **8 ký tự** (trước là 6)                      |
+| `POST /api/v1/auth/change-password` | tài khoản thường **8**, tài khoản admin **6** |
+| `POST /api/v1/auth/reset-password`  | tài khoản thường **8**, tài khoản admin **6** |
+
+Mã lỗi mới: `password_too_short` (400).
+
+> Mật khẩu đã lưu không bị ảnh hưởng — ngưỡng chỉ áp khi **đặt mật khẩu mới**, không áp lúc đăng nhập.
+
+#### Thay đổi — access token chết ngay khi đổi mật khẩu
+
+Trước đây đổi mật khẩu chỉ thu hồi refresh token, access token cũ vẫn chạy tới 15 phút. Nay access token mang claim `ver`; đổi mật khẩu làm token cũ **bị từ chối ngay**.
+
+**FE cần làm:** sau khi gọi `change-password` hoặc `reset-password` thành công, gọi `/refresh-token` để lấy access token mới (hoặc cho người dùng đăng nhập lại). Nếu dùng tiếp token cũ sẽ nhận 401/403.
+
+> Không breaking với token phát trước bản này: thiếu claim `ver` được coi là `0`, khớp với người dùng chưa từng đổi mật khẩu.
+
+#### Thay đổi — dùng lại refresh token đã thu hồi
+
+Gửi lại một refresh token đã đổi (quá **10 giây**) bị coi là dấu hiệu token bị đánh cắp → **toàn bộ phiên đó bị đăng xuất**.
+
+**FE cần làm:** đảm bảo chỉ có **một** request refresh tại một thời điểm (gộp vào một promise dùng chung). Hai tab cùng refresh trong vòng 10 giây vẫn an toàn nhờ cửa sổ ân hạn, nhưng ngoài khoảng đó sẽ bị đăng xuất.
+
+#### Hiệu năng — không đổi contract
+
+Các endpoint `/me/favorites`, `/me/watch-history`, `/me/notifications` và nhóm playback giữ nguyên request/response, chỉ chạy nhanh hơn: bỏ một truy vấn thừa mỗi request và gỡ N+1 ở danh sách phim yêu thích (300 phim yêu thích từng tốn 301 truy vấn, nay còn 2).
 
 ### 2026-09-21 - v4.2 - Auth: đổi mã lỗi để chống dò tài khoản
 

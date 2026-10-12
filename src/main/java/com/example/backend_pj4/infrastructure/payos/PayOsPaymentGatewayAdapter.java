@@ -10,6 +10,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -41,6 +42,8 @@ public class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
     @Override
     public CreatePaymentLinkResult createPaymentLink(long orderCode, BigDecimal amount, String description,
                                                       String returnUrl, String cancelUrl, Long expiredAt) {
+        assertConfigured();
+
         try {
             int amountInt = amount.intValue();
 
@@ -180,6 +183,24 @@ public class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
             }
         } catch (Exception e) {
             log.warn("PayOS cancel payment link error for paymentLinkId={}", paymentLinkId, e);
+        }
+    }
+
+    /**
+     * Chặn sớm khi PayOS chưa cấu hình.
+     *
+     * <p>Không có nó, {@code checksumKey} null sẽ rơi xuống {@code hmacSha256} và ném
+     * {@code NullPointerException}, bị {@code catch (Exception e)} ở dưới nuốt rồi đổi thành
+     * {@code PAYMENT_CREATION_FAILED} — nhìn log không biết nguyên nhân là thiếu cấu hình.
+     */
+    private void assertConfigured() {
+        if (!StringUtils.hasText(properties.getClientId())
+                || !StringUtils.hasText(properties.getApiKey())
+                || !StringUtils.hasText(properties.getChecksumKey())
+                || !StringUtils.hasText(properties.getBaseUrl())) {
+            log.error("PayOS chưa cấu hình — kiểm tra PAYOS_CLIENT_ID / PAYOS_API_KEY / "
+                    + "PAYOS_CHECKSUM_KEY / PAYOS_BASE_URL trong .env");
+            throw new CustomException(ErrorCode.PAYMENT_GATEWAY_NOT_CONFIGURED);
         }
     }
 

@@ -14,7 +14,7 @@ public interface OtpVerificationJpaRepository extends JpaRepository<OtpVerificat
 
     @Modifying
     @Query("DELETE FROM OtpVerificationJpaEntity o WHERE o.expiresAt < CURRENT_TIMESTAMP")
-    void deleteExpired();
+    int deleteExpired();
 }
 
 

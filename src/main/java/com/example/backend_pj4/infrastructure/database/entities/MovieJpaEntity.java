@@ -3,6 +3,8 @@ package com.example.backend_pj4.infrastructure.database.entities;
 import com.example.backend_pj4.common.constants.enums.MovieType;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
+import org.hibernate.annotations.BatchSize;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -122,6 +124,15 @@ public class MovieJpaEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    /**
+     * Gộp truy vấn thể loại của cả một trang thành một câu {@code IN (...)}.
+     *
+     * <p>Không có nó, danh sách 15 phim bắn 15 câu truy vấn thể loại riêng lẻ. Chọn
+     * {@code @BatchSize} thay vì {@code @EntityGraph} vì danh sách chạy qua
+     * {@code JpaSpecificationExecutor.findAll(spec, pageable)} — fetch join một collection kèm
+     * phân trang khiến Hibernate kéo cả bảng về rồi phân trang trong bộ nhớ (HHH000104).
+     */
+    @BatchSize(size = 50)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "movie_genre",
             joinColumns = @JoinColumn(name = "movie_id"),

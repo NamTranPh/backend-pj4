@@ -1,28 +1,25 @@
 package com.example.backend_pj4.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.MembershipPlan;
+import com.example.backend_pj4.domain.repository.filter.MembershipPlanFilter;
 
 public interface MembershipPlanRepository {
-    // Basic CRUD
     MembershipPlan save(MembershipPlan plan);
+
     Optional<MembershipPlan> findById(String planId);
-    List<MembershipPlan> findAll();
-    void deleteById(String planId);
-    
-    // Business queries
-    Optional<MembershipPlan> findByPlanName(String planName);
-    List<MembershipPlan> findActivePlans();
-    List<MembershipPlan> findInactivePlans();
-    List<MembershipPlan> findByPriceRange(Double minPrice, Double maxPrice);
-    List<MembershipPlan> findByDurationDaysLessThanEqual(Integer maxDays);
-    
-    // Slug queries
+
+    /** Danh sách gói — lọc theo tên và trạng thái bật/tắt, có phân trang. */
+    PageResult<MembershipPlan> find(MembershipPlanFilter filter, PageQuery query);
+
     Optional<MembershipPlan> findBySlug(String slug);
+
     boolean existsBySlug(String slug);
 
-    // Validation
     boolean existsByPlanName(String planName);
+
+    void deleteById(String planId);
 }

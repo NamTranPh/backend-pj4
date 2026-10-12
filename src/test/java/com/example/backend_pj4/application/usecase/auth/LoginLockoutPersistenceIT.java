@@ -87,7 +87,7 @@ class LoginLockoutPersistenceIT {
     }
 
     private User reload() {
-        return userRepository.findByEmailIgnoreCase(email).orElseThrow();
+        return userRepository.findByEmail(email).orElseThrow();
     }
 
     @Test

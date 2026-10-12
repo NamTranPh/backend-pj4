@@ -1,6 +1,6 @@
 package com.example.backend_pj4.presentation.genre;
 
-import org.springframework.data.domain.Page;
+import com.example.backend_pj4.common.pagination.PageResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend_pj4.application.command.genre.CreateGenreCommand;
@@ -19,7 +19,10 @@ import com.example.backend_pj4.application.dto.genre.GenreResult;
 import com.example.backend_pj4.application.port.in.genre.CreateGenreUseCase;
 import com.example.backend_pj4.application.port.in.genre.DeleteGenreUseCase;
 import com.example.backend_pj4.application.port.in.genre.GetGenreByIdUseCase;
-import com.example.backend_pj4.application.port.in.genre.ListGenresUseCase;
+import com.example.backend_pj4.application.port.in.genre.ListGenresQuery;
+import com.example.backend_pj4.domain.repository.filter.GenreFilter;
+import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.common.request.PageableFactory;
 import com.example.backend_pj4.application.port.in.genre.UpdateGenreUseCase;
 import com.example.backend_pj4.presentation.genre.request.CreateGenreRequest;
 import com.example.backend_pj4.presentation.genre.request.UpdateGenreRequest;
@@ -38,20 +41,20 @@ public class AdminGenreController {
     private final CreateGenreUseCase createGenreUseCase;
     private final UpdateGenreUseCase updateGenreUseCase;
     private final GetGenreByIdUseCase getGenreByIdUseCase;
-    private final ListGenresUseCase listGenresUseCase;
+    private final ListGenresQuery listGenresQuery;
     private final DeleteGenreUseCase deleteGenreUseCase;
 
     public AdminGenreController(
             CreateGenreUseCase createGenreUseCase,
             UpdateGenreUseCase updateGenreUseCase,
             GetGenreByIdUseCase getGenreByIdUseCase,
-            ListGenresUseCase listGenresUseCase,
+            ListGenresQuery listGenresQuery,
             DeleteGenreUseCase deleteGenreUseCase
     ) {
         this.createGenreUseCase = createGenreUseCase;
         this.updateGenreUseCase = updateGenreUseCase;
         this.getGenreByIdUseCase = getGenreByIdUseCase;
-        this.listGenresUseCase = listGenresUseCase;
+        this.listGenresQuery = listGenresQuery;
         this.deleteGenreUseCase = deleteGenreUseCase;
     }
 
@@ -82,12 +85,11 @@ public class AdminGenreController {
 
     @Operation(summary = "Lấy danh sách tất cả thể loại phim cho quản trị viên. Quyền truy cập: ADMIN.")
     @GetMapping
-    public Page<GenreResult> list(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit
-    ) {
-        return listGenresUseCase.execute(search, Math.max(0, page - 1), limit, false);
+    public PageResult<GenreResult> list(@ModelAttribute PageQueryParamDto params) {
+        // status = null: admin thấy cả thể loại đang tắt
+        return listGenresQuery.execute(
+                new GenreFilter(params.search(), null),
+                PageableFactory.create(params, ListGenresQuery.SORTABLE, ListGenresQuery.DEFAULT_SORT));
     }
 
     @Operation(summary = "Xóa mềm thể loại phim theo ID. Quyền truy cập: ADMIN.")

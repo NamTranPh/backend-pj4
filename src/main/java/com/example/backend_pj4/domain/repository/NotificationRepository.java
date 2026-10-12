@@ -1,17 +1,23 @@
 package com.example.backend_pj4.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.Notification;
+import com.example.backend_pj4.domain.repository.filter.NotificationFilter;
 
 public interface NotificationRepository {
     Notification save(Notification notification);
+
     Optional<Notification> findById(String id);
-    List<Notification> findAll();
-    void deleteById(String id);
-    List<Notification> findByUserId(String userId);
-    List<Notification> findUnreadByUserId(String userId);
+
+    /** Thông báo của một người, lọc theo từ khoá và trạng thái đã đọc, có phân trang. */
+    PageResult<Notification> find(NotificationFilter filter, PageQuery query);
+
     long countUnreadByUserId(String userId);
+
     void markAsRead(String id);
+
+    void deleteById(String id);
 }

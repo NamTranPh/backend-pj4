@@ -37,10 +37,28 @@ public class PaymentSettlementService {
         this.notificationRepository = notificationRepository;
     }
 
+    /**
+     * Quyết toán một đơn đã thanh toán. An toàn khi gọi đồng thời.
+     *
+     * <p>Webhook của PayOS và {@code PaymentReconcileJob} (chạy mỗi 5 phút) cùng gọi method
+     * này và có thể chạm đúng một đơn cùng lúc. Trước đây chốt chặn là
+     * {@code if (status == COMPLETED) return} — đọc rồi mới ghi, nên hai luồng cùng lọt qua
+     * bước đọc và {@code activateMembership} chạy hai lần: khách trả tiền một gói 30 ngày
+     * nhưng nhận 60 ngày.
+     *
+     * <p>Nay quyền quyết toán giành bằng một câu UPDATE nguyên tử có điều kiện
+     * {@code status = 'PENDING'}. Database đảm bảo đúng một luồng nhận được 1 dòng cập nhật;
+     * luồng còn lại nhận 0 và thoát.
+     *
+     * @return true nếu luồng gọi là luồng thực sự quyết toán đơn này
+     */
     @Transactional
     public boolean completePayment(PaymentOrder order, String gatewayTransactionId) {
-        if (order.getStatus() == PaymentOrderStatus.COMPLETED) {
-            log.info("Order already completed orderId={}", order.getId());
+        int won = paymentOrderRepository.markCompletedIfPending(
+                order.getId(), gatewayTransactionId, LocalDateTime.now());
+
+        if (won == 0) {
+            log.info("Đơn đã được luồng khác quyết toán, bỏ qua orderId={}", order.getId());
             return false;
         }
 
@@ -49,7 +67,6 @@ public class PaymentSettlementService {
                 .completedAt(LocalDateTime.now())
                 .gatewayTransactionId(gatewayTransactionId != null ? gatewayTransactionId : order.getGatewayTransactionId())
                 .build();
-        paymentOrderRepository.save(order);
 
         activateMembership(order);
 
@@ -67,18 +84,14 @@ public class PaymentSettlementService {
         return true;
     }
 
+    /** Đánh dấu đơn thất bại. Cùng cơ chế nguyên tử như {@link #completePayment}. */
     @Transactional
     public boolean failPayment(PaymentOrder order, String reason) {
-        if (order.getStatus() != PaymentOrderStatus.PENDING) {
+        int won = paymentOrderRepository.markFailedIfPending(order.getId(), reason, LocalDateTime.now());
+
+        if (won == 0) {
             return false;
         }
-
-        order = order.toBuilder()
-                .status(PaymentOrderStatus.FAILED)
-                .failedAt(LocalDateTime.now())
-                .failureReason(reason)
-                .build();
-        paymentOrderRepository.save(order);
 
         log.info("Payment failed orderId={} reason={}", order.getId(), reason);
         return true;

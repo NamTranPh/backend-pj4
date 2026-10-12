@@ -35,11 +35,6 @@ public class JpaUploadSessionRepositoryAdapter implements UploadSessionRepositor
     }
 
     @Override
-    public Optional<UploadSession> findByTargetIdAndStatus(String targetId, String status) {
-        return repository.findByTargetIdAndStatus(targetId, status).map(mapper::toDomain);
-    }
-
-    @Override
     public void deleteById(String id) {
         repository.deleteById(id);
     }

@@ -91,7 +91,7 @@ class LoginOrderTest {
     }
 
     private void given(User user) {
-        when(userRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
     }
 
     private LoginCommand cmd(String password) {
@@ -111,7 +111,7 @@ class LoginOrderTest {
 
     @Test
     void saiMatKhau_emailChuaDangKy_traBadCredentials() {
-        when(userRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
         assertThat(errorOf(() -> loginService.execute(cmd(WRONG_PASSWORD))))
                 .isEqualTo(ErrorCode.BAD_CREDENTIALS);
@@ -208,7 +208,7 @@ class LoginOrderTest {
 
     @Test
     void emailKhongTonTai_vanChayBcrypt_deCanBangThoiGianPhanHoi() {
-        when(userRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
         assertThat(errorOf(() -> loginService.execute(cmd(WRONG_PASSWORD))))
                 .isEqualTo(ErrorCode.BAD_CREDENTIALS);
@@ -220,7 +220,7 @@ class LoginOrderTest {
 
     @Test
     void emailKhongTonTai_cuaAdmin_cungChayBcrypt() {
-        when(userRepository.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
         assertThat(errorOf(() -> adminLoginService.execute(cmd(WRONG_PASSWORD))))
                 .isEqualTo(ErrorCode.BAD_CREDENTIALS);

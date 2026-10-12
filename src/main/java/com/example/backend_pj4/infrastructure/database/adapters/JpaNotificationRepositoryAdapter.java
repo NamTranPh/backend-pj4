@@ -1,13 +1,14 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.Notification;
 import com.example.backend_pj4.domain.repository.NotificationRepository;
+import com.example.backend_pj4.domain.repository.filter.NotificationFilter;
 import com.example.backend_pj4.infrastructure.database.mappers.NotificationPersistenceMapper;
 import com.example.backend_pj4.infrastructure.database.repositories.NotificationJpaRepository;
 
@@ -17,7 +18,8 @@ public class JpaNotificationRepositoryAdapter implements NotificationRepository 
     private final NotificationJpaRepository jpaRepository;
     private final NotificationPersistenceMapper mapper;
 
-    public JpaNotificationRepositoryAdapter(NotificationJpaRepository jpaRepository, NotificationPersistenceMapper mapper) {
+    public JpaNotificationRepositoryAdapter(NotificationJpaRepository jpaRepository,
+                                            NotificationPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }
@@ -33,23 +35,11 @@ public class JpaNotificationRepositoryAdapter implements NotificationRepository 
     }
 
     @Override
-    public List<Notification> findAll() {
-        return jpaRepository.findAll().stream().map(mapper::toDomain).collect(Collectors.toList());
-    }
-
-    @Override
-    public void deleteById(String id) {
-        jpaRepository.deleteById(id);
-    }
-
-    @Override
-    public List<Notification> findByUserId(String userId) {
-        return jpaRepository.findByUser_IdOrderByCreatedAtDesc(userId).stream().map(mapper::toDomain).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Notification> findUnreadByUserId(String userId) {
-        return jpaRepository.findByUser_IdAndIsReadFalseOrderByCreatedAtDesc(userId).stream().map(mapper::toDomain).collect(Collectors.toList());
+    public PageResult<Notification> find(NotificationFilter filter, PageQuery query) {
+        return PageableMapper.toPageResult(
+                jpaRepository.search(filter.userId(), filter.q(), filter.isRead(),
+                        PageableMapper.toPageable(query)),
+                mapper::toDomain);
     }
 
     @Override
@@ -61,6 +51,9 @@ public class JpaNotificationRepositoryAdapter implements NotificationRepository 
     public void markAsRead(String id) {
         jpaRepository.markAsRead(id);
     }
+
+    @Override
+    public void deleteById(String id) {
+        jpaRepository.deleteById(id);
+    }
 }
-
-

@@ -61,6 +61,9 @@ public class UserJpaEntity {
     @Column(name = "failed_login_attempts")
     private Integer failedLoginAttempts;
 
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 0;
+
     @Column(name = "first_failure_at")
     private LocalDateTime firstFailureAt;
 
@@ -142,6 +145,7 @@ public class UserJpaEntity {
     public void setAccountStatus(AccountStatus accountStatus) { this.accountStatus = accountStatus; }
     public void setIsBanned(Boolean isBanned) { this.isBanned = isBanned; }
     public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
+    public void setTokenVersion(Integer tokenVersion) { this.tokenVersion = tokenVersion; }
     public void setFirstFailureAt(LocalDateTime firstFailureAt) { this.firstFailureAt = firstFailureAt; }
     public void setLockedUntil(LocalDateTime lockedUntil) { this.lockedUntil = lockedUntil; }
     public void setLastActiveAt(LocalDateTime lastActiveAt) { this.lastActiveAt = lastActiveAt; }

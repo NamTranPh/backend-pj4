@@ -10,5 +10,6 @@ public interface OtpVerificationRepository {
     Optional<OtpVerification> findById(String id);
     Optional<OtpVerification> findByEmailAndType(String email, OtpType type);
     void deleteById(String id);
-    void deleteExpired();
+    /** @return số row đã xoá, để job ghi log. */
+    int deleteExpired();
 }

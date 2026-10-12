@@ -1,7 +1,7 @@
 package com.example.backend_pj4.presentation.auth;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.example.backend_pj4.common.annotation.AuthResultUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -91,7 +91,7 @@ public class AdminAuthController {
     @Operation(summary = "Lấy thông tin profile Admin hiện tại. Quyền truy cập: ADMIN.")
     @AuthRequired
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResult> me(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<UserProfileResult> me(@AuthResultUser UserDetails userDetails) {
         UserProfileResult result = getCurrentUserUseCase.execute(userDetails.getUsername());
         return ResponseEntity.ok(result);
     }

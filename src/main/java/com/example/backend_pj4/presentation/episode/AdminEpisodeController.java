@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import com.example.backend_pj4.common.pagination.PageResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +27,8 @@ import com.example.backend_pj4.application.dto.movie.PresignedUrlResult;
 import com.example.backend_pj4.application.dto.movie.UploadSessionResult;
 import com.example.backend_pj4.application.port.in.episode.CreateEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.DeleteEpisodeUseCase;
-import com.example.backend_pj4.application.port.in.episode.ListEpisodesByMovieUseCase;
+import com.example.backend_pj4.application.port.in.episode.ListEpisodesByMovieQuery;
+import com.example.backend_pj4.domain.repository.filter.EpisodeFilter;
 import com.example.backend_pj4.application.port.in.episode.PublishEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.UpdateEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.UploadEpisodeThumbnailUseCase;
@@ -41,6 +44,9 @@ import com.example.backend_pj4.presentation.movie.request.GetPartUrlsRequest;
 import com.example.backend_pj4.presentation.movie.request.RecordPartRequest;
 import com.example.backend_pj4.presentation.movie.request.StartUploadRequest;
 
+import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.common.request.PageableFactory;
+
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,7 +60,7 @@ public class AdminEpisodeController {
 
     private final CreateEpisodeUseCase createEpisodeUseCase;
     private final UpdateEpisodeUseCase updateEpisodeUseCase;
-    private final ListEpisodesByMovieUseCase listEpisodesByMovieUseCase;
+    private final ListEpisodesByMovieQuery listEpisodesByMovieQuery;
     private final DeleteEpisodeUseCase deleteEpisodeUseCase;
     private final UploadEpisodeThumbnailUseCase uploadEpisodeThumbnailUseCase;
     private final StartUploadUseCase startUploadUseCase;
@@ -68,7 +74,7 @@ public class AdminEpisodeController {
     public AdminEpisodeController(
             CreateEpisodeUseCase createEpisodeUseCase,
             UpdateEpisodeUseCase updateEpisodeUseCase,
-            ListEpisodesByMovieUseCase listEpisodesByMovieUseCase,
+            ListEpisodesByMovieQuery listEpisodesByMovieQuery,
             DeleteEpisodeUseCase deleteEpisodeUseCase,
             UploadEpisodeThumbnailUseCase uploadEpisodeThumbnailUseCase,
             StartUploadUseCase startUploadUseCase,
@@ -81,7 +87,7 @@ public class AdminEpisodeController {
     ) {
         this.createEpisodeUseCase = createEpisodeUseCase;
         this.updateEpisodeUseCase = updateEpisodeUseCase;
-        this.listEpisodesByMovieUseCase = listEpisodesByMovieUseCase;
+        this.listEpisodesByMovieQuery = listEpisodesByMovieQuery;
         this.deleteEpisodeUseCase = deleteEpisodeUseCase;
         this.uploadEpisodeThumbnailUseCase = uploadEpisodeThumbnailUseCase;
         this.startUploadUseCase = startUploadUseCase;
@@ -122,8 +128,12 @@ public class AdminEpisodeController {
 
     @Operation(summary = "Lấy danh sách tất cả các tập của một bộ phim. Quyền truy cập: ADMIN.")
     @GetMapping
-    public List<EpisodeResult> list(@PathVariable String movieId) {
-        return listEpisodesByMovieUseCase.execute(movieId);
+    public PageResult<EpisodeResult> list(@PathVariable String movieId,
+                                          @ModelAttribute PageQueryParamDto params) {
+        return listEpisodesByMovieQuery.execute(
+                new EpisodeFilter(movieId, params.search()),
+                PageableFactory.create(params,
+                        ListEpisodesByMovieQuery.SORTABLE, ListEpisodesByMovieQuery.DEFAULT_SORT));
     }
 
     @Operation(summary = "Xóa mềm tập phim theo ID. Quyền truy cập: ADMIN.")

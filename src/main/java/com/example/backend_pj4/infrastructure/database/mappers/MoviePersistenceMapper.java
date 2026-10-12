@@ -1,11 +1,11 @@
 package com.example.backend_pj4.infrastructure.database.mappers;
 
 import java.util.Collections;
-import java.util.stream.Collectors;
+import java.util.List;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import com.example.backend_pj4.domain.model.Genre;
 import com.example.backend_pj4.domain.model.Movie;
 import com.example.backend_pj4.infrastructure.database.entities.MovieJpaEntity;
 import com.example.backend_pj4.infrastructure.database.entities.UserJpaEntity;
@@ -13,18 +13,62 @@ import com.example.backend_pj4.infrastructure.database.entities.UserJpaEntity;
 @Component
 public class MoviePersistenceMapper {
 
-    private final GenrePersistenceMapper GenrePersistenceMapper;
-    private final EpisodePersistenceMapper EpisodePersistenceMapper;
-    private final UserPersistenceMapper UserPersistenceMapper;
+    private final GenrePersistenceMapper genrePersistenceMapper;
+    private final EpisodePersistenceMapper episodePersistenceMapper;
+    private final UserPersistenceMapper userPersistenceMapper;
 
-    public MoviePersistenceMapper(GenrePersistenceMapper GenrePersistenceMapper, @Lazy EpisodePersistenceMapper EpisodePersistenceMapper, UserPersistenceMapper UserPersistenceMapper) {
-        this.GenrePersistenceMapper = GenrePersistenceMapper;
-        this.EpisodePersistenceMapper = EpisodePersistenceMapper;
-        this.UserPersistenceMapper = UserPersistenceMapper;
+    public MoviePersistenceMapper(GenrePersistenceMapper genrePersistenceMapper,
+                                  EpisodePersistenceMapper episodePersistenceMapper,
+                                  UserPersistenceMapper userPersistenceMapper) {
+        this.genrePersistenceMapper = genrePersistenceMapper;
+        this.episodePersistenceMapper = episodePersistenceMapper;
+        this.userPersistenceMapper = userPersistenceMapper;
     }
 
+    /**
+     * Bản đầy đủ, dùng cho trang chi tiết phim.
+     *
+     * <p>Chạm vào {@code getEpisodes()} và {@code getCreatedBy()} — hai quan hệ LAZY, nên mỗi
+     * lần gọi là thêm truy vấn. Chấp nhận được khi lấy một phim, <b>không</b> dùng cho danh sách:
+     * xem {@link #toListDomain(MovieJpaEntity)}.
+     */
     public Movie toDomain(MovieJpaEntity entity) {
         if (entity == null) return null;
+        return baseBuilder(entity)
+                .rawFileKey(entity.getRawFileKey())
+                .masterPlaylistKey(entity.getMasterPlaylistKey())
+                .resolutions(entity.getResolutions())
+                .createdBy(userPersistenceMapper.toSimpleDomain(entity.getCreatedBy()))
+                .genres(mapGenres(entity))
+                .episodes(entity.getEpisodes() != null
+                        ? entity.getEpisodes().stream().map(episodePersistenceMapper::toSimpleDomain).toList()
+                        : Collections.emptyList())
+                .build();
+    }
+
+    /**
+     * Bản rút gọn cho DANH SÁCH phim.
+     *
+     * <p>Khác {@link #toDomain} ở chỗ <b>không chạm</b> {@code getEpisodes()} và
+     * {@code getCreatedBy()}. Hai quan hệ đó là LAZY, mà {@code MovieResult} (DTO trả cho client)
+     * không có trường nào dùng tới chúng — nạp về rồi vứt đi. Với một trang 15 phim, bỏ hai lần
+     * chạm đó là bớt 30 câu truy vấn; phim bộ 50 tập còn bớt thêm hàng trăm dòng đọc vô ích.
+     *
+     * <p>{@code genres} vẫn phải nạp vì {@code MovieResult.genres} có dùng — nhưng
+     * {@code MovieJpaEntity.genres} đã có {@code @BatchSize} nên cả trang gộp thành một truy vấn.
+     *
+     * <p>Số tập hiển thị lấy từ cột {@code total_episodes}, không phải đếm collection.
+     */
+    public Movie toListDomain(MovieJpaEntity entity) {
+        if (entity == null) return null;
+        return baseBuilder(entity)
+                .genres(mapGenres(entity))
+                .episodes(Collections.emptyList())
+                .build();
+    }
+
+    /** Phần chung của hai bản map, chỉ gồm cột của chính bảng movie. */
+    private Movie.MovieBuilder baseBuilder(MovieJpaEntity entity) {
         return Movie.builder()
                 .id(entity.getId())
                 .slug(entity.getSlug())
@@ -48,16 +92,15 @@ public class MoviePersistenceMapper {
                 .isFeatured(entity.getIsFeatured())
                 .rating(entity.getRating())
                 .viewCount(entity.getViewCount())
-                .rawFileKey(entity.getRawFileKey())
-                .masterPlaylistKey(entity.getMasterPlaylistKey())
-                .resolutions(entity.getResolutions())
-                .createdBy(UserPersistenceMapper.toSimpleDomain(entity.getCreatedBy()))
-                .genres(entity.getGenres() != null ? entity.getGenres().stream().map(GenrePersistenceMapper::toDomain).collect(Collectors.toList()) : Collections.emptyList())
-                .episodes(entity.getEpisodes() != null ? entity.getEpisodes().stream().map(EpisodePersistenceMapper::toSimpleDomain).collect(Collectors.toList()) : Collections.emptyList())
                 .deletedAt(entity.getDeletedAt())
                 .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+                .updatedAt(entity.getUpdatedAt());
+    }
+
+    private List<Genre> mapGenres(MovieJpaEntity entity) {
+        return entity.getGenres() != null
+                ? entity.getGenres().stream().map(genrePersistenceMapper::toDomain).toList()
+                : Collections.emptyList();
     }
 
     public MovieJpaEntity toEntity(Movie domain) {
@@ -95,7 +138,7 @@ public class MoviePersistenceMapper {
             entity.setCreatedBy(user);
         }
         if (domain.getGenres() != null) {
-            entity.setGenres(domain.getGenres().stream().map(GenrePersistenceMapper::toEntity).collect(Collectors.toList()));
+            entity.setGenres(domain.getGenres().stream().map(genrePersistenceMapper::toEntity).toList());
         }
         return entity;
     }
@@ -114,5 +157,3 @@ public class MoviePersistenceMapper {
                 .build();
     }
 }
-
-

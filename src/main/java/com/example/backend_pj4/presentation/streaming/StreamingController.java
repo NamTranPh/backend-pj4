@@ -1,6 +1,9 @@
 package com.example.backend_pj4.presentation.streaming;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.core.io.InputStreamResource;
@@ -13,20 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.backend_pj4.application.port.out.FileStorageService;
-import com.example.backend_pj4.application.port.out.PlaybackTokenService;
-import com.example.backend_pj4.application.port.out.PlaybackTokenService.PlaybackTokenPayload;
+import com.example.backend_pj4.application.port.in.streaming.StreamPlaybackUseCase;
 import com.example.backend_pj4.common.annotation.IgnoreResponseWrapping;
-import com.example.backend_pj4.common.constants.ErrorCode;
-import com.example.backend_pj4.common.exceptions.CustomException;
-import com.example.backend_pj4.domain.model.Episode;
-import com.example.backend_pj4.domain.model.Movie;
-import com.example.backend_pj4.domain.repository.EpisodeRepository;
-import com.example.backend_pj4.domain.repository.MovieRepository;
-import com.example.backend_pj4.infrastructure.config.properties.MinioProperties;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Tag(name = "Streaming")
 @IgnoreResponseWrapping
@@ -35,25 +30,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class StreamingController {
 
     private static final MediaType HLS_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.apple.mpegurl");
+    private static final String SEGMENTS_PREFIX = "/segments/";
 
-    private final PlaybackTokenService playbackTokenService;
-    private final FileStorageService fileStorageService;
-    private final EpisodeRepository episodeRepository;
-    private final MovieRepository movieRepository;
-    private final MinioProperties minioProperties;
+    private final StreamPlaybackUseCase streamPlaybackUseCase;
 
-    public StreamingController(
-            PlaybackTokenService playbackTokenService,
-            FileStorageService fileStorageService,
-            EpisodeRepository episodeRepository,
-            MovieRepository movieRepository,
-            MinioProperties minioProperties
-    ) {
-        this.playbackTokenService = playbackTokenService;
-        this.fileStorageService = fileStorageService;
-        this.episodeRepository = episodeRepository;
-        this.movieRepository = movieRepository;
-        this.minioProperties = minioProperties;
+    public StreamingController(StreamPlaybackUseCase streamPlaybackUseCase) {
+        this.streamPlaybackUseCase = streamPlaybackUseCase;
     }
 
     @Operation(summary = "Lấy master playlist HLS.")
@@ -62,29 +44,13 @@ public class StreamingController {
             @PathVariable String contentId,
             @RequestParam String token
     ) {
-        token = sanitizeToken(token);
-        PlaybackTokenPayload payload = playbackTokenService.verifyToken(token);
-        if (!payload.contentId().equals(contentId)) {
-            throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
-        }
+        String playbackToken = sanitizeToken(token);
+        String playlist = streamPlaybackUseCase.getMasterPlaylist(contentId, playbackToken);
 
-        String masterKey = resolveMasterPlaylistKey(payload.contentType(), contentId);
-
-        InputStream is = fileStorageService.getObject(minioProperties.getBucketProcessed(), masterKey);
-
-        try {
-            String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            is.close();
-
-            String rewritten = rewritePlaylistUrls(content, contentId, token, "");
-
-            return ResponseEntity.ok()
-                    .contentType(HLS_MEDIA_TYPE)
-                    .header(HttpHeaders.CACHE_CONTROL, "no-cache")
-                    .body(rewritten);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to read master playlist", e);
-        }
+        return ResponseEntity.ok()
+                .contentType(HLS_MEDIA_TYPE)
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
+                .body(rewritePlaylistUrls(playlist, contentId, playbackToken, ""));
     }
 
     @Operation(summary = "Proxy HLS segment hoặc variant playlist.")
@@ -92,81 +58,65 @@ public class StreamingController {
     public ResponseEntity<InputStreamResource> segment(
             @PathVariable String contentId,
             @RequestParam String token,
-            jakarta.servlet.http.HttpServletRequest request
+            HttpServletRequest request
     ) {
-        token = sanitizeToken(token);
-        PlaybackTokenPayload payload = playbackTokenService.verifyToken(token);
-        if (!payload.contentId().equals(contentId)) {
-            throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
+        String playbackToken = sanitizeToken(token);
+        String segmentPath = extractSegmentPath(request);
+
+        InputStream is = streamPlaybackUseCase.getSegment(contentId, playbackToken, segmentPath);
+
+        if (!segmentPath.endsWith(".m3u8")) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CACHE_CONTROL, "max-age=86400")
+                    .body(new InputStreamResource(is));
         }
 
-        String fullPath = request.getRequestURI();
-        String segmentPath = fullPath.substring(
-                fullPath.indexOf("/segments/") + "/segments/".length());
-
-        if (segmentPath.contains("..") || segmentPath.startsWith("/")) {
-            throw new CustomException(ErrorCode.PLAYBACK_TOKEN_INVALID);
-        }
-
-        String masterKey = resolveMasterPlaylistKey(payload.contentType(), contentId);
-        int lastSlash = masterKey.lastIndexOf('/');
-        String baseDir = lastSlash >= 0 ? masterKey.substring(0, lastSlash + 1) : "";
-        String objectKey = baseDir + segmentPath;
-
-        InputStream is = fileStorageService.getObject(minioProperties.getBucketProcessed(), objectKey);
-
-        MediaType contentType;
-        if (segmentPath.endsWith(".m3u8")) {
-            contentType = HLS_MEDIA_TYPE;
-
-            try {
-                String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-                is.close();
-                int prefixSlash = segmentPath.lastIndexOf('/');
-                String prefix = prefixSlash >= 0 ? segmentPath.substring(0, prefixSlash + 1) : "";
-                String rewritten = rewritePlaylistUrls(content, contentId, token, prefix);
-                InputStream rewrittenIs = new java.io.ByteArrayInputStream(
-                        rewritten.getBytes(StandardCharsets.UTF_8));
-                return ResponseEntity.ok()
-                        .contentType(contentType)
-                        .header(HttpHeaders.CACHE_CONTROL, "no-cache")
-                        .body(new InputStreamResource(rewrittenIs));
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to read variant playlist", e);
-            }
-        } else {
-            contentType = MediaType.APPLICATION_OCTET_STREAM;
-        }
+        // Variant playlist cũng chứa URL tương đối, phải viết lại y như master.
+        int prefixSlash = segmentPath.lastIndexOf('/');
+        String prefix = prefixSlash >= 0 ? segmentPath.substring(0, prefixSlash + 1) : "";
+        String rewritten = rewritePlaylistUrls(readAll(is), contentId, playbackToken, prefix);
 
         return ResponseEntity.ok()
-                .contentType(contentType)
-                .header(HttpHeaders.CACHE_CONTROL, "max-age=86400")
-                .body(new InputStreamResource(is));
+                .contentType(HLS_MEDIA_TYPE)
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
+                .body(new InputStreamResource(
+                        new ByteArrayInputStream(rewritten.getBytes(StandardCharsets.UTF_8))));
     }
 
-    private String resolveMasterPlaylistKey(String contentType, String contentId) {
-        if ("MOVIE".equals(contentType)) {
-            Movie movie = movieRepository.findById(contentId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.MOVIE_NOT_FOUND));
-            return movie.getMasterPlaylistKey();
-        }
-        Episode episode = episodeRepository.findById(contentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.EPISODE_NOT_FOUND));
-        return episode.getMasterPlaylistKey();
+    /** {@code /segments/**} không bind được bằng {@code @PathVariable}, phải cắt từ URI. */
+    private String extractSegmentPath(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.substring(uri.indexOf(SEGMENTS_PREFIX) + SEGMENTS_PREFIX.length());
     }
 
+    /** Một số player nối hai giá trị {@code ?token=} thành "a,b" — chỉ lấy phần đầu. */
     private String sanitizeToken(String token) {
         int comma = token.indexOf(',');
         return comma > 0 ? token.substring(0, comma) : token;
     }
 
+    private String readAll(InputStream is) {
+        try (InputStream in = is) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Không đọc được variant playlist", e);
+        }
+    }
+
+    /**
+     * Đổi URL tương đối trong playlist thành route proxy có kèm token.
+     *
+     * <p>Ở lại presentation: đây là ghép đường dẫn HTTP của chính controller này, không phải
+     * luật nghiệp vụ.
+     */
     private String rewritePlaylistUrls(String content, String contentId, String token, String segmentPrefix) {
         StringBuilder result = new StringBuilder();
         for (String line : content.split("\n")) {
             if (!line.startsWith("#") && !line.isBlank()) {
                 result.append("/api/v1/stream/")
                         .append(contentId)
-                        .append("/segments/")
+                        .append(SEGMENTS_PREFIX)
                         .append(segmentPrefix)
                         .append(line.trim())
                         .append("?token=").append(token);

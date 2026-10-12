@@ -6,4 +6,5 @@ public enum PaymentOrderStatus {
     COMPLETED,
     FAILED,
     CANCELLED
+    // REFUNDED  // Đã hoàn tiền - chưa dùng, thêm cùng luồng hoàn tiền (refundedAt, refundAmount, thu hồi Membership)
 }

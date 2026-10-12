@@ -18,7 +18,6 @@ import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.common.util.SlugUtils;
 import com.example.backend_pj4.domain.model.Genre;
 import com.example.backend_pj4.domain.model.Movie;
-import com.example.backend_pj4.domain.model.User;
 import com.example.backend_pj4.domain.repository.GenreRepository;
 import com.example.backend_pj4.domain.repository.MovieRepository;
 import com.example.backend_pj4.domain.repository.UserRepository;
@@ -43,7 +42,7 @@ public class CreateMovieService implements CreateMovieUseCase {
     public MovieResult execute(CreateMovieCommand command) {
         List<Genre> genres = Collections.emptyList();
         if (command.genreIds() != null && !command.genreIds().isEmpty()) {
-            genres = genreRepository.findAllByIds(command.genreIds());
+            genres = genreRepository.findByIds(command.genreIds());
             if (genres.size() != command.genreIds().size()) {
                 throw new CustomException(ErrorCode.INVALID_GENRE_IDS);
             }

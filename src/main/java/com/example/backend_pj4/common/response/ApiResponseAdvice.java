@@ -1,10 +1,9 @@
 // Advice toàn cục tự động bọc dữ liệu phản hồi thành công (Success Response Envelope).
 package com.example.backend_pj4.common.response;
 
-import java.util.List;
 
 import org.springframework.core.MethodParameter;
-import org.springframework.data.domain.Page;
+import com.example.backend_pj4.common.pagination.PageResult;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -55,16 +54,15 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
         // 2. Định nghĩa phản hồi wrap mặc định
         ApiResponseDto<?> wrappedResponse;
 
-        // 3. Xử lý nếu dữ liệu trả về là đối tượng phân trang Page của Spring Data
-        if (body instanceof Page) {
-            Page<?> page = (Page<?>) body;
+        // 3. Dữ liệu trả về là một trang kết quả -> tách items và pagination
+        if (body instanceof PageResult<?> result) {
+            // page đã đếm từ 1 sẵn trong PageResult, không cộng thêm ở đây
             PaginationDto pagination = PaginationDto.of(
-                    page.getNumber() + 1, // 0-indexed to 1-indexed
-                    page.getSize(),
-                    page.getTotalElements(),
-                    page.getTotalPages()
-            );
-            wrappedResponse = ApiResponseDto.success(page.getContent(), pagination);
+                    result.page(),
+                    result.size(),
+                    result.totalItems(),
+                    result.totalPages());
+            wrappedResponse = ApiResponseDto.success(result.items(), pagination);
         } else {
             // Trường hợp dữ liệu thường
             wrappedResponse = ApiResponseDto.success(body);

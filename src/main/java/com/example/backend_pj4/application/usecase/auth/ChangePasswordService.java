@@ -18,13 +18,16 @@ public class ChangePasswordService implements ChangePasswordUseCase {
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordPolicy passwordPolicy;
 
     public ChangePasswordService(UserRepository userRepository,
                                   PasswordHasher passwordHasher,
-                                  RefreshTokenRepository refreshTokenRepository) {
+                                  RefreshTokenRepository refreshTokenRepository,
+                                  PasswordPolicy passwordPolicy) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.passwordPolicy = passwordPolicy;
     }
 
     @Override
@@ -37,12 +40,17 @@ public class ChangePasswordService implements ChangePasswordUseCase {
             throw new CustomException(ErrorCode.OLD_PASSWORD_INCORRECT);
         }
 
+        // Ngưỡng độ dài phụ thuộc role nên phải kiểm ở đây, không kiểm được bằng @Size trên DTO
+        passwordPolicy.assertValid(user, command.newPassword());
+
         if (passwordHasher.matches(command.newPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
         }
 
+        // Tăng tokenVersion để access token cũ chết ngay, không chờ hết 15 phút
         User updated = user.toBuilder()
                 .password(passwordHasher.hash(command.newPassword()))
+                .tokenVersion(LoginService.tokenVersionOf(user) + 1)
                 .build();
         userRepository.save(updated);
 

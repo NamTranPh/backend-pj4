@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.backend_pj4.infrastructure.security.CustomUserDetailsService;
+import com.example.backend_pj4.infrastructure.security.IpRateLimitFilter;
 import com.example.backend_pj4.infrastructure.security.JwtAuthenticationFilter;
 import com.example.backend_pj4.infrastructure.config.properties.CorsProperties;
 
@@ -35,6 +36,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final IpRateLimitFilter ipRateLimitFilter;
     private final CorsProperties corsProperties;
 
     @Bean
@@ -88,6 +90,11 @@ public class SecurityConfig {
                         // Các API khác phải có token
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
+                // Cả hai cùng neo vào UsernamePasswordAuthenticationFilter — Spring Security chỉ
+                // nhận filter có trong bảng thứ tự chuẩn của nó làm mốc, không nhận filter tự viết.
+                // Neo ở đây (không neo sớm hơn) để CorsFilter đã chạy trước, nhờ vậy phản hồi 429
+                // vẫn có header CORS và trình duyệt đọc được mã lỗi thật thay vì báo lỗi CORS.
+                .addFilterBefore(ipRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

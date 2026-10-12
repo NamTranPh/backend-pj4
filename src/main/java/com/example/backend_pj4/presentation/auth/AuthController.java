@@ -2,7 +2,7 @@ package com.example.backend_pj4.presentation.auth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.example.backend_pj4.common.annotation.AuthResultUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +21,8 @@ import com.example.backend_pj4.presentation.auth.response.RegisterResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.example.backend_pj4.infrastructure.security.AppUserDetails;
+
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,7 +42,6 @@ public class AuthController {
     private final ForgotPasswordUseCase forgotPasswordUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
-    private final GetCurrentUserUseCase getCurrentUserUseCase;
     private final AuthCookieService authCookieService;
 
     public AuthController(RegisterUseCase registerUseCase,
@@ -52,7 +53,6 @@ public class AuthController {
                           ForgotPasswordUseCase forgotPasswordUseCase,
                           ResetPasswordUseCase resetPasswordUseCase,
                           ChangePasswordUseCase changePasswordUseCase,
-                          GetCurrentUserUseCase getCurrentUserUseCase,
                           AuthCookieService authCookieService) {
         this.registerUseCase = registerUseCase;
         this.verifyRegistrationUseCase = verifyRegistrationUseCase;
@@ -63,7 +63,6 @@ public class AuthController {
         this.forgotPasswordUseCase = forgotPasswordUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
         this.changePasswordUseCase = changePasswordUseCase;
-        this.getCurrentUserUseCase = getCurrentUserUseCase;
         this.authCookieService = authCookieService;
     }
 
@@ -146,8 +145,8 @@ public class AuthController {
     @AuthRequired
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request,
-                                                @AuthenticationPrincipal UserDetails userDetails) {
-        String userId = getCurrentUserUseCase.execute(userDetails.getUsername()).id();
+                                                @AuthResultUser UserDetails userDetails) {
+        String userId = AppUserDetails.userIdOf(userDetails);
         changePasswordUseCase.execute(
                 new ChangePasswordCommand(userId, request.oldPassword(), request.newPassword()));
         return ResponseEntity.ok().build();

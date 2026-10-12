@@ -23,6 +23,7 @@ public class UserPersistenceMapper {
                 .accountStatus(entity.getAccountStatus())
                 .isBanned(entity.getIsBanned())
                 .failedLoginAttempts(entity.getFailedLoginAttempts())
+                .tokenVersion(entity.getTokenVersion())
                 .firstFailureAt(entity.getFirstFailureAt())
                 .lockedUntil(entity.getLockedUntil())
                 .lastActiveAt(entity.getLastActiveAt())
@@ -47,6 +48,7 @@ public class UserPersistenceMapper {
         entity.setAccountStatus(domain.getAccountStatus());
         entity.setIsBanned(domain.getIsBanned());
         entity.setFailedLoginAttempts(domain.getFailedLoginAttempts());
+        entity.setTokenVersion(domain.getTokenVersion() != null ? domain.getTokenVersion() : 0);
         entity.setFirstFailureAt(domain.getFirstFailureAt());
         entity.setLockedUntil(domain.getLockedUntil());
         entity.setLastActiveAt(domain.getLastActiveAt());

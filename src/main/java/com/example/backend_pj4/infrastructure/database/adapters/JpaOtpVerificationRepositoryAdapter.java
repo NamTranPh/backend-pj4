@@ -44,8 +44,8 @@ public class JpaOtpVerificationRepositoryAdapter implements OtpVerificationRepos
 
     @Override
     @Transactional
-    public void deleteExpired() {
-        jpaRepository.deleteExpired();
+    public int deleteExpired() {
+        return jpaRepository.deleteExpired();
     }
 }
 

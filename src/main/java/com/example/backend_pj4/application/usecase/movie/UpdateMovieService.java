@@ -69,7 +69,7 @@ public class UpdateMovieService implements UpdateMovieUseCase {
         if (command.visibility() != null) builder.visibility(command.visibility());
 
         if (command.genreIds() != null) {
-            List<Genre> genres = genreRepository.findAllByIds(command.genreIds());
+            List<Genre> genres = genreRepository.findByIds(command.genreIds());
             if (genres.size() != command.genreIds().size()) {
                 throw new CustomException(ErrorCode.INVALID_GENRE_IDS);
             }

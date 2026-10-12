@@ -106,12 +106,16 @@ public class LoginService implements LoginUseCase {
      * Public để {@code AdminLoginService} dùng lại cùng một quy tắc.
      */
     public User findUserOrFailUniformly(String email, String rawPassword) {
-        Optional<User> found = userRepository.findByEmailIgnoreCase(email);
+        Optional<User> found = userRepository.findByEmail(email);
         if (found.isEmpty()) {
             passwordHasher.matches(rawPassword, dummyHash);
             throw new CustomException(ErrorCode.BAD_CREDENTIALS);
         }
         return found.get();
+    }
+
+    static int tokenVersionOf(User user) {
+        return user.getTokenVersion() != null ? user.getTokenVersion() : 0;
     }
 
     /** Public để {@code AdminLoginService} dùng lại cùng một quy tắc. */
@@ -131,7 +135,7 @@ public class LoginService implements LoginUseCase {
         // Phiên mới: sessionId sinh một lần ở đây rồi giữ nguyên qua mọi lần rotation
         String sessionId = UUID.randomUUID().toString();
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), channel);
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), channel, tokenVersionOf(user));
         String refreshJwt = jwtTokenProvider.generateRefreshToken(user.getEmail(), tokenId, channel);
 
         LocalDateTime now = LocalDateTime.now();

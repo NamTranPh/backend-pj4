@@ -1,14 +1,15 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.HistoryWatching;
 import com.example.backend_pj4.domain.repository.HistoryWatchingRepository;
+import com.example.backend_pj4.domain.repository.filter.HistoryFilter;
 import com.example.backend_pj4.infrastructure.database.mappers.HistoryWatchingPersistenceMapper;
 import com.example.backend_pj4.infrastructure.database.repositories.HistoryWatchingJpaRepository;
 
@@ -18,7 +19,8 @@ public class JpaHistoryWatchingRepositoryAdapter implements HistoryWatchingRepos
     private final HistoryWatchingJpaRepository jpaRepository;
     private final HistoryWatchingPersistenceMapper mapper;
 
-    public JpaHistoryWatchingRepositoryAdapter(HistoryWatchingJpaRepository jpaRepository, HistoryWatchingPersistenceMapper mapper) {
+    public JpaHistoryWatchingRepositoryAdapter(HistoryWatchingJpaRepository jpaRepository,
+                                               HistoryWatchingPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }
@@ -34,18 +36,11 @@ public class JpaHistoryWatchingRepositoryAdapter implements HistoryWatchingRepos
     }
 
     @Override
-    public void deleteById(String id) {
-        jpaRepository.deleteById(id);
-    }
-
-    @Override
-    public List<HistoryWatching> findByUserId(String userId) {
-        return jpaRepository.findByUser_Id(userId).stream().map(mapper::toDomain).collect(Collectors.toList());
-    }
-
-    @Override
-    public Optional<HistoryWatching> findByUserIdAndMovieId(String userId, String movieId) {
-        return jpaRepository.findByUser_IdAndMovie_Id(userId, movieId).map(mapper::toDomain);
+    public PageResult<HistoryWatching> find(HistoryFilter filter, PageQuery query) {
+        return PageableMapper.toPageResult(
+                jpaRepository.search(filter.userId(), filter.q(), filter.unfinishedOnly(),
+                        PageableMapper.toPageable(query)),
+                mapper::toDomain);
     }
 
     @Override
@@ -54,18 +49,20 @@ public class JpaHistoryWatchingRepositoryAdapter implements HistoryWatchingRepos
     }
 
     @Override
-    public Optional<HistoryWatching> findByUserIdAndMovieIdAndEpisodeId(String userId, String movieId, String episodeId) {
-        return jpaRepository.findByUser_IdAndMovie_IdAndEpisode_Id(userId, movieId, episodeId).map(mapper::toDomain);
+    public Optional<HistoryWatching> findByUserIdAndMovieId(String userId, String movieId) {
+        return jpaRepository.findByUser_IdAndMovie_Id(userId, movieId).map(mapper::toDomain);
     }
 
     @Override
-    public List<HistoryWatching> findTop10ByUserId(String userId) {
-        return jpaRepository.findTop10ByUser_IdOrderByWatchedAtDesc(userId).stream().map(mapper::toDomain).collect(Collectors.toList());
+    public Optional<HistoryWatching> findByUserIdAndMovieIdAndEpisodeId(String userId, String movieId,
+                                                                        String episodeId) {
+        return jpaRepository.findByUser_IdAndMovie_IdAndEpisode_Id(userId, movieId, episodeId)
+                .map(mapper::toDomain);
     }
 
     @Override
-    public long countByUserId(String userId) {
-        return jpaRepository.countByUser_Id(userId);
+    public void deleteById(String id) {
+        jpaRepository.deleteById(id);
     }
 
     @Override
@@ -74,5 +71,3 @@ public class JpaHistoryWatchingRepositoryAdapter implements HistoryWatchingRepos
         jpaRepository.deleteByUserId(userId);
     }
 }
-
-

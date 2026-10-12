@@ -91,7 +91,7 @@ class JwtChannelIsolationTest {
 
     @Test
     void accessTokenTuCuaUser_khongDiQuaDuocDuongDanAdmin() throws Exception {
-        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_USER);
+        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_USER, 0);
 
         assertThat(authenticated(token, ADMIN_PATH))
                 .as("token ch=user phải bị chặn ở /api/v1/admin/**")
@@ -100,14 +100,14 @@ class JwtChannelIsolationTest {
 
     @Test
     void accessTokenTuCuaUser_vanDungDuocApiUser() throws Exception {
-        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_USER);
+        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_USER, 0);
 
         assertThat(authenticated(token, USER_PATH)).isTrue();
     }
 
     @Test
     void accessTokenTuCuaAdmin_dungDuocCaHaiKenh() throws Exception {
-        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_ADMIN);
+        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_ADMIN, 0);
 
         assertThat(authenticated(token, ADMIN_PATH)).isTrue();
         assertThat(authenticated(token, USER_PATH))
@@ -128,7 +128,7 @@ class JwtChannelIsolationTest {
 
     @Test
     void accessTokenMangDungClaimTypVaCh() {
-        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_ADMIN);
+        String token = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_ADMIN, 0);
 
         assertThat(tokenProvider.getAccessTokenTypeFromToken(token))
                 .isEqualTo(JwtTokenProvider.TOKEN_TYPE_ACCESS);

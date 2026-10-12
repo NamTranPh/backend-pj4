@@ -1,11 +1,12 @@
 package com.example.backend_pj4.presentation.membership;
 
-import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import com.example.backend_pj4.common.pagination.PageResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,8 +20,12 @@ import com.example.backend_pj4.application.dto.membership.MembershipPlanResult;
 import com.example.backend_pj4.application.port.in.membership.CreateMembershipPlanUseCase;
 import com.example.backend_pj4.application.port.in.membership.DeleteMembershipPlanUseCase;
 import com.example.backend_pj4.application.port.in.membership.GetMembershipPlanUseCase;
-import com.example.backend_pj4.application.port.in.membership.ListMembershipPlansUseCase;
+import com.example.backend_pj4.application.port.in.membership.ListMembershipPlansQuery;
+import com.example.backend_pj4.domain.repository.filter.MembershipPlanFilter;
 import com.example.backend_pj4.application.port.in.membership.UpdateMembershipPlanUseCase;
+import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.common.request.PageableFactory;
+
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import com.example.backend_pj4.presentation.membership.request.CreateMembershipPlanRequest;
 import com.example.backend_pj4.presentation.membership.request.UpdateMembershipPlanRequest;
@@ -38,20 +43,20 @@ public class AdminMembershipPlanController {
     private final CreateMembershipPlanUseCase createMembershipPlanUseCase;
     private final UpdateMembershipPlanUseCase updateMembershipPlanUseCase;
     private final GetMembershipPlanUseCase getMembershipPlanUseCase;
-    private final ListMembershipPlansUseCase listMembershipPlansUseCase;
+    private final ListMembershipPlansQuery listMembershipPlansQuery;
     private final DeleteMembershipPlanUseCase deleteMembershipPlanUseCase;
 
     public AdminMembershipPlanController(
             CreateMembershipPlanUseCase createMembershipPlanUseCase,
             UpdateMembershipPlanUseCase updateMembershipPlanUseCase,
             GetMembershipPlanUseCase getMembershipPlanUseCase,
-            ListMembershipPlansUseCase listMembershipPlansUseCase,
+            ListMembershipPlansQuery listMembershipPlansQuery,
             DeleteMembershipPlanUseCase deleteMembershipPlanUseCase
     ) {
         this.createMembershipPlanUseCase = createMembershipPlanUseCase;
         this.updateMembershipPlanUseCase = updateMembershipPlanUseCase;
         this.getMembershipPlanUseCase = getMembershipPlanUseCase;
-        this.listMembershipPlansUseCase = listMembershipPlansUseCase;
+        this.listMembershipPlansQuery = listMembershipPlansQuery;
         this.deleteMembershipPlanUseCase = deleteMembershipPlanUseCase;
     }
 
@@ -100,8 +105,12 @@ public class AdminMembershipPlanController {
 
     @Operation(summary = "Lấy danh sách tất cả gói membership. Quyền truy cập: ADMIN.")
     @GetMapping
-    public List<MembershipPlanResult> list() {
-        return listMembershipPlansUseCase.execute(false);
+    public PageResult<MembershipPlanResult> list(@ModelAttribute PageQueryParamDto params) {
+        // activeOnly = false: admin thấy cả gói đã tắt
+        return listMembershipPlansQuery.execute(
+                new MembershipPlanFilter(params.search(), false),
+                PageableFactory.create(params,
+                        ListMembershipPlansQuery.SORTABLE, ListMembershipPlansQuery.DEFAULT_SORT));
     }
 
     @Operation(summary = "Xóa (vô hiệu hóa) gói membership theo ID. Thông báo và hoàn tiền cho subscribers. Quyền truy cập: ADMIN.")

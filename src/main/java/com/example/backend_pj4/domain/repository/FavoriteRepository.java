@@ -1,16 +1,23 @@
 package com.example.backend_pj4.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.ListFavorite;
+import com.example.backend_pj4.domain.repository.filter.FavoriteFilter;
 
 public interface FavoriteRepository {
     ListFavorite save(ListFavorite favorite);
+
     Optional<ListFavorite> findById(String id);
-    void deleteById(String id);
-    List<ListFavorite> findByUserId(String userId);
+
+    /** Phim yêu thích của một người, lọc theo tên phim, có sắp xếp và phân trang. */
+    PageResult<ListFavorite> find(FavoriteFilter filter, PageQuery query);
+
     boolean existsByUserIdAndMovieId(String userId, String movieId);
+
     void deleteByUserIdAndMovieId(String userId, String movieId);
-    long countByUserId(String userId);
+
+    void deleteById(String id);
 }

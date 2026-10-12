@@ -2,8 +2,10 @@ package com.example.backend_pj4.application.usecase.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +47,7 @@ class RefreshTokenRotatorTest {
         jwtProperties.setExpiration(900_000L);
         jwtProperties.setRefreshExpiration(2_592_000_000L);
         jwtProperties.setIssuer("http://localhost:3004");
+        jwtProperties.setReuseGraceSeconds(10);
         tokenProvider = new JwtTokenProvider(jwtProperties);
 
         refreshTokenRepository = mock(RefreshTokenRepository.class);
@@ -140,9 +143,44 @@ class RefreshTokenRotatorTest {
                 .isEqualTo(ErrorCode.REFRESH_TOKEN_REVOKED);
     }
 
+    /** Dựng một token đã bị thu hồi cách đây {@code secondsAgo} giây. */
+    private String givenRevokedToken(String tokenId, long secondsAgo) {
+        when(refreshTokenRepository.findByTokenId(tokenId)).thenReturn(Optional.of(RefreshToken.builder()
+                .userId("usr_1")
+                .tokenId(tokenId)
+                .sessionId(SESSION_ID)
+                .admin(false)
+                .expiresAt(LocalDateTime.now().plusDays(30))
+                .revokedAt(LocalDateTime.now().minusSeconds(secondsAgo))
+                .build()));
+        return tokenProvider.generateRefreshToken(EMAIL, tokenId, JwtTokenProvider.CHANNEL_USER);
+    }
+
+    @Test
+    void dungLaiTokenDaThuHoi_ngoaiCuaSoAnHan_thuHoiCaPhien() {
+        String token = givenRevokedToken("tok-stolen", 60);
+
+        assertThat(errorOf(() -> rotator.rotate(token, JwtTokenProvider.CHANNEL_USER, null, null)))
+                .isEqualTo(ErrorCode.REFRESH_TOKEN_REVOKED);
+
+        verify(refreshTokenRepository)
+                .revokeAllBySessionId(SESSION_ID);
+    }
+
+    @Test
+    void dungLaiTokenVuaThuHoi_trongCuaSoAnHan_KHONGThuHoiCaPhien() {
+        String token = givenRevokedToken("tok-race", 2);
+
+        assertThat(errorOf(() -> rotator.rotate(token, JwtTokenProvider.CHANNEL_USER, null, null)))
+                .isEqualTo(ErrorCode.REFRESH_TOKEN_REVOKED);
+
+        // Hai tab refresh song song là chuyện bình thường — đá người dùng khỏi cả phiên là báo động nhầm
+        verify(refreshTokenRepository, never()).revokeAllBySessionId(anyString());
+    }
+
     @Test
     void accessTokenGuiVaoEndpointRefresh_biTuChoi() {
-        String accessToken = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_USER);
+        String accessToken = tokenProvider.generateAccessToken(EMAIL, JwtTokenProvider.CHANNEL_USER, 0);
 
         assertThat(errorOf(() -> rotator.rotate(accessToken, JwtTokenProvider.CHANNEL_USER, null, null)))
                 .isEqualTo(ErrorCode.REFRESH_TOKEN_INVALID_OR_EXPIRED);

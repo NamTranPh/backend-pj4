@@ -1,24 +1,29 @@
 package com.example.backend_pj4.presentation.favorite;
 
-import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import com.example.backend_pj4.common.pagination.PageResult;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.example.backend_pj4.common.annotation.AuthResultUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend_pj4.application.dto.favorite.FavoriteMovieResult;
-import com.example.backend_pj4.application.dto.user.UserProfileResult;
-import com.example.backend_pj4.application.port.in.auth.GetCurrentUserUseCase;
 import com.example.backend_pj4.application.port.in.favorite.AddFavoriteUseCase;
-import com.example.backend_pj4.application.port.in.favorite.ListFavoriteMoviesUseCase;
+import com.example.backend_pj4.application.port.in.favorite.ListFavoriteMoviesQuery;
+import com.example.backend_pj4.domain.repository.filter.FavoriteFilter;
 import com.example.backend_pj4.application.port.in.favorite.RemoveFavoriteUseCase;
+import com.example.backend_pj4.infrastructure.security.AppUserDetails;
+
+import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.common.request.PageableFactory;
+
 import com.example.backend_pj4.common.annotation.AuthRequired;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,26 +37,23 @@ public class FavoriteController {
 
     private final AddFavoriteUseCase addFavoriteUseCase;
     private final RemoveFavoriteUseCase removeFavoriteUseCase;
-    private final ListFavoriteMoviesUseCase listFavoriteMoviesUseCase;
-    private final GetCurrentUserUseCase getCurrentUserUseCase;
+    private final ListFavoriteMoviesQuery listFavoriteMoviesQuery;
 
     public FavoriteController(
             AddFavoriteUseCase addFavoriteUseCase,
             RemoveFavoriteUseCase removeFavoriteUseCase,
-            ListFavoriteMoviesUseCase listFavoriteMoviesUseCase,
-            GetCurrentUserUseCase getCurrentUserUseCase
+            ListFavoriteMoviesQuery listFavoriteMoviesQuery
     ) {
         this.addFavoriteUseCase = addFavoriteUseCase;
         this.removeFavoriteUseCase = removeFavoriteUseCase;
-        this.listFavoriteMoviesUseCase = listFavoriteMoviesUseCase;
-        this.getCurrentUserUseCase = getCurrentUserUseCase;
+        this.listFavoriteMoviesQuery = listFavoriteMoviesQuery;
     }
 
     @Operation(summary = "Thêm phim vào danh sách yêu thích.")
     @PostMapping("/{movieSlug}")
     public ResponseEntity<Void> add(
             @PathVariable String movieSlug,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthResultUser UserDetails userDetails
     ) {
         String userId = resolveUserId(userDetails);
         addFavoriteUseCase.execute(userId, movieSlug);
@@ -62,7 +64,7 @@ public class FavoriteController {
     @DeleteMapping("/{movieSlug}")
     public ResponseEntity<Void> remove(
             @PathVariable String movieSlug,
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthResultUser UserDetails userDetails
     ) {
         String userId = resolveUserId(userDetails);
         removeFavoriteUseCase.execute(userId, movieSlug);
@@ -71,13 +73,17 @@ public class FavoriteController {
 
     @Operation(summary = "Lấy danh sách phim yêu thích.")
     @GetMapping
-    public List<FavoriteMovieResult> list(@AuthenticationPrincipal UserDetails userDetails) {
-        String userId = resolveUserId(userDetails);
-        return listFavoriteMoviesUseCase.execute(userId);
+    public PageResult<FavoriteMovieResult> list(
+            @AuthResultUser UserDetails userDetails,
+            @ModelAttribute PageQueryParamDto params) {
+        return listFavoriteMoviesQuery.execute(
+                new FavoriteFilter(resolveUserId(userDetails), params.search()),
+                PageableFactory.create(params,
+                        ListFavoriteMoviesQuery.SORTABLE, ListFavoriteMoviesQuery.DEFAULT_SORT));
     }
 
+    /** userId lấy thẳng từ principal — filter đã nạp sẵn, không cần tra lại database. */
     private String resolveUserId(UserDetails userDetails) {
-        UserProfileResult user = getCurrentUserUseCase.execute(userDetails.getUsername());
-        return user.id();
+        return AppUserDetails.userIdOf(userDetails);
     }
 }

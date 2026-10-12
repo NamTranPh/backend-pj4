@@ -27,19 +27,22 @@ public class ResetPasswordService implements ResetPasswordUseCase {
     private final PasswordHasher passwordHasher;
     private final RefreshTokenRepository refreshTokenRepository;
     private final OtpAttemptLimiter otpAttemptLimiter;
+    private final PasswordPolicy passwordPolicy;
 
     public ResetPasswordService(UserRepository userRepository,
                                  OtpVerificationRepository otpRepository,
                                  OtpHelper otpHelper,
                                  PasswordHasher passwordHasher,
                                  RefreshTokenRepository refreshTokenRepository,
-                                 OtpAttemptLimiter otpAttemptLimiter) {
+                                 OtpAttemptLimiter otpAttemptLimiter,
+                                 PasswordPolicy passwordPolicy) {
         this.userRepository = userRepository;
         this.otpRepository = otpRepository;
         this.otpHelper = otpHelper;
         this.passwordHasher = passwordHasher;
         this.refreshTokenRepository = refreshTokenRepository;
         this.otpAttemptLimiter = otpAttemptLimiter;
+        this.passwordPolicy = passwordPolicy;
     }
 
     @Override
@@ -49,7 +52,7 @@ public class ResetPasswordService implements ResetPasswordUseCase {
 
         // Email không tồn tại cũng trả OTP_INVALID: ném USER_NOT_FOUND (404) ở endpoint công
         // khai này cho phép dò ra email nào đã đăng ký mà không cần biết OTP.
-        User user = userRepository.findByEmailIgnoreCase(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.OTP_INVALID));
 
         OtpVerification otp = otpRepository.findByEmailAndType(email, OtpType.PASSWORD_RESET)
@@ -72,11 +75,15 @@ public class ResetPasswordService implements ResetPasswordUseCase {
 
         otpAttemptLimiter.reset(email, OtpType.PASSWORD_RESET);
 
+        passwordPolicy.assertValid(user, command.newPassword());
+
         OtpVerification used = otp.toBuilder().usedAt(LocalDateTime.now()).build();
         otpRepository.save(used);
 
+        // Tăng tokenVersion để access token cũ chết ngay, không chờ hết 15 phút
         User updated = user.toBuilder()
                 .password(passwordHasher.hash(command.newPassword()))
+                .tokenVersion(LoginService.tokenVersionOf(user) + 1)
                 .build();
         userRepository.save(updated);
 

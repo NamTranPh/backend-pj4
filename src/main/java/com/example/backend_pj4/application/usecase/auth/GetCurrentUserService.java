@@ -24,7 +24,7 @@ public class GetCurrentUserService implements GetCurrentUserUseCase {
     @Override
     @Transactional(readOnly = true)
     public UserProfileResult execute(String email) {
-        return userRepository.findByEmailIgnoreCase(email)
+        return userRepository.findByEmail(email)
                 .map(userResultMapper::toResult)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }

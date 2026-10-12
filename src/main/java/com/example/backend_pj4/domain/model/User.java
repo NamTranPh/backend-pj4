@@ -23,6 +23,11 @@ public class User {
     private AccountStatus accountStatus;
     private Boolean isBanned;
     private Integer failedLoginAttempts;
+    /**
+     * Tăng lên mỗi khi mật khẩu thay đổi. Access token mang claim `ver` khác giá trị này sẽ bị
+     * từ chối ngay, thay vì còn sống thêm tới 15 phút sau khi đổi mật khẩu.
+     */
+    private Integer tokenVersion;
     private LocalDateTime firstFailureAt;
     private LocalDateTime lockedUntil;
     private LocalDateTime lastActiveAt;

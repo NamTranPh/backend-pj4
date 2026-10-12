@@ -2,6 +2,7 @@ package com.example.backend_pj4.application.usecase.payment;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,23 @@ public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
     private final PaymentGatewayPort paymentGatewayPort;
     private final PayOsProperties payOsProperties;
 
+    /**
+     * Bộ sinh mã đơn tăng dần nghiêm ngặt.
+     *
+     * <p>Trước đây mã sinh bằng {@code System.currentTimeMillis() % 1_000_000_000L}. Phép chia
+     * lấy dư chỉ giữ 9 chữ số cuối, mà 9 chữ số đếm được tối đa 10⁹ mili-giây = <b>11,57 ngày</b>
+     * — nên cứ 11,57 ngày mã lại lặp lại y hệt. Vì {@code transaction_code} có ràng buộc UNIQUE,
+     * lần trùng đó làm INSERT ném lỗi và khách nhận 500 khi bấm mua gói. Đây không phải race
+     * condition mà là phép toán, chắc chắn xảy ra sau khi chạy đủ lâu.
+     *
+     * <p>Bỏ phép {@code %} là xử lý xong việc lặp. {@code AtomicLong} xử lý nốt trường hợp hai
+     * người bấm mua trong cùng một mili-giây: mã luôn lớn hơn mã trước ít nhất 1.
+     *
+     * <p>Giới hạn: chỉ đảm bảo duy nhất trong phạm vi một tiến trình. Khi chạy nhiều instance
+     * thì cần chuyển sang sequence của database.
+     */
+    private final AtomicLong orderCodeSequence = new AtomicLong(0);
+
     public CreatePaymentOrderService(
             MembershipPlanRepository membershipPlanRepository,
             PaymentOrderRepository paymentOrderRepository,
@@ -49,7 +67,7 @@ public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
             throw new CustomException(ErrorCode.MEMBERSHIP_PLAN_NOT_FOUND);
         }
 
-        long orderCode = System.currentTimeMillis() % 1_000_000_000L;
+        long orderCode = nextOrderCode();
 
         PaymentOrder order = PaymentOrder.builder()
                 .userId(userId)
@@ -88,6 +106,11 @@ public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
         order = paymentOrderRepository.save(order);
 
         return toResult(order);
+    }
+
+    private long nextOrderCode() {
+        long now = System.currentTimeMillis();
+        return orderCodeSequence.updateAndGet(previous -> Math.max(previous + 1, now));
     }
 
     private PaymentOrderResult toResult(PaymentOrder order) {

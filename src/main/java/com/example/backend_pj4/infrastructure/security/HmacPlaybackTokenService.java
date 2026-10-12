@@ -10,6 +10,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.example.backend_pj4.application.port.out.PlaybackTokenService;
 import com.example.backend_pj4.common.constants.ErrorCode;
@@ -88,7 +89,19 @@ public class HmacPlaybackTokenService implements PlaybackTokenService {
         }
     }
 
+    /**
+     * Khoá ký phải có thật.
+     *
+     * <p>Trước đây {@code PlaybackProperties.tokenSecret} có giá trị mặc định ngay trong file
+     * .java, nên cấu hình không tới nơi thì vẫn ký được — bằng một chuỗi nằm công khai trong git.
+     * Nay mặc định đã bỏ, nên phải chặn rõ ở đây thay vì ném lỗi khó hiểu từ thư viện mã hoá.
+     */
     private String hmac(String data) {
+        if (!StringUtils.hasText(properties.getTokenSecret())) {
+            log.error("Chưa cấu hình khoá ký playback token — đặt PLAYBACK_TOKEN_SECRET trong .env");
+            throw new CustomException(ErrorCode.PLAYBACK_TOKEN_SECRET_MISSING);
+        }
+
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(

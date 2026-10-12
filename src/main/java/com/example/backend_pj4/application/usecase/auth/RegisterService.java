@@ -34,7 +34,7 @@ public class RegisterService implements RegisterUseCase {
     @Transactional
     public RegisterResult execute(RegisterCommand command) {
         String email = command.email().toLowerCase().trim();
-        var existing = userRepository.findByEmailIgnoreCase(email);
+        var existing = userRepository.findByEmail(email);
 
         if (existing.isPresent()) {
             User user = existing.get();

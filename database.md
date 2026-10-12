@@ -2,7 +2,7 @@
 
 > **Mục đích:** Tài liệu database - schema, index, relation, data flow
 
-**Cập nhật lần cuối:** 2026-08-25  
+**Cập nhật lần cuối:** 2026-10-11  
 **Database:** MySQL 8.0+  
 **Charset:** UTF-8
 
@@ -37,10 +37,10 @@
 | 14  | `payment_order`      | Đơn thanh toán               | ~5k          |
 | 15  | `refresh_token`      | Refresh token session        | ~10k         |
 | 16  | `otp_verification`   | OTP xác thực                 | ~10k         |
-| 17  | `email_verification` | Xác thực email bằng token    | ~10k         |
+| 17  | `email_verification` | ⛔ **CHƯA DÙNG** — xem ghi chú ở mục 17 | **0**        |
 | 18  | `notification`       | Thông báo                    | ~50k         |
-| 19  | `report`             | Báo cáo vi phạm              | ~1k          |
-| 20  | `outbox_event`       | Outbox pattern cho event     | ~10k         |
+| 19  | `report`             | ⏳ **CHƯA DÙNG** — module chưa làm | **0**        |
+| 20  | `outbox_event`       | ⏳ **CHƯA DÙNG** — chưa có message broker | **0**        |
 
 ---
 
@@ -63,6 +63,7 @@
 | 11  | failed_login_attempts | INT                    | -                         | Số lần đăng nhập sai      |
 | 12  | first_failure_at      | TIMESTAMP              | -                         | Thời điểm sai lần đầu     |
 | 13  | locked_until          | TIMESTAMP              | -                         | Khóa tạm tới thời điểm    |
+| 13b | token_version         | INT                    | NOT NULL, DEFAULT 0       | Tăng mỗi lần đổi mật khẩu |
 | 14  | is_banned             | BOOLEAN                | NOT NULL, DEFAULT false   | Đã bị cấm                 |
 | 15  | last_active_at        | TIMESTAMP              | -                         | Lần hoạt động cuối        |
 | 16  | deleted_at            | TIMESTAMP              | -                         | Soft delete               |
@@ -481,7 +482,25 @@
 
 ---
 
-### 17. email_verification (Xác thực email bằng token)
+### 17. email_verification ⛔ CHƯA DÙNG
+
+> **Bảng này không có và sẽ không có dòng nào.** Code Java của nó đã bị xoá ngày 2026-10-11.
+> Bảng vẫn còn trong MySQL vì `ddl-auto=update` không bao giờ DROP bảng — xoá thủ công nếu muốn:
+> `DROP TABLE email_verification;`
+>
+> **Vì sao bỏ:** đây là phương án *token gửi qua link* cho việc xác thực email. Phương án thực tế
+> được chọn là *OTP 6 số*, nằm ở bảng `otp_verification` (mục 16). Cả hai bảng được thêm cùng ngày
+> 2026-08-18 (changelog v3.0) nhưng code chỉ đi theo nhánh OTP.
+>
+> Bản OTP thắng vì: cột `type` cho một bảng phục vụ cả đăng ký lẫn quên mật khẩu; lưu `code_hash`
+> thay vì token nguyên văn (DB rò rỉ thì hash vô dụng); và dùng `email` dạng chuỗi thay vì khoá
+> ngoại `user_id`, để luồng quên mật khẩu trả về giống hệt nhau dù email có tồn tại hay không
+> (chống dò tài khoản).
+>
+> Hệ thống cũng **không có kênh gửi link** — cổng gửi mail duy nhất là
+> `OtpSender.send(email, otpCode, type)`, chỉ gửi mã.
+
+Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lại):
 
 | STT | Column     | Type          | Constraint                   | Description       |
 | --- | ---------- | ------------- | ---------------------------- | ----------------- |
@@ -525,7 +544,13 @@
 
 ---
 
-### 19. report (Báo cáo vi phạm)
+### 19. report ⏳ CHƯA DÙNG
+
+> Đủ 9 file persistence (domain model, port, entity, mapper, adapter, JPA repository, 3 enum)
+> nhưng **không có use case hay controller nào**. Bảng không có dòng nào.
+> Giữ lại làm khung cho module báo cáo vi phạm sẽ làm sau.
+
+### 19b. report (Báo cáo vi phạm) — cấu trúc
 
 | STT | Column      | Type                                                        | Constraint                   | Description      |
 | --- | ----------- | ----------------------------------------------------------- | ---------------------------- | ---------------- |
@@ -551,7 +576,19 @@
 
 ---
 
-### 20. outbox_event (Outbox Pattern)
+### 20. outbox_event ⏳ CHƯA DÙNG
+
+> Đủ 6 file persistence nhưng **không có publisher hay job relay nào**. Bảng không có dòng nào.
+>
+> Outbox Pattern giải bài toán: *ghi database* và *gửi message ra ngoài* không thể nằm chung một
+> transaction. Gửi trước khi commit thì rollback để lại message ma; commit xong mới gửi thì
+> process chết là mất message. Cách giải: ghi event thành một dòng **trong cùng transaction**, rồi
+> một job riêng quét các dòng `processed = false` để gửi và đánh dấu đã xử lý.
+>
+> pj4 hiện **không có message broker** (không Kafka, không RabbitMQ), mọi thứ chạy trong cùng một
+> process nên chưa có gì để gửi ra ngoài. Giữ lại làm khung cho sau này.
+
+### 20b. outbox_event (Outbox Pattern) — cấu trúc
 
 | STT | Column         | Type          | Constraint                | Description     |
 | --- | -------------- | ------------- | ------------------------- | --------------- |
@@ -624,25 +661,43 @@ Outbox Event (event publishing)
 
 ---
 
-## Redis Cache (Optional)
-
-```
-# User session
-user:cache:<user_id> → { userId, email, name, role }
-TTL: 1 hour
-
-# Movie list
-movie:list:<page>:<filter> → { movies[], pagination }
-TTL: 24 hours
-
-# Movie detail
-movie:detail:<movie_id> → { movieDetail, genres, episodes }
-TTL: 24 hours
-```
-
----
-
 ## Cập nhật lịch sử
+
+### 2026-10-11 - v3.5
+
+**Không thay đổi schema.** Chỉ gỡ code và ghi chú lại tài liệu.
+
+- Xoá toàn bộ code Java của `email_verification` (6 file). **Bảng vẫn còn trong MySQL** —
+  `ddl-auto=update` không DROP bảng. Xoá thủ công nếu muốn:
+
+```sql
+DROP TABLE email_verification;
+```
+
+- Đánh dấu 3 bảng **chưa dùng** ở danh sách và ở mục chi tiết: `email_verification` (mục 17),
+  `report` (mục 19), `outbox_event` (mục 20). Trước đây tài liệu mô tả cả 3 như đang hoạt động,
+  còn ước lượng `email_verification` ~10k dòng và `outbox_event` ~10k dòng — thực tế cả 3 đều 0 dòng.
+
+- `movie.genres` thêm `@BatchSize(size = 50)`: chỉ là chỉ dẫn fetch của Hibernate, **không đụng DDL**.
+
+
+### 2026-10-02 - v3.4
+
+Bảng `user`: thêm column `token_version`.
+
+```sql
+ALTER TABLE user ADD COLUMN token_version INT NOT NULL DEFAULT 0;
+```
+
+| Column          | Kiểu                   | Mô tả                                                                    |
+| --------------- | ---------------------- | ------------------------------------------------------------------------ |
+| `token_version` | INT NOT NULL DEFAULT 0 | Tăng lên mỗi khi mật khẩu thay đổi (`change-password`, `reset-password`) |
+
+**Vì sao cần:** đổi mật khẩu trước đây chỉ thu hồi refresh token, còn access token cũ vẫn chạy tới khi hết hạn — kẻ tấn công chiếm được access token còn nguyên 15 phút sau khi nạn nhân đã đổi mật khẩu. Access token nay mang claim `ver`; `JwtAuthenticationFilter` đối chiếu với `token_version` hiện tại, lệch là từ chối ngay.
+
+**Không breaking:** token phát trước bản này không có claim `ver` → đọc ra 0, khớp với người dùng chưa từng đổi mật khẩu.
+
+> **Lưu ý triển khai:** dev dùng `ddl-auto=update` nên Hibernate tự sinh cột. Môi trường dùng chung chạy câu `ALTER TABLE` ở trên bằng tay trước khi deploy.
 
 ### 2026-09-21 - v3.3
 

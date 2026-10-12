@@ -1,6 +1,6 @@
 package com.example.backend_pj4.application.usecase.upload;
 
-import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,6 +20,16 @@ import com.example.backend_pj4.infrastructure.config.properties.MinioProperties;
 
 @Service
 public class UploadFileService implements UploadFileUseCase {
+
+    /**
+     * Giới hạn dung lượng theo từng loại. Cấu hình {@code spring.servlet.multipart.max-file-size}
+     * đặt chung 5000MB cho luồng upload video, nên nếu không chặn ở đây thì bất kỳ người dùng
+     * đã đăng nhập nào cũng đẩy được một "avatar" 5GB lên object storage.
+     */
+    private static final Map<UploadType, Long> MAX_SIZE_BYTES = Map.of(
+            UploadType.AVATAR, 5L * 1024 * 1024,     // 5MB
+            UploadType.POSTER, 10L * 1024 * 1024,    // 10MB
+            UploadType.VIDEO, 5000L * 1024 * 1024);  // 5000MB, khớp trần multipart
 
     private static final Set<String> ALLOWED_AVATAR_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final Set<String> ALLOWED_POSTER_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
@@ -46,6 +56,8 @@ public class UploadFileService implements UploadFileUseCase {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
 
+        validateSize(type, command.size());
+
         String contentType = command.contentType();
         validateContentType(type, contentType);
 
@@ -66,6 +78,13 @@ public class UploadFileService implements UploadFileUseCase {
                 ? fileStorageService.getPublicUrl(bucket, objectKey)
                 : fileStorageService.getPresignedGetUrl(bucket, objectKey, 3600);
         return new UploadResult(previewUrl, objectKey);
+    }
+
+    private void validateSize(UploadType type, long size) {
+        Long max = MAX_SIZE_BYTES.get(type);
+        if (max != null && size > max) {
+            throw new CustomException(ErrorCode.FILE_TOO_LARGE);
+        }
     }
 
     private void validateContentType(UploadType type, String contentType) {
