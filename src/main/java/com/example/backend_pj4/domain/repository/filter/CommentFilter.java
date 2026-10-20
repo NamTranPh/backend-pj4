@@ -10,7 +10,9 @@ package com.example.backend_pj4.domain.repository.filter;
  *                      {@code episode_id} (màn admin xem cả bình luận phim lẫn bình luận tập)
  * @param rootOnly      true thì chỉ lấy bình luận gốc ({@code parent_id IS NULL}) — danh sách
  *                      công khai phân trang theo gốc; false thì lấy phẳng (màn admin)
- * @param isApproved    null nghĩa là không lọc theo trạng thái duyệ
+ * @param isApproved    null nghĩa là không lọc theo trạng thái duyệt
+ * @param q             từ khoá tìm kiếm nội dung
+ * @param userId        null nghĩa là không lọc theo người dùng; truyền id để lấy bình luận của người đó
  */
 public record CommentFilter(
         String movieId,
@@ -18,6 +20,10 @@ public record CommentFilter(
         boolean episodeScoped,
         boolean rootOnly,
         Boolean isApproved,
-        String q
+        String q,
+        String userId
 ) {
+    public CommentFilter(String movieId, String episodeId, boolean episodeScoped, boolean rootOnly, Boolean isApproved, String q) {
+        this(movieId, episodeId, episodeScoped, rootOnly, isApproved, q, null);
+    }
 }

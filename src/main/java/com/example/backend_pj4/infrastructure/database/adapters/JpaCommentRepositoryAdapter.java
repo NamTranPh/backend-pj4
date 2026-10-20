@@ -113,4 +113,19 @@ public class JpaCommentRepositoryAdapter implements CommentRepository {
         }
         return commentLikeJpaRepository.findLikedCommentIds(userId, commentIds);
     }
+
+    @Override
+    public java.util.Map<String, Long> countByMovieIds(Collection<String> movieIds) {
+        if (movieIds == null || movieIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+        List<Object[]> rows = commentJpaRepository.countGroupedByMovieIds(movieIds);
+        java.util.Map<String, Long> result = new java.util.HashMap<>();
+        for (Object[] row : rows) {
+            String movieId = (String) row[0];
+            Long count = ((Number) row[1]).longValue();
+            result.put(movieId, count);
+        }
+        return result;
+    }
 }

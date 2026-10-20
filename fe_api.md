@@ -490,6 +490,8 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
   "isPremium": "boolean",
   "isFeatured": "boolean",
   "rating": "decimal (0.0-10.0)",
+  "ratingCount": "number",
+  "commentCount": "number",
   "viewCount": "number",
   "genres": ["GenreResult"],
   "createdAt": "datetime",
@@ -899,16 +901,17 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 Bình luận **lồng nhau không giới hạn cấp**: một bình luận trả lời được bình luận khác ở bất kỳ cấp nào. Danh sách **phân trang theo bình luận gốc** — `pagination.totalItems` là số luồng, không phải tổng số bình luận; toàn bộ trả lời của các gốc trong trang nằm lồng trong trường `replies`.
 
-| STT | Chức năng      | Method | Path                                                                              | Auth               | Request                        | Response                      | Note                                       |
-| --- | -------------- | ------ | --------------------------------------------------------------------------------- | ------------------ | ------------------------------ | ----------------------------- | ------------------------------------------ |
-| 1   | Cây bình luận  | GET    | `/api/v1/movies/{movieSlug}/comments?episodeId=&page=1&limit=15&sortBy=&sortDir=` | Public             | episodeId?, phân trang         | CommentList + pagination      | Gọi kèm token thì có thêm cờ `isLiked`     |
-| 2   | Đăng bình luận | POST   | `/api/v1/movies/{movieSlug}/comments`                                             | User               | content, episodeId?, parentId? | CommentDetail                 | 201                                        |
-| 3   | Sửa bình luận  | PATCH  | `/api/v1/comments/{commentId}`                                                    | Chủ sở hữu         | content                        | CommentDetail                 | Người khác sửa → 403 `comment_not_owned`   |
-| 4   | Xoá bình luận  | DELETE | `/api/v1/comments/{commentId}`                                                    | Chủ sở hữu / Admin | -                              | -                             | Xoá kéo theo **cả nhánh trả lời bên dưới** |
-| 5   | Thích          | POST   | `/api/v1/comments/{commentId}/like`                                               | User               | -                              | -                             | 201. Thích 2 lần → 409                     |
-| 6   | Bỏ thích       | DELETE | `/api/v1/comments/{commentId}/like`                                               | User               | -                              | -                             | Chưa thích mà bỏ → 404                     |
-| 7   | DS kiểm duyệt  | GET    | `/api/v1/admin/comments?movieId=&isApproved=&search=&page=1&limit=15`             | Admin              | movieId?, isApproved?, search? | AdminCommentList + pagination | **Phẳng**, không dựng cây                  |
-| 8   | Ẩn / hiện lại  | PATCH  | `/api/v1/admin/comments/{commentId}/approval`                                     | Admin              | isApproved (bool)              | -                             | Xem lưu ý bên dưới                         |
+| STT | Chức năng         | Method | Path                                                                              | Auth               | Request                        | Response                      | Note                                       |
+| --- | ----------------- | ------ | --------------------------------------------------------------------------------- | ------------------ | ------------------------------ | ----------------------------- | ------------------------------------------ |
+| 1   | Cây bình luận     | GET    | `/api/v1/movies/{movieSlug}/comments?episodeId=&page=1&limit=15&sortBy=&sortDir=` | Public             | episodeId?, phân trang         | CommentList + pagination      | Gọi kèm token thì có thêm cờ `isLiked`     |
+| 2   | Đăng bình luận    | POST   | `/api/v1/movies/{movieSlug}/comments`                                             | User               | content, episodeId?, parentId? | CommentDetail                 | 201                                        |
+| 3   | Sửa bình luận     | PATCH  | `/api/v1/comments/{commentId}`                                                    | Chủ sở hữu         | content                        | CommentDetail                 | Người khác sửa → 403 `comment_not_owned`   |
+| 4   | Xoá bình luận     | DELETE | `/api/v1/comments/{commentId}`                                                    | Chủ sở hữu / Admin | -                              | -                             | Xoá kéo theo **cả nhánh trả lời bên dưới** |
+| 5   | Thích             | POST   | `/api/v1/comments/{commentId}/like`                                               | User               | -                              | -                             | 201. Thích 2 lần → 409                     |
+| 6   | Bỏ thích          | DELETE | `/api/v1/comments/{commentId}/like`                                               | User               | -                              | -                             | Chưa thích mà bỏ → 404                     |
+| 7   | DS kiểm duyệt     | GET    | `/api/v1/admin/comments?movieId=&isApproved=&search=&page=1&limit=15`             | Admin              | movieId?, isApproved?, search? | AdminCommentList + pagination | **Phẳng**, không dựng cây                  |
+| 8   | Ẩn / hiện lại     | PATCH  | `/api/v1/admin/comments/{commentId}/approval`                                     | Admin              | isApproved (bool)              | -                             | Xem lưu ý bên dưới                         |
+| 9   | Bình luận của tôi | GET    | `/api/v1/me/comments?page=1&limit=15&sortBy=&sortDir=`                            | User               | phân trang                     | MyCommentList + pagination    | Lịch sử bình luận của chính mình           |
 
 ### Lưu ý nghiệp vụ
 
@@ -961,13 +964,14 @@ Bình luận **lồng nhau không giới hạn cấp**: một bình luận trả
 
 Chấm **sao, thang 1–5, số nguyên**. Mỗi người chỉ có **một** đánh giá cho một phim; gọi lại `PUT` là ghi đè. Điểm trung bình hiển thị có phần thập phân (ví dụ `3.5` để FE tô 3 sao rưỡi).
 
-| STT | Chức năng            | Method | Path                                                                  | Auth   | Request        | Response                | Note                                   |
-| --- | -------------------- | ------ | --------------------------------------------------------------------- | ------ | -------------- | ----------------------- | -------------------------------------- |
-| 1   | DS đánh giá của phim | GET    | `/api/v1/movies/{movieSlug}/ratings?page=1&limit=15&sortBy=&sortDir=` | Public | phân trang     | RatingList + pagination | -                                      |
-| 2   | Tóm tắt điểm         | GET    | `/api/v1/movies/{movieSlug}/ratings/summary`                          | Public | -              | RatingSummary           | -                                      |
-| 3   | Chấm / sửa điểm      | PUT    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | score, review? | RatingDetail            | Tạo mới hoặc ghi đè                    |
-| 4   | Điểm của tôi         | GET    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | RatingDetail            | Chưa chấm → 404 `rating_not_found`     |
-| 5   | Xoá điểm của tôi     | DELETE | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | -                       | Xoá xong **chấm lại được bình thường** |
+| STT | Chức năng               | Method | Path                                                                  | Auth   | Request        | Response                  | Note                                   |
+| --- | ----------------------- | ------ | --------------------------------------------------------------------- | ------ | -------------- | ------------------------- | -------------------------------------- |
+| 1   | DS đánh giá của phim    | GET    | `/api/v1/movies/{movieSlug}/ratings?page=1&limit=15&sortBy=&sortDir=` | Public | phân trang     | RatingList + pagination   | -                                      |
+| 2   | Tóm tắt điểm            | GET    | `/api/v1/movies/{movieSlug}/ratings/summary`                          | Public | -              | RatingSummary             | -                                      |
+| 3   | Chấm / sửa điểm         | PUT    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | score, review? | RatingDetail              | Tạo mới hoặc ghi đè                    |
+| 4   | Điểm của tôi            | GET    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | RatingDetail              | Chưa chấm → 404 `rating_not_found`     |
+| 5   | Xoá điểm của tôi        | DELETE | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | -                         | Xoá xong **chấm lại được bình thường** |
+| 6   | DS phim tôi đã đánh giá | GET    | `/api/v1/me/ratings?page=1&limit=15&sortBy=&sortDir=`                 | User   | phân trang     | MyRatingList + pagination | Lịch sử đánh giá của chính mình        |
 
 ### Lưu ý nghiệp vụ
 

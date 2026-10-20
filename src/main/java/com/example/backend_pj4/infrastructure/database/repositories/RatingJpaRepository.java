@@ -1,5 +1,7 @@
 package com.example.backend_pj4.infrastructure.database.repositories;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,4 +24,7 @@ public interface RatingJpaRepository
     Double calculateAverageByMovieId(@Param("movieId") String movieId);
 
     long countByMovie_Id(String movieId);
+
+    @Query("SELECT r.movie.id, COUNT(r.id) FROM RatingJpaEntity r WHERE r.movie.id IN :movieIds GROUP BY r.movie.id")
+    List<Object[]> countGroupedByMovieIds(@Param("movieIds") Collection<String> movieIds);
 }

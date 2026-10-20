@@ -36,4 +36,7 @@ public interface CommentJpaRepository
             + "(SELECT COUNT(*) FROM comment_like cl WHERE cl.comment_id = c.id) "
             + "WHERE c.id IN (:ids)", nativeQuery = true)
     void recountLikeCounts(@Param("ids") Collection<String> ids);
+
+    @Query("SELECT c.movie.id, COUNT(c.id) FROM CommentJpaEntity c WHERE c.movie.id IN :movieIds AND c.isApproved = true GROUP BY c.movie.id")
+    List<Object[]> countGroupedByMovieIds(@Param("movieIds") Collection<String> movieIds);
 }

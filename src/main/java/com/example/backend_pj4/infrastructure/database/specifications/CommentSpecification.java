@@ -48,6 +48,10 @@ public final class CommentSpecification {
                         "%" + filter.q().toLowerCase() + "%"));
             }
 
+            if (filter.userId() != null && !filter.userId().isBlank()) {
+                predicates.add(cb.equal(root.get("user").get("id"), filter.userId()));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

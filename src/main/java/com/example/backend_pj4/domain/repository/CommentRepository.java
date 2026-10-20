@@ -60,4 +60,7 @@ public interface CommentRepository {
 
     /** Trong tập bình luận đã cho, những cái mà người này đã thích — để bật cờ {@code isLiked}. */
     List<String> findLikedIdsIn(String userId, Collection<String> commentIds);
+
+    /** Đếm số lượng bình luận hợp lệ theo từng phim theo batch. */
+    java.util.Map<String, Long> countByMovieIds(Collection<String> movieIds);
 }

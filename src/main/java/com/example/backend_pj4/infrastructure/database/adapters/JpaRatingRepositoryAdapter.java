@@ -65,4 +65,19 @@ public class JpaRatingRepositoryAdapter implements RatingRepository {
     public long countByMovieId(String movieId) {
         return ratingJpaRepository.countByMovie_Id(movieId);
     }
+
+    @Override
+    public java.util.Map<String, Long> countByMovieIds(java.util.Collection<String> movieIds) {
+        if (movieIds == null || movieIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+        java.util.List<Object[]> rows = ratingJpaRepository.countGroupedByMovieIds(movieIds);
+        java.util.Map<String, Long> result = new java.util.HashMap<>();
+        for (Object[] row : rows) {
+            String movieId = (String) row[0];
+            Long count = ((Number) row[1]).longValue();
+            result.put(movieId, count);
+        }
+        return result;
+    }
 }

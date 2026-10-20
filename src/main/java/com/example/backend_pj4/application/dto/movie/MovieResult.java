@@ -31,9 +31,24 @@ public record MovieResult(
         Boolean isPremium,
         Boolean isFeatured,
         BigDecimal rating,
+        Long ratingCount,
+        Long commentCount,
         Long viewCount,
         List<GenreResult> genres,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
+    public MovieResult(
+            String id, String slug, String title, String originalTitle, String description,
+            Integer releaseYear, Integer duration, String director, String actors,
+            String country, String language, String trailerUrl, String posterUrl, String backdropUrl,
+            MovieType movieType, Integer totalEpisodes, VideoStatus status, VideoVisibility visibility,
+            Boolean isPremium, Boolean isFeatured, BigDecimal rating, Long viewCount,
+            List<GenreResult> genres, LocalDateTime createdAt, LocalDateTime updatedAt
+    ) {
+        this(id, slug, title, originalTitle, description, releaseYear, duration, director, actors,
+                country, language, trailerUrl, posterUrl, backdropUrl, movieType, totalEpisodes,
+                status, visibility, isPremium, isFeatured, rating, null, null, viewCount, genres,
+                createdAt, updatedAt);
+    }
 }

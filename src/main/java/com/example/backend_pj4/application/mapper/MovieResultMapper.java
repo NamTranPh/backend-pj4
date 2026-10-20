@@ -22,6 +22,10 @@ public class MovieResultMapper {
     }
 
     public MovieResult toResult(Movie movie) {
+        return toResult(movie, 0L, 0L);
+    }
+
+    public MovieResult toResult(Movie movie, Long ratingCount, Long commentCount) {
         List<GenreResult> genres = movie.getGenres() != null
                 ? movie.getGenres().stream().map(GenreResultMapper::toResult).toList()
                 : Collections.emptyList();
@@ -48,6 +52,8 @@ public class MovieResultMapper {
                 movie.getIsPremium(),
                 movie.getIsFeatured(),
                 movie.getRating(),
+                ratingCount != null ? ratingCount : 0L,
+                commentCount != null ? commentCount : 0L,
                 movie.getViewCount(),
                 genres,
                 movie.getCreatedAt(),
