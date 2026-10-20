@@ -63,6 +63,12 @@ public class JpaRefreshTokenRepositoryAdapter implements RefreshTokenRepository 
 
     @Override
     @Transactional
+    public void revokeAllByUserIdExceptSession(String userId, String currentSessionId) {
+        springDataRepo.revokeAllByUserIdExceptSession(userId, currentSessionId, LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
     public void revokeAllBySessionId(String sessionId) {
         springDataRepo.revokeAllBySessionId(sessionId, LocalDateTime.now());
     }

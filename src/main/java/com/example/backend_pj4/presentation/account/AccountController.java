@@ -19,6 +19,7 @@ import com.example.backend_pj4.application.dto.user.UserProfileResult;
 import com.example.backend_pj4.application.dto.auth.SessionResult;
 import com.example.backend_pj4.application.port.in.auth.GetCurrentUserUseCase;
 import com.example.backend_pj4.application.port.in.auth.ListSessionsQuery;
+import com.example.backend_pj4.application.port.in.auth.RevokeOtherSessionsUseCase;
 import com.example.backend_pj4.application.port.in.auth.RevokeSessionUseCase;
 import com.example.backend_pj4.domain.repository.filter.SessionFilter;
 import com.example.backend_pj4.application.port.in.user.DeleteAvatarUseCase;
@@ -45,17 +46,20 @@ public class AccountController {
     private final DeleteAvatarUseCase deleteAvatarUseCase;
     private final ListSessionsQuery listSessionsQuery;
     private final RevokeSessionUseCase revokeSessionUseCase;
+    private final RevokeOtherSessionsUseCase revokeOtherSessionsUseCase;
 
     public AccountController(GetCurrentUserUseCase getCurrentUserUseCase,
                              UpdateUserProfileUseCase updateUserProfileUseCase,
                              DeleteAvatarUseCase deleteAvatarUseCase,
                              ListSessionsQuery listSessionsQuery,
-                             RevokeSessionUseCase revokeSessionUseCase) {
+                             RevokeSessionUseCase revokeSessionUseCase,
+                             RevokeOtherSessionsUseCase revokeOtherSessionsUseCase) {
         this.getCurrentUserUseCase = getCurrentUserUseCase;
         this.updateUserProfileUseCase = updateUserProfileUseCase;
         this.deleteAvatarUseCase = deleteAvatarUseCase;
         this.listSessionsQuery = listSessionsQuery;
         this.revokeSessionUseCase = revokeSessionUseCase;
+        this.revokeOtherSessionsUseCase = revokeOtherSessionsUseCase;
     }
 
     @Operation(summary = "Danh sách thiết bị đang đăng nhập. Quyền truy cập: Người dùng đã đăng nhập.")
@@ -68,6 +72,15 @@ public class AccountController {
                 new SessionFilter(AppUserDetails.userIdOf(userDetails)),
                 refreshToken,
                 PageableFactory.create(params, ListSessionsQuery.DEFAULT_SORT));
+    }
+
+    @Operation(summary = "Đăng xuất khỏi tất cả các thiết bị khác (giữ lại thiết bị hiện tại). Quyền truy cập: Người dùng đã đăng nhập.")
+    @DeleteMapping("/sessions/other")
+    public ResponseEntity<Void> revokeOtherSessions(
+            @AuthResultUser UserDetails userDetails,
+            @CookieValue(name = "${auth.cookie.refresh-name}", required = false) String refreshToken) {
+        revokeOtherSessionsUseCase.execute(AppUserDetails.userIdOf(userDetails), refreshToken);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Đăng xuất một thiết bị khác. Quyền truy cập: Người dùng đã đăng nhập.")

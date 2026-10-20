@@ -15,6 +15,8 @@ public interface RefreshTokenRepository {
     boolean existsActiveSession(String userId, String sessionId);
     void revokeByTokenId(String tokenId);
     void revokeAllByUserId(String userId);
+    /** Thu hồi tất cả phiên của người dùng ngoại trừ phiên hiện tại. */
+    void revokeAllByUserIdExceptSession(String userId, String currentSessionId);
     /** Thu hồi toàn bộ token của một phiên, dùng cho đăng xuất thiết bị này. */
     void revokeAllBySessionId(String sessionId);
     /** @return số row đã xoá, để job ghi log. */

@@ -1267,6 +1267,7 @@ Kết quả chỉ nằm **trong** danh sách yêu thích / lịch sử xem của
 | -------------------------------------- | ------ | ---- | --------------------- |
 | `/api/v1/account/sessions`             | GET    | User | `List<SessionResult>` |
 | `/api/v1/account/sessions/{sessionId}` | DELETE | User | 204 No Content        |
+| `/api/v1/account/sessions/other`       | DELETE | User | 204 No Content        |
 
 **`SessionResult`:**
 

@@ -53,6 +53,12 @@ public interface RefreshTokenJpaRepository extends JpaRepository<RefreshTokenJpa
     void revokeAllByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE RefreshTokenJpaEntity r SET r.revokedAt = :now WHERE r.userId = :userId AND r.sessionId != :sessionId AND r.revokedAt IS NULL")
+    void revokeAllByUserIdExceptSession(@Param("userId") String userId,
+                                        @Param("sessionId") String sessionId,
+                                        @Param("now") LocalDateTime now);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshTokenJpaEntity r SET r.revokedAt = :now WHERE r.sessionId = :sessionId AND r.revokedAt IS NULL")
     void revokeAllBySessionId(@Param("sessionId") String sessionId, @Param("now") LocalDateTime now);
 
