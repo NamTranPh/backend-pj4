@@ -9,7 +9,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ import java.util.List;
         @Index(name = "idx_movie_status", columnList = "status"),
         @Index(name = "idx_movie_deleted_at", columnList = "deleted_at")
 })
-@Where(clause = "deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 public class MovieJpaEntity {
 

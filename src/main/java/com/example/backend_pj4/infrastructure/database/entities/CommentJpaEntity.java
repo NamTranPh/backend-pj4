@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,9 +15,12 @@ import java.util.List;
         @Index(name = "idx_comment_user_id", columnList = "user_id"),
         @Index(name = "idx_comment_movie_id", columnList = "movie_id"),
         @Index(name = "idx_comment_episode_id", columnList = "episode_id"),
-        @Index(name = "idx_comment_deleted_at", columnList = "deleted_at")
+        @Index(name = "idx_comment_deleted_at", columnList = "deleted_at"),
+        @Index(name = "idx_comment_root_id", columnList = "root_id"),
+        @Index(name = "idx_comment_movie_created", columnList = "movie_id, created_at"),
+        @Index(name = "idx_comment_movie_like", columnList = "movie_id, like_count")
 })
-@Where(clause = "deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 public class CommentJpaEntity {
 
@@ -45,6 +48,16 @@ public class CommentJpaEntity {
     @JoinColumn(name = "parent_id")
     private CommentJpaEntity parent;
 
+    /**
+     * Id của bình luận gốc của cả luồng; null nghĩa là chính dòng này là gốc.
+     *
+     * <p>Cố ý để kiểu {@code String} thay vì {@code @ManyToOne}: nó chỉ dùng cho mệnh đề
+     * {@code WHERE root_id IN (...)} khi nạp con cháu, không bao giờ cần điều hướng sang thực
+     * thể. Khai thành quan hệ sẽ mời Hibernate nạp thêm một dòng cho mỗi bình luận.
+     */
+    @Column(name = "root_id", length = 255)
+    private String rootId;
+
     @Column(name = "is_approved")
     private Boolean isApproved;
 
@@ -70,7 +83,8 @@ public class CommentJpaEntity {
     public void setId(String id) { this.id = id; }
 
     public CommentJpaEntity(String id, UserJpaEntity user, MovieJpaEntity movie, EpisodeJpaEntity episode,
-                         String content, CommentJpaEntity parent, Boolean isApproved, Integer likeCount,
+                         String content, CommentJpaEntity parent, String rootId,
+                         Boolean isApproved, Integer likeCount,
                          LocalDateTime deletedAt, LocalDateTime createdAt, LocalDateTime updatedAt,
                          List<CommentJpaEntity> replies) {
         this.id = id;
@@ -79,6 +93,7 @@ public class CommentJpaEntity {
         this.episode = episode;
         this.content = content;
         this.parent = parent;
+        this.rootId = rootId;
         this.isApproved = isApproved;
         this.likeCount = likeCount;
         this.deletedAt = deletedAt;
@@ -92,6 +107,7 @@ public class CommentJpaEntity {
     public void setEpisode(EpisodeJpaEntity episode) { this.episode = episode; }
     public void setContent(String content) { this.content = content; }
     public void setParent(CommentJpaEntity parent) { this.parent = parent; }
+    public void setRootId(String rootId) { this.rootId = rootId; }
     public void setIsApproved(Boolean isApproved) { this.isApproved = isApproved; }
     public void setLikeCount(Integer likeCount) { this.likeCount = likeCount; }
     public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }

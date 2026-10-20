@@ -895,24 +895,109 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ---
 
-## COMMENT Module (User & Admin) — chưa implement
+## COMMENT Module (User & Admin)
 
-| STT | Chức năng      | Method | Path                                            | Auth       | Request                                 | Response                 | Note                |
-| --- | -------------- | ------ | ----------------------------------------------- | ---------- | --------------------------------------- | ------------------------ | ------------------- |
-| 1   | Get comments   | GET    | `/api/v1/comments?movieId={id}&page=0&limit=20` | Public     | movieId, page, limit                    | CommentList + pagination | Public              |
-| 2   | Create comment | POST   | `/api/v1/comments`                              | User       | movieId, episodeId?, content, parentId? | CommentDetail            | User only           |
-| 3   | Update comment | PATCH  | `/api/v1/comments/{id}`                         | User       | content                                 | CommentDetail            | User only           |
-| 4   | Delete comment | DELETE | `/api/v1/comments/{id}`                         | User/Admin | -                                       | message                  | User (own) or Admin |
+Bình luận **lồng nhau không giới hạn cấp**: một bình luận trả lời được bình luận khác ở bất kỳ cấp nào. Danh sách **phân trang theo bình luận gốc** — `pagination.totalItems` là số luồng, không phải tổng số bình luận; toàn bộ trả lời của các gốc trong trang nằm lồng trong trường `replies`.
+
+| STT | Chức năng      | Method | Path                                                                              | Auth               | Request                        | Response                      | Note                                       |
+| --- | -------------- | ------ | --------------------------------------------------------------------------------- | ------------------ | ------------------------------ | ----------------------------- | ------------------------------------------ |
+| 1   | Cây bình luận  | GET    | `/api/v1/movies/{movieSlug}/comments?episodeId=&page=1&limit=15&sortBy=&sortDir=` | Public             | episodeId?, phân trang         | CommentList + pagination      | Gọi kèm token thì có thêm cờ `isLiked`     |
+| 2   | Đăng bình luận | POST   | `/api/v1/movies/{movieSlug}/comments`                                             | User               | content, episodeId?, parentId? | CommentDetail                 | 201                                        |
+| 3   | Sửa bình luận  | PATCH  | `/api/v1/comments/{commentId}`                                                    | Chủ sở hữu         | content                        | CommentDetail                 | Người khác sửa → 403 `comment_not_owned`   |
+| 4   | Xoá bình luận  | DELETE | `/api/v1/comments/{commentId}`                                                    | Chủ sở hữu / Admin | -                              | -                             | Xoá kéo theo **cả nhánh trả lời bên dưới** |
+| 5   | Thích          | POST   | `/api/v1/comments/{commentId}/like`                                               | User               | -                              | -                             | 201. Thích 2 lần → 409                     |
+| 6   | Bỏ thích       | DELETE | `/api/v1/comments/{commentId}/like`                                               | User               | -                              | -                             | Chưa thích mà bỏ → 404                     |
+| 7   | DS kiểm duyệt  | GET    | `/api/v1/admin/comments?movieId=&isApproved=&search=&page=1&limit=15`             | Admin              | movieId?, isApproved?, search? | AdminCommentList + pagination | **Phẳng**, không dựng cây                  |
+| 8   | Ẩn / hiện lại  | PATCH  | `/api/v1/admin/comments/{commentId}/approval`                                     | Admin              | isApproved (bool)              | -                             | Xem lưu ý bên dưới                         |
+
+### Lưu ý nghiệp vụ
+
+- **`episodeId`**: bỏ trống là bình luận cấp phim; truyền vào là bình luận của đúng tập đó. Hai nhóm **không lẫn vào nhau**. Khi có `parentId`, giá trị `episodeId` trong body **bị bỏ qua** — bình luận con luôn kế thừa phạm vi của bình luận cha.
+- **`parentId`** trỏ được tới bình luận ở bất kỳ cấp nào. Nếu bình luận cha thuộc phim khác → 400 `comment_parent_mismatch`.
+- **Tự động duyệt**: bình luận hiện ngay sau khi đăng, không cần admin phê duyệt.
+- **Ẩn một bình luận là ẩn cả nhánh con của nó.** Cây được dựng từ gốc trở xuống, nên con của một nút bị ẩn trở thành mồ côi và cũng không hiện ra.
+- **Thông báo**: trả lời bình luận của người khác sẽ sinh notification `COMMENT_REPLY` với `referenceType = COMMENT`. Tự trả lời chính mình thì không.
+- **`likeCount` có thể trễ tối đa vài phút** so với cột trong database (số lượt thích đếm ở Redis rồi gộp xuống định kỳ), nhưng **luôn đúng với số lượt thích thật** — nguồn sự thật là bảng `comment_like`.
+
+### CommentDetail
+
+```json
+{
+  "id": "string",
+  "content": "string",
+  "parentId": "string | null",
+  "author": {
+    "id": "string",
+    "name": "string",
+    "avatarUrl": "string (presigned URL) | null"
+  },
+  "likeCount": 12,
+  "isLiked": false,
+  "createdAt": "datetime",
+  "updatedAt": "datetime",
+  "replies": ["CommentDetail (đệ quy, không giới hạn cấp)"]
+}
+```
+
+### AdminCommentDetail
+
+```json
+{
+  "id": "string",
+  "content": "string",
+  "movieId": "string",
+  "episodeId": "string | null",
+  "parentId": "string | null",
+  "author": { "id": "string", "name": "string", "avatarUrl": "string | null" },
+  "isApproved": true,
+  "likeCount": 12,
+  "createdAt": "datetime"
+}
+```
 
 ---
 
-## RATING Module (User) — chưa implement
+## RATING Module (User)
 
-| STT | Chức năng            | Method | Path                                           | Auth       | Request                       | Response                | Note                |
-| --- | -------------------- | ------ | ---------------------------------------------- | ---------- | ----------------------------- | ----------------------- | ------------------- |
-| 1   | Get ratings          | GET    | `/api/v1/ratings?movieId={id}&page=0&limit=20` | Public     | movieId, page, limit          | RatingList + pagination | Public              |
-| 2   | Create/Update rating | POST   | `/api/v1/ratings`                              | User       | movieId, score (int), review? | RatingDetail            | User only           |
-| 3   | Delete rating        | DELETE | `/api/v1/ratings/{id}`                         | User/Admin | -                             | message                 | User (own) or Admin |
+Chấm **sao, thang 1–5, số nguyên**. Mỗi người chỉ có **một** đánh giá cho một phim; gọi lại `PUT` là ghi đè. Điểm trung bình hiển thị có phần thập phân (ví dụ `3.5` để FE tô 3 sao rưỡi).
+
+| STT | Chức năng            | Method | Path                                                                  | Auth   | Request        | Response                | Note                                   |
+| --- | -------------------- | ------ | --------------------------------------------------------------------- | ------ | -------------- | ----------------------- | -------------------------------------- |
+| 1   | DS đánh giá của phim | GET    | `/api/v1/movies/{movieSlug}/ratings?page=1&limit=15&sortBy=&sortDir=` | Public | phân trang     | RatingList + pagination | -                                      |
+| 2   | Tóm tắt điểm         | GET    | `/api/v1/movies/{movieSlug}/ratings/summary`                          | Public | -              | RatingSummary           | -                                      |
+| 3   | Chấm / sửa điểm      | PUT    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | score, review? | RatingDetail            | Tạo mới hoặc ghi đè                    |
+| 4   | Điểm của tôi         | GET    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | RatingDetail            | Chưa chấm → 404 `rating_not_found`     |
+| 5   | Xoá điểm của tôi     | DELETE | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | -                       | Xoá xong **chấm lại được bình thường** |
+
+### Lưu ý nghiệp vụ
+
+- `score` ngoài khoảng 1–5 hoặc không phải số nguyên → 400 `validation_failed`.
+- Mỗi lần chấm / sửa / xoá, trường `rating` của phim (API `GET /api/v1/movies/{slug}`) được **tính lại ngay** từ toàn bộ đánh giá, làm tròn 1 chữ số thập phân.
+- Xoá đánh giá cuối cùng của một phim → `rating` của phim về `0.0`, không phải `null`.
+
+### RatingDetail / RatingSummary
+
+```json
+{
+  "ratingDetail": {
+    "id": "string",
+    "movieId": "string",
+    "score": 4,
+    "review": "string | null",
+    "author": {
+      "id": "string",
+      "name": "string",
+      "avatarUrl": "string | null"
+    },
+    "createdAt": "datetime",
+    "updatedAt": "datetime"
+  },
+  "ratingSummary": {
+    "averageScore": 3.5,
+    "totalRatings": 128
+  }
+}
+```
 
 ---
 
@@ -1048,6 +1133,49 @@ Authorization: Bearer <accessToken>
 
 Ghi cập nhật mới dưới đây (thứ tự mới nhất → cũ nhất)
 
+### 2026-10-14 - v4.6 - Module Comment (lồng nhau) + Rating (1–5 sao)
+
+Hai module cuối cùng đang để trạng thái "chưa implement" nay đã chạy. **13 endpoint mới**, không có endpoint cũ nào đổi hay mất.
+
+#### Comment — lồng nhau không giới hạn cấp
+
+| Endpoint                                      | Method | Auth             |
+| --------------------------------------------- | ------ | ---------------- |
+| `/api/v1/movies/{movieSlug}/comments`         | GET    | Public           |
+| `/api/v1/movies/{movieSlug}/comments`         | POST   | User             |
+| `/api/v1/comments/{commentId}`                | PATCH  | Chủ sở hữu       |
+| `/api/v1/comments/{commentId}`                | DELETE | Chủ sở hữu/Admin |
+| `/api/v1/comments/{commentId}/like`           | POST   | User             |
+| `/api/v1/comments/{commentId}/like`           | DELETE | User             |
+| `/api/v1/admin/comments`                      | GET    | Admin            |
+| `/api/v1/admin/comments/{commentId}/approval` | PATCH  | Admin            |
+
+Ba điểm FE cần biết trước khi dựng giao diện:
+
+1. **`pagination.totalItems` đếm theo bình luận GỐC**, không phải tổng số bình luận. Trả lời nằm lồng trong `replies`, không tính vào phân trang.
+2. **Xoá hoặc ẩn một bình luận là xoá/ẩn cả nhánh trả lời bên dưới nó.** Không có trạng thái "[đã xoá]" giữ chỗ.
+3. **Gọi `GET` không token vẫn chạy**, chỉ là `isLiked` luôn `false` cho mọi bình luận.
+
+#### Rating — thang 1–5 sao
+
+| Endpoint                                     | Method | Auth   |
+| -------------------------------------------- | ------ | ------ |
+| `/api/v1/movies/{movieSlug}/ratings`         | GET    | Public |
+| `/api/v1/movies/{movieSlug}/ratings/summary` | GET    | Public |
+| `/api/v1/me/ratings/{movieSlug}`             | PUT    | User   |
+| `/api/v1/me/ratings/{movieSlug}`             | GET    | User   |
+| `/api/v1/me/ratings/{movieSlug}`             | DELETE | User   |
+
+- `score` là **số nguyên 1–5**. Phần thập phân chỉ xuất hiện ở `averageScore` của `summary` và ở trường `rating` của phim (ví dụ `3.5` để tô 3 sao rưỡi).
+- Chấm điểm xong thì trường `rating` trong `GET /api/v1/movies/{slug}` **đổi ngay**, không chờ.
+- Xoá đánh giá rồi **chấm lại được bình thường**.
+
+#### Mã lỗi mới
+
+`comment_not_found`, `comment_not_owned`, `comment_parent_not_found`, `comment_parent_mismatch`, `comment_already_liked`, `comment_like_not_found`, `rating_not_found`, `rating_score_invalid`.
+
+#### Module Report vẫn chưa implement
+
 ### 2026-10-04 - v4.5 - Chuẩn hoá phân trang cho MỌI API danh sách
 
 #### Tham số chung — áp cho tất cả API lấy danh sách
@@ -1078,6 +1206,8 @@ Không truyền gì thì mặc định là trang 1, 15 dòng, sắp xếp theo f
 | Notification                      | `createdAt`, `isRead`                                      | `createdAt`     |
 | Watch History / Continue Watching | `watchedAt`, `progress`                                    | `watchedAt`     |
 | Favorite                          | `createdAt`                                                | `createdAt`     |
+| Comment (public + admin)          | `createdAt`, `likeCount`                                   | `createdAt`     |
+| Rating                            | `createdAt`, `score`                                       | `createdAt`     |
 | Session                           | `lastUsedAt` (cố định, không đổi được)                     | `lastUsedAt`    |
 
 `sortBy` ngoài danh sách trả **400** với `code: bad_request`.

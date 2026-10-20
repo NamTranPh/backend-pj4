@@ -41,6 +41,7 @@
 | 18  | `notification`       | Thông báo                    | ~50k         |
 | 19  | `report`             | ⏳ **CHƯA DÙNG** — module chưa làm | **0**        |
 | 20  | `outbox_event`       | ⏳ **CHƯA DÙNG** — chưa có message broker | **0**        |
+| 21  | `comment_like`       | Lượt thích bình luận         | ~300k        |
 
 ---
 
@@ -259,19 +260,42 @@
 | 3   | movie_id    | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim                          |
 | 4   | episode_id  | UUID (String) | FOREIGN KEY (episode)         | ID tập (nullable)                |
 | 5   | content     | TEXT          | NOT NULL                      | Nội dung comment                 |
-| 6   | parent_id   | UUID (String) | FOREIGN KEY (comment)         | Comment cha (self-ref, nullable) |
-| 7   | is_approved | BOOLEAN       | -                             | Đã duyệt                         |
-| 8   | like_count  | INT           | -                             | Số lượt like                     |
-| 9   | deleted_at  | TIMESTAMP     | -                             | Soft delete                      |
-| 10  | created_at  | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo                         |
-| 11  | updated_at  | TIMESTAMP     | -                             | Ngày cập nhật                    |
+| 6   | parent_id   | UUID (String) | FOREIGN KEY (comment)         | Comment cha trực tiếp (self-ref, nullable) |
+| 7   | root_id     | UUID (String) | INDEX                         | Comment gốc của cả luồng (nullable) |
+| 8   | is_approved | BOOLEAN       | -                             | Đã duyệt                         |
+| 9   | like_count  | INT           | -                             | Số lượt like (ảnh chụp lúc gộp)  |
+| 10  | deleted_at  | TIMESTAMP     | -                             | Soft delete                      |
+| 11  | created_at  | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo                         |
+| 12  | updated_at  | TIMESTAMP     | -                             | Ngày cập nhật                    |
 
 **Soft delete:** `@Where(clause = "deleted_at IS NULL")`
 
 **Index:**
 
 - PRIMARY KEY: id
-- INDEX: idx_comment_user_id, idx_comment_movie_id, idx_comment_episode_id, idx_comment_deleted_at
+- INDEX: idx_comment_user_id, idx_comment_movie_id, idx_comment_episode_id, idx_comment_deleted_at, idx_comment_root_id
+- INDEX GHÉP: idx_comment_movie_created (movie_id, created_at), idx_comment_movie_like (movie_id, like_count)
+
+Hai index ghép phục vụ đúng hai lựa chọn sắp xếp của `GET /api/v1/movies/{slug}/comments` (`createdAt` và `likeCount`). Chỉ có index riêng trên `movie_id` thì mệnh đề `WHERE` dùng được index nhưng `ORDER BY` vẫn phải filesort toàn bộ bình luận của phim rồi mới `LIMIT`.
+
+`idx_comment_movie_id` giờ **thừa** (tiền tố trái của `idx_comment_movie_created` đã bao nó). Giữ lại vì `ddl-auto=update` không DROP index; xoá tay nếu muốn:
+
+```sql
+DROP INDEX idx_comment_movie_id ON comment;
+```
+
+**⚠️ `parent_id` và `root_id` là hai thứ khác nhau, đừng nhầm:**
+
+| Cột | Nghĩa | Dùng để |
+|---|---|---|
+| `parent_id` | cha **trực tiếp** — đang trả lời ai | ghép cây lúc hiển thị |
+| `root_id` | bình luận **gốc** của cả luồng, bất kể sâu mấy cấp | nạp hết cả luồng bằng MỘT truy vấn |
+
+Bình luận gốc có `root_id = NULL`; mọi con cháu đều trỏ thẳng về gốc, kể cả cấp 5, cấp 10.
+
+Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, rồi phải nạp toàn bộ con cháu của trang đó. Chỉ có `parent_id` thì phải dò từng cấp — mỗi cấp một truy vấn và không biết trước khi nào dừng. Có `root_id` thì `WHERE root_id IN (các gốc)` là xong, sâu bao nhiêu cũng **2 truy vấn**.
+
+**⚠️ `like_count` là ảnh chụp, không phải số thời gian thực.** Nguồn sự thật là bảng `comment_like`. Lượt thích được đếm ở Redis rồi job gộp xuống cột này mỗi 5 phút bằng `COUNT(*)` (đếm lại chứ không cộng dồn, nên Redis restart cũng tự khớp lại). Số hiển thị cho client = cột này + phần chênh lệch đang ở Redis.
 
 **Relationships:**
 
@@ -289,17 +313,34 @@
 | 3   | movie_id   | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim           |
 | 4   | score      | INT           | NOT NULL                      | Điểm              |
 | 5   | review     | TEXT          | -                             | Nhận xét          |
-| 6   | deleted_at | TIMESTAMP     | -                             | Soft delete       |
+| 6   | deleted_at | TIMESTAMP     | -                             | ⛔ **CỘT CHẾT** — xem ghi chú |
 | 7   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo          |
 | 8   | updated_at | TIMESTAMP     | -                             | Ngày cập nhật     |
 
-**Soft delete:** `@Where(clause = "deleted_at IS NULL")`
+`score` là **số nguyên 1–5** (số sao). Ràng buộc nằm ở tầng ứng dụng (`RateMovieService` + `@Min/@Max` ở DTO), không có `CHECK` ở database.
 
 **Index:**
 
 - PRIMARY KEY: id
 - UNIQUE: (user_id, movie_id)
 - INDEX: idx_rating_movie_id, idx_rating_score, idx_rating_deleted_at
+
+**⛔ Bảng này XOÁ CỨNG, cột `deleted_at` không bao giờ được ghi.**
+
+Entity vẫn mang `@Where(deleted_at IS NULL)` từ thiết kế ban đầu, nhưng **không được xoá mềm**, vì nó xung khắc với `UNIQUE(user_id, movie_id)`:
+
+```
+1. A chấm phim X 5 sao        -> dòng (A, X, 5), deleted_at = NULL
+2. A xoá (nếu xoá mềm)        -> dòng (A, X, 5), deleted_at = now   <- DÒNG VẪN CÒN
+3. A chấm lại phim X 3 sao
+   findByUserIdAndMovieId     -> @Where thêm "AND deleted_at IS NULL" -> KHÔNG thấy dòng cũ
+                              -> code tưởng chưa từng chấm           -> INSERT dòng mới
+   MySQL                      -> Duplicate entry for key uk_rating_user_movie   ✗
+```
+
+Kết quả nếu làm sai: **người dùng không bao giờ chấm lại được phim đã xoá đánh giá**. Bảng `list_favorite` có đúng cặp ràng buộc này và cũng xoá cứng, vì cùng lý do.
+
+Xoá cứng an toàn ở đây vì một đánh giá chỉ là một con số và một đoạn nhận xét của chính người đó — không ai trả lời nó, không có nhánh con, không nghiệp vụ nào cần lịch sử. Khác hẳn `comment`, vốn có con cháu nên vẫn xoá mềm.
 
 ---
 
@@ -608,6 +649,37 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 ---
 
+### 21. comment_like (Lượt thích bình luận)
+
+| STT | Column     | Type          | Constraint                      | Description     |
+| --- | ---------- | ------------- | ------------------------------- | --------------- |
+| 1   | id         | UUID (String) | PRIMARY KEY                     | ID lượt thích   |
+| 2   | user_id    | UUID (String) | FOREIGN KEY (user), NOT NULL    | Người thích     |
+| 3   | comment_id | UUID (String) | FOREIGN KEY (comment), NOT NULL | Bình luận       |
+| 4   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP       | Thời điểm thích |
+
+**Không có `deleted_at`, không có `@Where`** — bỏ thích là **xoá hẳn dòng**. Xoá mềm ở đây sẽ đụng `UNIQUE(user_id, comment_id)` ngay lần thích lại, đúng cái bẫy mà bảng `rating` phải tránh.
+
+**Index:**
+
+- PRIMARY KEY: id
+- UNIQUE: uk_comment_like_user_comment (user_id, comment_id)
+- INDEX: idx_comment_like_comment_id, idx_comment_like_user_id
+
+**Vì sao cần bảng riêng khi `comment.like_count` đã là một con số:**
+
+| Câu hỏi | Chỉ có `like_count` | Có `comment_like` |
+|---|---|---|
+| Bấm thích 2 lần thì sao? | +2, spam được | đụng UNIQUE → 409 |
+| Tải lại trang, tim đỏ hay rỗng? | không biết | `WHERE user_id = ?` là ra |
+| Bỏ thích thì trừ của ai? | chỉ biết −1 | xoá đúng dòng của người đó |
+
+Đây là **nguồn sự thật**; `comment.like_count` chỉ là ảnh chụp để trang danh sách khỏi phải `COUNT(*)` cho từng dòng.
+
+**Relationships:** ManyToOne → user, comment
+
+---
+
 ## Enums Summary
 
 | Enum                      | Values                                                                             |
@@ -662,6 +734,37 @@ Outbox Event (event publishing)
 ---
 
 ## Cập nhật lịch sử
+
+### 2026-10-14 - v3.6 - Comment lồng nhau + Rating 1–5 sao
+
+**Hai thay đổi schema, cả hai đều là THÊM MỚI nên `ddl-auto=update` xử lý được:**
+
+```sql
+ALTER TABLE comment ADD COLUMN root_id VARCHAR(255) NULL;
+CREATE INDEX idx_comment_root_id      ON comment (root_id);
+CREATE INDEX idx_comment_movie_created ON comment (movie_id, created_at);
+CREATE INDEX idx_comment_movie_like    ON comment (movie_id, like_count);
+
+CREATE TABLE comment_like (
+    id         VARCHAR(255) PRIMARY KEY,
+    user_id    VARCHAR(255) NOT NULL,
+    comment_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_comment_like_user_comment UNIQUE (user_id, comment_id),
+    CONSTRAINT fk_comment_like_user    FOREIGN KEY (user_id)    REFERENCES user (id),
+    CONSTRAINT fk_comment_like_comment FOREIGN KEY (comment_id) REFERENCES comment (id)
+);
+CREATE INDEX idx_comment_like_comment_id ON comment_like (comment_id);
+CREATE INDEX idx_comment_like_user_id    ON comment_like (user_id);
+```
+
+**Thay đổi ngữ nghĩa, không đổi cấu trúc:**
+
+- `comment.like_count` giờ là **ảnh chụp lúc gộp**, không còn là số thời gian thực. Nguồn sự thật chuyển sang bảng `comment_like`.
+- `rating.deleted_at` thành **cột chết** — bảng `rating` chuyển sang **xoá cứng** vì `@Where(deleted_at IS NULL)` xung khắc với `UNIQUE(user_id, movie_id)`. Xem ghi chú ở mục 9.
+- `rating.score` chốt thang **1–5** (số sao), ràng buộc ở tầng ứng dụng.
+
+**Dữ liệu cũ:** bảng `comment` và `rating` đang rỗng nên không cần backfill. Nếu sau này có dữ liệu `comment` cũ với `root_id = NULL` ở các dòng con, chúng sẽ không hiện ra trong cây — cần backfill bằng tay.
 
 ### 2026-10-11 - v3.5
 

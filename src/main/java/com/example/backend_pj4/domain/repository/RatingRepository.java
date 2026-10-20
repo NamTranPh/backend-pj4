@@ -1,19 +1,18 @@
 package com.example.backend_pj4.domain.repository;
 
-import java.util.List;
 import java.util.Optional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.Rating;
+import com.example.backend_pj4.domain.repository.filter.RatingFilter;
 
 public interface RatingRepository {
     Rating save(Rating rating);
     Optional<Rating> findById(String id);
-    List<Rating> findAll();
-    void deleteById(String id);
     Optional<Rating> findByUserIdAndMovieId(String userId, String movieId);
-    boolean existsByUserIdAndMovieId(String userId, String movieId);
-    List<Rating> findByMovieId(String movieId);
-    List<Rating> findByUserId(String userId);
-    Double calculateAverageByMovieId(String movieId);
+    PageResult<Rating> find(RatingFilter filter, PageQuery query);
+    void deleteByUserIdAndMovieId(String userId, String movieId);
+    Double averageScoreByMovieId(String movieId);
     long countByMovieId(String movieId);
 }

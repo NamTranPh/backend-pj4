@@ -4,7 +4,7 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,7 +19,7 @@ import java.util.List;
                 @Index(name = "idx_episode_status", columnList = "status"),
                 @Index(name = "idx_episode_deleted_at", columnList = "deleted_at")
         })
-@Where(clause = "deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 public class EpisodeJpaEntity {
 

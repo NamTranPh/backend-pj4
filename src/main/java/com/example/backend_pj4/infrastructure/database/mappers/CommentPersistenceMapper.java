@@ -20,6 +20,7 @@ public class CommentPersistenceMapper {
                 .episodeId(entity.getEpisode() != null ? entity.getEpisode().getId() : null)
                 .content(entity.getContent())
                 .parentId(entity.getParent() != null ? entity.getParent().getId() : null)
+                .rootId(entity.getRootId())
                 .isApproved(entity.getIsApproved())
                 .likeCount(entity.getLikeCount())
                 .deletedAt(entity.getDeletedAt())
@@ -35,6 +36,7 @@ public class CommentPersistenceMapper {
         entity.setContent(domain.getContent());
         entity.setIsApproved(domain.getIsApproved());
         entity.setLikeCount(domain.getLikeCount());
+        entity.setRootId(domain.getRootId());
         entity.setDeletedAt(domain.getDeletedAt());
         if (domain.getUserId() != null) {
             UserJpaEntity user = new UserJpaEntity();

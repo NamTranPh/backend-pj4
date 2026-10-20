@@ -65,6 +65,18 @@ public enum ErrorCode {
     FAVORITE_ALREADY_EXISTS("Favorite already exists.", HttpStatus.CONFLICT),
     FAVORITE_NOT_FOUND("Favorite not found.", HttpStatus.NOT_FOUND),
 
+    // ===== COMMENT =====
+    COMMENT_NOT_FOUND("Comment not found.", HttpStatus.NOT_FOUND),
+    COMMENT_NOT_OWNED("You can only modify your own comment.", HttpStatus.FORBIDDEN),
+    COMMENT_PARENT_NOT_FOUND("Parent comment not found.", HttpStatus.NOT_FOUND),
+    COMMENT_PARENT_MISMATCH("Parent comment belongs to a different movie or episode.", HttpStatus.BAD_REQUEST),
+    COMMENT_ALREADY_LIKED("Comment already liked.", HttpStatus.CONFLICT),
+    COMMENT_LIKE_NOT_FOUND("Comment like not found.", HttpStatus.NOT_FOUND),
+
+    // ===== RATING =====
+    RATING_NOT_FOUND("Rating not found.", HttpStatus.NOT_FOUND),
+    RATING_SCORE_INVALID("Rating score must be between 1 and 5.", HttpStatus.BAD_REQUEST),
+
     // ===== MEMBERSHIP =====
     MEMBERSHIP_PLAN_NOT_FOUND("Membership plan not found.", HttpStatus.NOT_FOUND),
     MEMBERSHIP_PLAN_NAME_ALREADY_EXISTS("Membership plan name already exists.", HttpStatus.CONFLICT),

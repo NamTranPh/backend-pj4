@@ -120,6 +120,12 @@ app:
     reconcile-interval-ms: ${PAYOS_RECONCILE_INTERVAL_MS:300000}
     reconcile-batch-limit: ${PAYOS_RECONCILE_BATCH_LIMIT:100}
     reconcile-lookback-hours: ${PAYOS_RECONCILE_LOOKBACK_HOURS:720}
+  cache:
+    # TTL khong phai co che lam moi du lieu: co binh luan moi thi version key tang len va cache
+    # cu thanh mo coi ngay. TTL chi de nhung khoa mo coi do tu chet.
+    comment-list-ttl: ${COMMENT_LIST_CACHE_TTL:60s}
+    rating-summary-ttl: ${RATING_SUMMARY_CACHE_TTL:300s}
+    like-flush-interval-ms: ${LIKE_FLUSH_INTERVAL_MS:300000}
   playback:
     # Để rỗng chứ không đặt giá trị giả: rỗng thì ConfigurationWarningLogger báo ngay,
     # còn giá trị giả sẽ ký token bằng khoá ai cũng đoán được.

@@ -5,7 +5,7 @@ import com.example.backend_pj4.common.constants.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_notification_created_at", columnList = "created_at"),
         @Index(name = "idx_notification_deleted_at", columnList = "deleted_at")
 })
-@Where(clause = "deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 public class NotificationJpaEntity {
 

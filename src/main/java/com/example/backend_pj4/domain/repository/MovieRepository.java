@@ -11,25 +11,14 @@ import com.example.backend_pj4.domain.repository.filter.MovieFilter;
 
 public interface MovieRepository {
     Movie save(Movie movie);
-
-    Optional<Movie> findById(String id);
-
-    /** Nạp hàng loạt theo danh sách id, thay cho việc gọi findById trong vòng lặp (N+1). */
-    List<Movie> findByIds(Collection<String> ids);
-
-    Optional<Movie> findBySlug(String slug);
-
-    /** Danh sách phim, có lọc, sắp xếp và phân trang. */
     PageResult<Movie> find(MovieFilter filter, PageQuery query);
-
+    Optional<Movie> findById(String id);
+    List<Movie> findByIds(Collection<String> ids);
+    Optional<Movie> findBySlug(String slug);
     boolean existsBySlug(String slug);
-
-    /** Lấy cả phim đã soft-delete, dùng cho luồng khôi phục. */
+    /** Lấy cả phim đã soft-delete, dùng cho luồng khôi phục - Admin */
     Optional<Movie> findByIdIncludingDeleted(String id);
-
     void softDeleteEpisodesByMovieId(String movieId);
-
     void restoreEpisodesByMovieId(String movieId);
-
     void deleteById(String id);
 }

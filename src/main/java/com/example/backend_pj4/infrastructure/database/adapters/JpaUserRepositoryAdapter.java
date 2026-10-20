@@ -1,5 +1,7 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -34,6 +36,15 @@ public class JpaUserRepositoryAdapter implements UserRepository {
     @Override
     public Optional<User> findById(String id) {
         return userJpaRepository.findById(id).map(userPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<User> findByIds(Collection<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return userJpaRepository.findAllById(ids).stream()
+                .map(userPersistenceMapper::toDomain).toList();
     }
 
     @Override

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import com.example.backend_pj4.common.constants.enums.GenreStatus;
 
@@ -17,7 +17,7 @@ import java.util.List;
         @Index(name = "idx_genre_deleted_at", columnList = "deleted_at"),
         @Index(name = "idx_genre_status", columnList = "status")
 })
-@Where(clause = "deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 public class GenreJpaEntity {
 

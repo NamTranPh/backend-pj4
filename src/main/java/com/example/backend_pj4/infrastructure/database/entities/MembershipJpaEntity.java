@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_membership_end_date", columnList = "end_date"),
         @Index(name = "idx_membership_deleted_at", columnList = "deleted_at")
 })
-@Where(clause = "deleted_at IS NULL")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 public class MembershipJpaEntity {
 

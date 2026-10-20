@@ -9,17 +9,10 @@ import com.example.backend_pj4.domain.repository.filter.MembershipPlanFilter;
 
 public interface MembershipPlanRepository {
     MembershipPlan save(MembershipPlan plan);
-
     Optional<MembershipPlan> findById(String planId);
-
-    /** Danh sách gói — lọc theo tên và trạng thái bật/tắt, có phân trang. */
     PageResult<MembershipPlan> find(MembershipPlanFilter filter, PageQuery query);
-
     Optional<MembershipPlan> findBySlug(String slug);
-
     boolean existsBySlug(String slug);
-
     boolean existsByPlanName(String planName);
-
     void deleteById(String planId);
 }

@@ -15,12 +15,9 @@ public interface MembershipRepository {
     Membership save(Membership membership);
 
     Optional<Membership> findById(String memberId);
-
     /** Gói đang còn hiệu lực của một người dùng — dùng để kiểm quyền xem phim premium. */
     Optional<Membership> findActiveByUserId(String userId);
-
     /** Đăng ký còn hiệu lực thuộc một gói — chặn xoá/sửa gói đang có người dùng. */
     java.util.List<Membership> findActiveByPlanId(String planId);
-
     void deleteById(String memberId);
 }
