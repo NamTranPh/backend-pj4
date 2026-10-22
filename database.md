@@ -19,29 +19,29 @@
 
 ## Danh sách bảng
 
-| STT | Bảng                 | Mục đích                     | Rows dự kiến |
-| --- | -------------------- | ---------------------------- | ------------ |
-| 1   | `user`               | Người dùng                   | ~10k         |
-| 2   | `genre`              | Thể loại phim                | ~100         |
-| 3   | `movie`              | Thông tin phim               | ~1k          |
-| 4   | `movie_genre`        | Liên kết phim - thể loại     | ~5k          |
-| 5   | `episode`            | Tập phim (series)            | ~5k          |
-| 6   | `upload_session`     | Phiên upload video resumable | ~100         |
-| 7   | `upload_part`        | Part đã upload trong phiên   | ~5k          |
-| 8   | `comment`            | Bình luận                    | ~100k        |
-| 9   | `rating`             | Đánh giá                     | ~50k         |
-| 10  | `list_favorite`      | Danh sách yêu thích          | ~100k        |
-| 11  | `history_watching`   | Lịch sử xem                  | ~500k        |
-| 12  | `membership_plan`    | Gói thành viên               | ~5           |
-| 13  | `membership`         | Đăng ký thành viên           | ~5k          |
-| 14  | `payment_order`      | Đơn thanh toán               | ~5k          |
-| 15  | `refresh_token`      | Refresh token session        | ~10k         |
-| 16  | `otp_verification`   | OTP xác thực                 | ~10k         |
-| 17  | `email_verification` | ⛔ **CHƯA DÙNG** — xem ghi chú ở mục 17 | **0**        |
-| 18  | `notification`       | Thông báo                    | ~50k         |
-| 19  | `report`             | ⏳ **CHƯA DÙNG** — module chưa làm | **0**        |
+| STT | Bảng                 | Mục đích                                  | Rows dự kiến |
+| --- | -------------------- | ----------------------------------------- | ------------ |
+| 1   | `user`               | Người dùng                                | ~10k         |
+| 2   | `genre`              | Thể loại phim                             | ~100         |
+| 3   | `movie`              | Thông tin phim                            | ~1k          |
+| 4   | `movie_genre`        | Liên kết phim - thể loại                  | ~5k          |
+| 5   | `episode`            | Tập phim (series)                         | ~5k          |
+| 6   | `upload_session`     | Phiên upload video resumable              | ~100         |
+| 7   | `upload_part`        | Part đã upload trong phiên                | ~5k          |
+| 8   | `comment`            | Bình luận                                 | ~100k        |
+| 9   | `rating`             | Đánh giá                                  | ~50k         |
+| 10  | `list_favorite`      | Danh sách yêu thích                       | ~100k        |
+| 11  | `history_watching`   | Lịch sử xem                               | ~500k        |
+| 12  | `membership_plan`    | Gói thành viên                            | ~5           |
+| 13  | `membership`         | Đăng ký thành viên                        | ~5k          |
+| 14  | `payment_order`      | Đơn thanh toán                            | ~5k          |
+| 15  | `refresh_token`      | Refresh token session                     | ~10k         |
+| 16  | `otp_verification`   | OTP xác thực                              | ~10k         |
+| 17  | `email_verification` | ⛔ **CHƯA DÙNG** — xem ghi chú ở mục 17   | **0**        |
+| 18  | `notification`       | Thông báo                                 | ~50k         |
+| 19  | `report`             | ⏳ **CHƯA DÙNG** — module chưa làm        | **0**        |
 | 20  | `outbox_event`       | ⏳ **CHƯA DÙNG** — chưa có message broker | **0**        |
-| 21  | `comment_like`       | Lượt thích bình luận         | ~300k        |
+| 21  | `comment_like`       | Lượt thích bình luận                      | ~300k        |
 
 ---
 
@@ -253,20 +253,20 @@
 
 ### 8. comment (Bình luận)
 
-| STT | Column      | Type          | Constraint                    | Description                      |
-| --- | ----------- | ------------- | ----------------------------- | -------------------------------- |
-| 1   | id          | UUID (String) | PRIMARY KEY                   | ID bình luận                     |
-| 2   | user_id     | UUID (String) | FOREIGN KEY (user), NOT NULL  | ID người comment                 |
-| 3   | movie_id    | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim                          |
-| 4   | episode_id  | UUID (String) | FOREIGN KEY (episode)         | ID tập (nullable)                |
-| 5   | content     | TEXT          | NOT NULL                      | Nội dung comment                 |
+| STT | Column      | Type          | Constraint                    | Description                                |
+| --- | ----------- | ------------- | ----------------------------- | ------------------------------------------ |
+| 1   | id          | UUID (String) | PRIMARY KEY                   | ID bình luận                               |
+| 2   | user_id     | UUID (String) | FOREIGN KEY (user), NOT NULL  | ID người comment                           |
+| 3   | movie_id    | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim                                    |
+| 4   | episode_id  | UUID (String) | FOREIGN KEY (episode)         | ID tập (nullable)                          |
+| 5   | content     | TEXT          | NOT NULL                      | Nội dung comment                           |
 | 6   | parent_id   | UUID (String) | FOREIGN KEY (comment)         | Comment cha trực tiếp (self-ref, nullable) |
-| 7   | root_id     | UUID (String) | INDEX                         | Comment gốc của cả luồng (nullable) |
-| 8   | is_approved | BOOLEAN       | -                             | Đã duyệt                         |
-| 9   | like_count  | INT           | -                             | Số lượt like (ảnh chụp lúc gộp)  |
-| 10  | deleted_at  | TIMESTAMP     | -                             | Soft delete                      |
-| 11  | created_at  | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo                         |
-| 12  | updated_at  | TIMESTAMP     | -                             | Ngày cập nhật                    |
+| 7   | root_id     | UUID (String) | INDEX                         | Comment gốc của cả luồng (nullable)        |
+| 8   | is_approved | BOOLEAN       | -                             | Đã duyệt                                   |
+| 9   | like_count  | INT           | -                             | Số lượt like (ảnh chụp lúc gộp)            |
+| 10  | deleted_at  | TIMESTAMP     | -                             | Soft delete                                |
+| 11  | created_at  | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo                                   |
+| 12  | updated_at  | TIMESTAMP     | -                             | Ngày cập nhật                              |
 
 **Soft delete:** `@Where(clause = "deleted_at IS NULL")`
 
@@ -286,10 +286,10 @@ DROP INDEX idx_comment_movie_id ON comment;
 
 **⚠️ `parent_id` và `root_id` là hai thứ khác nhau, đừng nhầm:**
 
-| Cột | Nghĩa | Dùng để |
-|---|---|---|
-| `parent_id` | cha **trực tiếp** — đang trả lời ai | ghép cây lúc hiển thị |
-| `root_id` | bình luận **gốc** của cả luồng, bất kể sâu mấy cấp | nạp hết cả luồng bằng MỘT truy vấn |
+| Cột         | Nghĩa                                              | Dùng để                            |
+| ----------- | -------------------------------------------------- | ---------------------------------- |
+| `parent_id` | cha **trực tiếp** — đang trả lời ai                | ghép cây lúc hiển thị              |
+| `root_id`   | bình luận **gốc** của cả luồng, bất kể sâu mấy cấp | nạp hết cả luồng bằng MỘT truy vấn |
 
 Bình luận gốc có `root_id = NULL`; mọi con cháu đều trỏ thẳng về gốc, kể cả cấp 5, cấp 10.
 
@@ -306,16 +306,16 @@ Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, 
 
 ### 9. rating (Đánh giá)
 
-| STT | Column     | Type          | Constraint                    | Description       |
-| --- | ---------- | ------------- | ----------------------------- | ----------------- |
-| 1   | id         | UUID (String) | PRIMARY KEY                   | ID đánh giá       |
-| 2   | user_id    | UUID (String) | FOREIGN KEY (user), NOT NULL  | ID người đánh giá |
-| 3   | movie_id   | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim           |
-| 4   | score      | INT           | NOT NULL                      | Điểm              |
-| 5   | review     | TEXT          | -                             | Nhận xét          |
+| STT | Column     | Type          | Constraint                    | Description                   |
+| --- | ---------- | ------------- | ----------------------------- | ----------------------------- |
+| 1   | id         | UUID (String) | PRIMARY KEY                   | ID đánh giá                   |
+| 2   | user_id    | UUID (String) | FOREIGN KEY (user), NOT NULL  | ID người đánh giá             |
+| 3   | movie_id   | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim                       |
+| 4   | score      | INT           | NOT NULL                      | Điểm                          |
+| 5   | review     | TEXT          | -                             | Nhận xét                      |
 | 6   | deleted_at | TIMESTAMP     | -                             | ⛔ **CỘT CHẾT** — xem ghi chú |
-| 7   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo          |
-| 8   | updated_at | TIMESTAMP     | -                             | Ngày cập nhật     |
+| 7   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo                      |
+| 8   | updated_at | TIMESTAMP     | -                             | Ngày cập nhật                 |
 
 `score` là **số nguyên 1–5** (số sao). Ràng buộc nằm ở tầng ứng dụng (`RateMovieService` + `@Min/@Max` ở DTO), không có `CHECK` ở database.
 
@@ -529,8 +529,8 @@ Xoá cứng an toàn ở đây vì một đánh giá chỉ là một con số v�
 > Bảng vẫn còn trong MySQL vì `ddl-auto=update` không bao giờ DROP bảng — xoá thủ công nếu muốn:
 > `DROP TABLE email_verification;`
 >
-> **Vì sao bỏ:** đây là phương án *token gửi qua link* cho việc xác thực email. Phương án thực tế
-> được chọn là *OTP 6 số*, nằm ở bảng `otp_verification` (mục 16). Cả hai bảng được thêm cùng ngày
+> **Vì sao bỏ:** đây là phương án _token gửi qua link_ cho việc xác thực email. Phương án thực tế
+> được chọn là _OTP 6 số_, nằm ở bảng `otp_verification` (mục 16). Cả hai bảng được thêm cùng ngày
 > 2026-08-18 (changelog v3.0) nhưng code chỉ đi theo nhánh OTP.
 >
 > Bản OTP thắng vì: cột `type` cho một bảng phục vụ cả đăng ký lẫn quên mật khẩu; lưu `code_hash`
@@ -621,7 +621,7 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 > Đủ 6 file persistence nhưng **không có publisher hay job relay nào**. Bảng không có dòng nào.
 >
-> Outbox Pattern giải bài toán: *ghi database* và *gửi message ra ngoài* không thể nằm chung một
+> Outbox Pattern giải bài toán: _ghi database_ và _gửi message ra ngoài_ không thể nằm chung một
 > transaction. Gửi trước khi commit thì rollback để lại message ma; commit xong mới gửi thì
 > process chết là mất message. Cách giải: ghi event thành một dòng **trong cùng transaction**, rồi
 > một job riêng quét các dòng `processed = false` để gửi và đánh dấu đã xử lý.
@@ -668,11 +668,11 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 **Vì sao cần bảng riêng khi `comment.like_count` đã là một con số:**
 
-| Câu hỏi | Chỉ có `like_count` | Có `comment_like` |
-|---|---|---|
-| Bấm thích 2 lần thì sao? | +2, spam được | đụng UNIQUE → 409 |
-| Tải lại trang, tim đỏ hay rỗng? | không biết | `WHERE user_id = ?` là ra |
-| Bỏ thích thì trừ của ai? | chỉ biết −1 | xoá đúng dòng của người đó |
+| Câu hỏi                         | Chỉ có `like_count` | Có `comment_like`          |
+| ------------------------------- | ------------------- | -------------------------- |
+| Bấm thích 2 lần thì sao?        | +2, spam được       | đụng UNIQUE → 409          |
+| Tải lại trang, tim đỏ hay rỗng? | không biết          | `WHERE user_id = ?` là ra  |
+| Bỏ thích thì trừ của ai?        | chỉ biết −1         | xoá đúng dòng của người đó |
 
 Đây là **nguồn sự thật**; `comment.like_count` chỉ là ảnh chụp để trang danh sách khỏi phải `COUNT(*)` cho từng dòng.
 
@@ -782,7 +782,6 @@ DROP TABLE email_verification;
   còn ước lượng `email_verification` ~10k dòng và `outbox_event` ~10k dòng — thực tế cả 3 đều 0 dòng.
 
 - `movie.genres` thêm `@BatchSize(size = 50)`: chỉ là chỉ dẫn fetch của Hibernate, **không đụng DDL**.
-
 
 ### 2026-10-02 - v3.4
 

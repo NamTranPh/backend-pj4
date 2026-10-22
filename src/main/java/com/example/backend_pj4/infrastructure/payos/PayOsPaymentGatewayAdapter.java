@@ -105,7 +105,7 @@ public class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
             String receivedSignature = root.has("signature") ? root.get("signature").asText() : "";
 
             TreeMap<String, String> sortedData = new TreeMap<>();
-            data.fields().forEachRemaining(entry ->
+            data.properties().forEach(entry ->
                     sortedData.put(entry.getKey(), entry.getValue().asText()));
 
             StringBuilder sb = new StringBuilder();
@@ -135,6 +135,7 @@ public class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
         }
     }
 
+    // Tra cứu đơn hàng
     @Override
     public PaymentStatusResult getPaymentStatus(String paymentLinkId) {
         try {
@@ -186,13 +187,7 @@ public class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
         }
     }
 
-    /**
-     * Chặn sớm khi PayOS chưa cấu hình.
-     *
-     * <p>Không có nó, {@code checksumKey} null sẽ rơi xuống {@code hmacSha256} và ném
-     * {@code NullPointerException}, bị {@code catch (Exception e)} ở dưới nuốt rồi đổi thành
-     * {@code PAYMENT_CREATION_FAILED} — nhìn log không biết nguyên nhân là thiếu cấu hình.
-     */
+    // Kiểm tra biến môi trường .env tránh biến checksumKey bị null sẽ trôi xuống hàm dưới gây lỗi NullPointerException khó hiểu
     private void assertConfigured() {
         if (!StringUtils.hasText(properties.getClientId())
                 || !StringUtils.hasText(properties.getApiKey())
@@ -204,6 +199,7 @@ public class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
         }
     }
 
+    // Tạo chữ ký số
     private String hmacSha256(String key, String data) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");

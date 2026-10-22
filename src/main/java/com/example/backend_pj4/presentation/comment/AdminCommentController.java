@@ -7,16 +7,16 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springdoc.core.annotations.ParameterObject;
 
 import com.example.backend_pj4.application.dto.comment.AdminCommentResult;
 import com.example.backend_pj4.application.port.in.comment.ListCommentsAdminQuery;
 import com.example.backend_pj4.application.port.in.comment.SetCommentApprovalUseCase;
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import com.example.backend_pj4.common.pagination.PageResult;
+import com.example.backend_pj4.presentation.comment.request.RequestAdminCommentDto;
 import com.example.backend_pj4.presentation.comment.request.SetCommentApprovalRequest;
-import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
 import com.example.backend_pj4.presentation.common.request.PageableFactory;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,16 +41,12 @@ public class AdminCommentController {
     @Operation(summary = "Danh sách bình luận để kiểm duyệt — phẳng, gồm cả bình luận đang bị ẩn. "
             + "Quyền truy cập: ADMIN.")
     @GetMapping
-    public PageResult<AdminCommentResult> list(
-            @RequestParam(required = false) String movieId,
-            @RequestParam(required = false) Boolean isApproved,
-            @ModelAttribute PageQueryParamDto params
-    ) {
+    public PageResult<AdminCommentResult> list(@ParameterObject @ModelAttribute RequestAdminCommentDto query) {
         return listCommentsAdminQuery.execute(
-                movieId,
-                isApproved,
-                params.search(),
-                PageableFactory.create(params,
+                query.getMovieId(),
+                query.getIsApproved(),
+                query.search(),
+                PageableFactory.create(query,
                         ListCommentsAdminQuery.SORTABLE, ListCommentsAdminQuery.DEFAULT_SORT));
     }
 

@@ -5,15 +5,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springdoc.core.annotations.ParameterObject;
 
 import com.example.backend_pj4.application.dto.comment.CommentResult;
 import com.example.backend_pj4.application.port.in.comment.ListCommentsQuery;
 import com.example.backend_pj4.common.annotation.AuthResultUser;
 import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.infrastructure.security.AppUserDetails;
-import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.comment.request.RequestPublicCommentDto;
 import com.example.backend_pj4.presentation.common.request.PageableFactory;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,14 +36,13 @@ public class PublicCommentController {
     @GetMapping
     public PageResult<CommentResult> list(
             @PathVariable String movieSlug,
-            @RequestParam(required = false) String episodeId,
-            @ModelAttribute PageQueryParamDto params,
+            @ParameterObject @ModelAttribute RequestPublicCommentDto query,
             @AuthResultUser UserDetails userDetails
     ) {
         return listCommentsQuery.execute(
                 movieSlug,
-                episodeId,
-                PageableFactory.create(params,
+                query.getEpisodeId(),
+                PageableFactory.create(query,
                         ListCommentsQuery.SORTABLE, ListCommentsQuery.DEFAULT_SORT),
                 resolveViewerId(userDetails));
     }

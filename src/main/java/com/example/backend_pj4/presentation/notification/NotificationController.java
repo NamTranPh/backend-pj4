@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springdoc.core.annotations.ParameterObject;
 
 import com.example.backend_pj4.application.dto.notification.NotificationResult;
 import com.example.backend_pj4.application.port.in.notification.CountUnreadNotificationsUseCase;
@@ -20,7 +20,7 @@ import com.example.backend_pj4.application.port.in.notification.ListUserNotifica
 import com.example.backend_pj4.domain.repository.filter.NotificationFilter;
 import com.example.backend_pj4.application.port.in.notification.MarkNotificationReadUseCase;
 import com.example.backend_pj4.infrastructure.security.AppUserDetails;
-import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.notification.request.RequestNotificationDto;
 import com.example.backend_pj4.presentation.common.request.PageableFactory;
 
 import com.example.backend_pj4.common.annotation.AuthRequired;
@@ -52,12 +52,11 @@ public class NotificationController {
     @GetMapping
     public PageResult<NotificationResult> list(
             @AuthResultUser UserDetails userDetails,
-            @ModelAttribute PageQueryParamDto params,
-            @RequestParam(required = false) Boolean isRead
+            @ParameterObject @ModelAttribute RequestNotificationDto query
     ) {
         return listUserNotificationsQuery.execute(
-                new NotificationFilter(resolveUserId(userDetails), params.search(), isRead),
-                PageableFactory.create(params,
+                new NotificationFilter(resolveUserId(userDetails), query.search(), query.getIsRead()),
+                PageableFactory.create(query,
                         ListUserNotificationsQuery.SORTABLE, ListUserNotificationsQuery.DEFAULT_SORT));
     }
 

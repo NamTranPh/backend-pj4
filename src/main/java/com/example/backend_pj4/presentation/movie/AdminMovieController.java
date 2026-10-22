@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springdoc.core.annotations.ParameterObject;
 
 import com.example.backend_pj4.application.command.movie.CreateMovieCommand;
 import com.example.backend_pj4.application.command.movie.UpdateMovieCommand;
@@ -29,14 +30,12 @@ import com.example.backend_pj4.application.port.in.movie.DeleteMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.GetMovieByIdUseCase;
 import com.example.backend_pj4.application.port.in.movie.ListMoviesQuery;
 import com.example.backend_pj4.domain.repository.filter.MovieFilter;
-import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
 import com.example.backend_pj4.presentation.common.request.PageableFactory;
+import com.example.backend_pj4.presentation.movie.request.RequestAdminMovieDto;
 import com.example.backend_pj4.application.port.in.movie.PublishMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.RestoreMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.UpdateMovieUseCase;
 import com.example.backend_pj4.application.port.in.movie.UploadMovieImageUseCase;
-import com.example.backend_pj4.common.constants.enums.MovieType;
-import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.presentation.movie.request.CreateMovieRequest;
 import com.example.backend_pj4.presentation.movie.request.UpdateMovieRequest;
 
@@ -119,17 +118,10 @@ public class AdminMovieController {
 
     @Operation(summary = "Lấy danh sách tất cả phim (bao gồm nháp/ẩn) cho quản trị viên. Quyền truy cập: ADMIN.")
     @GetMapping
-    public PageResult<MovieResult> list(
-            @ModelAttribute PageQueryParamDto params,
-            @RequestParam(required = false) MovieType type,
-            @RequestParam(required = false) VideoStatus status,
-            @RequestParam(required = false) String genreId,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) String country
-    ) {
+    public PageResult<MovieResult> list(@ParameterObject @ModelAttribute RequestAdminMovieDto query) {
         return listMoviesQuery.execute(
-                new MovieFilter(params.search(), type, status, genreId, year, country, false),
-                PageableFactory.create(params, ListMoviesQuery.SORTABLE, ListMoviesQuery.DEFAULT_SORT));
+                new MovieFilter(query.search(), query.getType(), query.getStatus(), query.getGenreId(), query.getYear(), query.getCountry(), false),
+                PageableFactory.create(query, ListMoviesQuery.SORTABLE, ListMoviesQuery.DEFAULT_SORT));
     }
 
     @Operation(summary = "Xóa mềm phim theo ID. Quyền truy cập: ADMIN.")

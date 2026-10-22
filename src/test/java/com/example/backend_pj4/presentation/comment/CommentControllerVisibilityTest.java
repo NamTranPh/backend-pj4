@@ -18,7 +18,8 @@ import com.example.backend_pj4.application.port.in.comment.SetCommentApprovalUse
 import com.example.backend_pj4.common.pagination.PageQuery;
 import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.infrastructure.security.AppUserDetails;
-import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.comment.request.RequestAdminCommentDto;
+import com.example.backend_pj4.presentation.comment.request.RequestPublicCommentDto;
 
 /**
  * Khoá ranh giới giữa endpoint bình luận công khai và endpoint kiểm duyệt của admin.
@@ -57,22 +58,33 @@ class CommentControllerVisibilityTest {
                 .thenReturn(new PageResult<>(List.of(), 0, 1, 15, 0));
     }
 
-    private PageQueryParamDto params(String search) {
-        return new PageQueryParamDto(null, null, search, null, null);
+    private RequestPublicCommentDto publicQuery(String episodeId, String search) {
+        RequestPublicCommentDto query = new RequestPublicCommentDto();
+        query.setEpisodeId(episodeId);
+        query.setSearch(search);
+        return query;
+    }
+
+    private RequestAdminCommentDto adminQuery(String movieId, Boolean isApproved, String search) {
+        RequestAdminCommentDto query = new RequestAdminCommentDto();
+        query.setMovieId(movieId);
+        query.setIsApproved(isApproved);
+        query.setSearch(search);
+        return query;
     }
 
     @Test
     void endpointCongKhai_goi_KHONG_token_van_chay_voi_viewerId_null() {
         // Đây là endpoint permitAll nên principal có thể null. Gọi userIdOf trực tiếp trên null
         // sẽ ném IllegalStateException và cả trang bình luận chết với khách vãng lai.
-        publicController.list(MOVIE_SLUG, null, params(null), null);
+        publicController.list(MOVIE_SLUG, publicQuery(null, null), null);
 
         verify(listCommentsQuery).execute(eq(MOVIE_SLUG), isNull(), any(PageQuery.class), isNull());
     }
 
     @Test
     void endpointCongKhai_co_token_PHAI_chuyen_tiep_viewerId() {
-        publicController.list(MOVIE_SLUG, null, params(null), principal);
+        publicController.list(MOVIE_SLUG, publicQuery(null, null), principal);
 
         verify(listCommentsQuery).execute(
                 eq(MOVIE_SLUG), isNull(), any(PageQuery.class), eq(VIEWER_ID));
@@ -80,7 +92,7 @@ class CommentControllerVisibilityTest {
 
     @Test
     void endpointCongKhai_chuyen_tiep_episodeId_khi_co() {
-        publicController.list(MOVIE_SLUG, "ep_5", params(null), principal);
+        publicController.list(MOVIE_SLUG, publicQuery("ep_5", null), principal);
 
         verify(listCommentsQuery).execute(
                 eq(MOVIE_SLUG), eq("ep_5"), any(PageQuery.class), eq(VIEWER_ID));
@@ -90,14 +102,14 @@ class CommentControllerVisibilityTest {
     void endpointAdmin_khong_loc_theo_trangThaiDuyet_khi_khong_truyen() {
         // isApproved null nghĩa là admin thấy cả bình luận đã duyệt lẫn đang bị ẩn — đúng mục
         // đích của màn kiểm duyệt.
-        adminController.list(null, null, params(null));
+        adminController.list(adminQuery(null, null, null));
 
         verify(listCommentsAdminQuery).execute(isNull(), isNull(), isNull(), any(PageQuery.class));
     }
 
     @Test
     void endpointAdmin_chuyen_tiep_du_ba_bo_loc() {
-        adminController.list("mov_1", Boolean.FALSE, params("tu khoa"));
+        adminController.list(adminQuery("mov_1", Boolean.FALSE, "tu khoa"));
 
         verify(listCommentsAdminQuery).execute(
                 eq("mov_1"), eq(Boolean.FALSE), eq("tu khoa"), any(PageQuery.class));
