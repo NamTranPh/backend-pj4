@@ -39,6 +39,10 @@ public interface HistoryWatchingJpaRepository extends JpaRepository<HistoryWatch
             String userId, String movieId, String episodeId);
 
     @Modifying
+    @Query("DELETE FROM HistoryWatchingJpaEntity h WHERE h.id = :id AND h.user.id = :userId")
+    void deleteByIdAndUserId(@Param("id") String id, @Param("userId") String userId);
+
+    @Modifying
     @Query("DELETE FROM HistoryWatchingJpaEntity h WHERE h.user.id = :userId")
     void deleteByUserId(@Param("userId") String userId);
 }

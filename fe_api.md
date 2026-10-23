@@ -2,8 +2,8 @@
 
 > **Mục đích:** Tài liệu API cho Frontend - danh sách endpoint, request/response, flow
 
-**Cập nhật lần cuối:** 2026-10-05  
-**Version:** 4.6
+**Cập nhật lần cuối:** 2026-10-23  
+**Version:** 4.7
 
 ---
 
@@ -507,7 +507,8 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
   "rawFileKey": "string",
   "masterPlaylistKey": "string",
   "episodes": ["EpisodeResult"],
-  "createdByName": "string"
+  "createdByName": "string",
+  "isFavorite": "boolean | null (true nếu user đã thêm vào yêu thích, false nếu chưa, null nếu là khách vãng lai)"
 }
 ```
 
@@ -628,6 +629,23 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
       "address": "string (optional, max 500)",
       "profileUrl": "string (optional, max 500)"
     }
+  },
+  "userProfile": {
+    "response": {
+      "id": "string",
+      "email": "string",
+      "name": "string",
+      "profileUrl": "string (presigned URL)",
+      "phone": "string",
+      "address": "string",
+      "role": "ADMIN | USER",
+      "accountStatus": "ACTIVE | INACTIVE",
+      "hasActiveMembership": true,
+      "isVip": true,
+      "currentPlanName": "string | null (ví dụ: Gói Tháng)",
+      "membershipEndDate": "string | null (ví dụ: 2026-10-22)",
+      "createdAt": "datetime"
+    }
   }
 }
 ```
@@ -661,11 +679,13 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ## HISTORY Module (User)
 
-| STT | Chức năng            | Method | Path                                         | Auth | Request                    | Response                   |
-| --- | -------------------- | ------ | -------------------------------------------- | ---- | -------------------------- | -------------------------- |
-| 1   | Cập nhật tiến độ xem | POST   | `/api/v1/me/watch-history/progress`          | User | UpdateWatchProgressRequest | void                       |
-| 2   | Xem tiếp (continue)  | GET    | `/api/v1/me/watch-history/continue-watching` | User | -                          | List\<WatchHistoryResult\> |
-| 3   | Toàn bộ lịch sử      | GET    | `/api/v1/me/watch-history`                   | User | -                          | List\<WatchHistoryResult\> |
+| STT | Chức năng             | Method | Path                                         | Auth | Request                    | Response                   |
+| --- | --------------------- | ------ | -------------------------------------------- | ---- | -------------------------- | -------------------------- |
+| 1   | Cập nhật tiến độ xem  | POST   | `/api/v1/me/watch-history/progress`          | User | UpdateWatchProgressRequest | void                       |
+| 2   | Xem tiếp (continue)   | GET    | `/api/v1/me/watch-history/continue-watching` | User | -                          | List\<WatchHistoryResult\> |
+| 3   | Toàn bộ lịch sử       | GET    | `/api/v1/me/watch-history`                   | User | -                          | List\<WatchHistoryResult\> |
+| 4   | Xoá 1 bản ghi lịch sử | DELETE | `/api/v1/me/watch-history/{id}`              | User | -                          | void                       |
+| 5   | Xoá toàn bộ lịch sử   | DELETE | `/api/v1/me/watch-history`                   | User | -                          | void                       |
 
 **Request/Response DTO:**
 
@@ -767,13 +787,41 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ---
 
+## MEMBERSHIP Module (User)
+
+| STT | Chức năng           | Method | Path                    | Auth | Request | Response           | Note                                         |
+| --- | ------------------- | ------ | ----------------------- | ---- | ------- | ------------------ | -------------------------------------------- |
+| 1   | Xem gói VIP của tôi | GET    | `/api/v1/me/membership` | User | -       | MyMembershipResult | Trả về thông tin gói đang kích hoạt (active) |
+
+**Response DTO:**
+
+```json
+{
+  "myMembership": {
+    "planName": "string (ví dụ: Gói Tháng)",
+    "planSlug": "string (ví dụ: goi-thang)",
+    "price": 79000.0,
+    "maxDevices": 2,
+    "canDownload": true,
+    "videoQuality": "4K Ultra HD",
+    "startDate": "2026-10-01",
+    "endDate": "2026-10-31",
+    "daysRemaining": 8,
+    "isExpired": false
+  }
+}
+```
+
+---
+
 ## PAYMENT Module (User)
 
-| STT | Chức năng           | Method | Path                                        | Auth   | Request              | Response                 |
-| --- | ------------------- | ------ | ------------------------------------------- | ------ | -------------------- | ------------------------ |
-| 1   | Tạo đơn thanh toán  | POST   | `/api/v1/payments/create-order`             | User   | CreatePaymentRequest | PaymentOrderResult (201) |
-| 2   | PayOS webhook       | POST   | `/api/v1/payments/payos/webhook`            | Public | raw JSON (PayOS)     | void                     |
-| 3   | Kiểm tra trạng thái | GET    | `/api/v1/payments/{transactionCode}/status` | User   | -                    | PaymentOrderResult       |
+| STT | Chức năng           | Method | Path                                        | Auth   | Request                                   | Response                                |
+| --- | ------------------- | ------ | ------------------------------------------- | ------ | ----------------------------------------- | --------------------------------------- |
+| 1   | Tạo đơn thanh toán  | POST   | `/api/v1/payments/create-order`             | User   | CreatePaymentRequest                      | PaymentOrderResult (201)                |
+| 2   | PayOS webhook       | POST   | `/api/v1/payments/payos/webhook`            | Public | raw JSON (PayOS)                          | void                                    |
+| 3   | Kiểm tra trạng thái | GET    | `/api/v1/payments/{transactionCode}/status` | User   | -                                         | PaymentOrderResult                      |
+| 4   | Lịch sử đơn của tôi | GET    | `/api/v1/payments/my-orders`                | User   | phân trang (page, limit, sortBy, sortDir) | List\<PaymentOrderResult\> + pagination |
 
 **Request/Response DTO:**
 
@@ -969,7 +1017,7 @@ Chấm **sao, thang 1–5, số nguyên**. Mỗi người chỉ có **một** đ
 | 1   | DS đánh giá của phim    | GET    | `/api/v1/movies/{movieSlug}/ratings?page=1&limit=15&sortBy=&sortDir=` | Public | phân trang     | RatingList + pagination   | -                                      |
 | 2   | Tóm tắt điểm            | GET    | `/api/v1/movies/{movieSlug}/ratings/summary`                          | Public | -              | RatingSummary             | -                                      |
 | 3   | Chấm / sửa điểm         | PUT    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | score, review? | RatingDetail              | Tạo mới hoặc ghi đè                    |
-| 4   | Điểm của tôi            | GET    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | RatingDetail              | Chưa chấm → 404 `rating_not_found`     |
+| 4   | Điểm của tôi            | GET    | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | RatingDetail (hoặc null)  | Chưa chấm → 200 OK với `data: null`    |
 | 5   | Xoá điểm của tôi        | DELETE | `/api/v1/me/ratings/{movieSlug}`                                      | User   | -              | -                         | Xoá xong **chấm lại được bình thường** |
 | 6   | DS phim tôi đã đánh giá | GET    | `/api/v1/me/ratings?page=1&limit=15&sortBy=&sortDir=`                 | User   | phân trang     | MyRatingList + pagination | Lịch sử đánh giá của chính mình        |
 
@@ -1136,6 +1184,23 @@ Authorization: Bearer <accessToken>
 ## Cập nhật lịch sử
 
 Ghi cập nhật mới dưới đây (thứ tự mới nhất → cũ nhất)
+
+### 2026-10-23 - v4.7 - Gói VIP của tôi + Xoá lịch sử xem + Lịch sử đơn hàng + Cờ VIP/Favorite
+
+#### 1. Endpoint MỚI
+
+| Endpoint                        | Method | Auth | Mô tả                                                                                              |
+| ------------------------------- | ------ | ---- | -------------------------------------------------------------------------------------------------- |
+| `/api/v1/me/membership`         | GET    | User | Xem thông tin gói VIP đang kích hoạt (ngày hết hạn, số ngày còn lại, quyền lợi)                    |
+| `/api/v1/payments/my-orders`    | GET    | User | Lịch sử các đơn thanh toán PayOS của chính mình (phân trang: `page`, `limit`, `sortBy`, `sortDir`) |
+| `/api/v1/me/watch-history/{id}` | DELETE | User | Xoá 1 bản ghi lịch sử xem phim                                                                     |
+| `/api/v1/me/watch-history`      | DELETE | User | Xoá toàn bộ lịch sử xem phim của tài khoản                                                         |
+
+#### 2. Cập nhật DTO & Hành vi
+
+- **`GET /api/v1/account/me` (`UserProfileResult`)**: Bổ sung `isVip: boolean`, `currentPlanName: string | null`, `membershipEndDate: string | null` (FE hiển thị huy hiệu VIP và tên gói nhanh chóng).
+- **`GET /api/v1/movies/{id}` & `GET /api/v1/movies/{slug}` (`MovieDetailResult`)**: Bổ sung `isFavorite: boolean | null` (FE không cần gọi danh sách `/me/favorites` để dò trạng thái yêu thích).
+- **`GET /api/v1/me/ratings/{movieSlug}`**: Khi người dùng chưa đánh giá, API trả về **HTTP 200 OK với `data: null`** (thay vì quăng exception 404 `rating_not_found` gây đỏ Network tab).
 
 ### 2026-10-14 - v4.6 - Module Comment (lồng nhau) + Rating (1–5 sao)
 

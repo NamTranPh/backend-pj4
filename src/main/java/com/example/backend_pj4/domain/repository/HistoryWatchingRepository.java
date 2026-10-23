@@ -18,5 +18,6 @@ public interface HistoryWatchingRepository {
     /** Tiến độ xem một tập cụ thể. */
     Optional<HistoryWatching> findByUserIdAndMovieIdAndEpisodeId(String userId, String movieId, String episodeId);
     void deleteById(String id);
+    void deleteByIdAndUserId(String id, String userId);
     void deleteByUserId(String userId);
 }

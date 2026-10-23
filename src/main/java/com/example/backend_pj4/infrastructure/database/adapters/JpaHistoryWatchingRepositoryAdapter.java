@@ -67,6 +67,12 @@ public class JpaHistoryWatchingRepositoryAdapter implements HistoryWatchingRepos
 
     @Override
     @Transactional
+    public void deleteByIdAndUserId(String id, String userId) {
+        jpaRepository.deleteByIdAndUserId(id, userId);
+    }
+
+    @Override
+    @Transactional
     public void deleteByUserId(String userId) {
         jpaRepository.deleteByUserId(userId);
     }

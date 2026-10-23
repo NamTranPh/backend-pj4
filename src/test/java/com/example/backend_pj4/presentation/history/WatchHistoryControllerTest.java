@@ -11,6 +11,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.example.backend_pj4.application.port.in.history.ClearWatchHistoryUseCase;
+import com.example.backend_pj4.application.port.in.history.DeleteWatchHistoryUseCase;
 import com.example.backend_pj4.application.port.in.history.ListWatchHistoryQuery;
 import com.example.backend_pj4.application.port.in.history.UpdateWatchProgressUseCase;
 import com.example.backend_pj4.common.pagination.PageQuery;
@@ -31,13 +33,22 @@ class WatchHistoryControllerTest {
     private static final String USER_ID = "usr_1";
 
     private ListWatchHistoryQuery listWatchHistoryQuery;
+    private DeleteWatchHistoryUseCase deleteWatchHistoryUseCase;
+    private ClearWatchHistoryUseCase clearWatchHistoryUseCase;
     private WatchHistoryController controller;
     private AppUserDetails principal;
 
     @BeforeEach
     void setUp() {
         listWatchHistoryQuery = mock(ListWatchHistoryQuery.class);
-        controller = new WatchHistoryController(mock(UpdateWatchProgressUseCase.class), listWatchHistoryQuery);
+        deleteWatchHistoryUseCase = mock(DeleteWatchHistoryUseCase.class);
+        clearWatchHistoryUseCase = mock(ClearWatchHistoryUseCase.class);
+        controller = new WatchHistoryController(
+                mock(UpdateWatchProgressUseCase.class),
+                listWatchHistoryQuery,
+                deleteWatchHistoryUseCase,
+                clearWatchHistoryUseCase
+        );
         principal = new AppUserDetails(USER_ID, "nam@gmail.com", "x", true, true, List.of(), 0);
 
         when(listWatchHistoryQuery.execute(any(HistoryFilter.class), any(PageQuery.class)))
@@ -79,5 +90,19 @@ class WatchHistoryControllerTest {
 
         verify(listWatchHistoryQuery).execute(
                 eq(new HistoryFilter(USER_ID, null, true)), any(PageQuery.class));
+    }
+
+    @Test
+    void deleteById_chuyenTiepDungIdVaUserId() {
+        controller.deleteById("hist_123", principal);
+
+        verify(deleteWatchHistoryUseCase).execute("hist_123", USER_ID);
+    }
+
+    @Test
+    void clearAll_chuyenTiepDungUserId() {
+        controller.clearAll(principal);
+
+        verify(clearWatchHistoryUseCase).execute(USER_ID);
     }
 }
