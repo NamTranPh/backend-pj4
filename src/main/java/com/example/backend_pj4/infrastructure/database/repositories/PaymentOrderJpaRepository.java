@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +16,8 @@ import com.example.backend_pj4.infrastructure.database.entities.PaymentOrderJpaE
 public interface PaymentOrderJpaRepository extends JpaRepository<PaymentOrderJpaEntity, String> {
 
     Optional<PaymentOrderJpaEntity> findByTransactionCode(String transactionCode);
+
+    Page<PaymentOrderJpaEntity> findByUser_Id(String userId, Pageable pageable);
 
     @Query("SELECT p FROM PaymentOrderJpaEntity p WHERE p.gateway = :gateway AND p.status = 'PENDING' "
             + "AND p.createdAt >= :since ORDER BY p.createdAt ASC")

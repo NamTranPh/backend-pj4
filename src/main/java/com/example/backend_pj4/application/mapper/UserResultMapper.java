@@ -1,5 +1,7 @@
 package com.example.backend_pj4.application.mapper;
 
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Component;
 
 import com.example.backend_pj4.application.dto.user.UserProfileResult;
@@ -16,6 +18,10 @@ public class UserResultMapper {
     }
 
     public UserProfileResult toResult(User user) {
+        return toResult(user, false, null, null);
+    }
+
+    public UserProfileResult toResult(User user, boolean isVip, String currentPlanName, LocalDate membershipEndDate) {
         return new UserProfileResult(
                 user.getId(),
                 user.getEmail(),
@@ -27,7 +33,10 @@ public class UserResultMapper {
                 user.getAccountStatus() != null ? user.getAccountStatus().name() : null,
                 Boolean.TRUE.equals(user.getIsBanned()),
                 Boolean.TRUE.equals(user.getEmailVerified()),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                isVip,
+                currentPlanName,
+                membershipEndDate
         );
     }
 }

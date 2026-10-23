@@ -7,6 +7,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.PaymentOrder;
 import com.example.backend_pj4.domain.repository.PaymentOrderRepository;
 import com.example.backend_pj4.infrastructure.database.mappers.PaymentOrderPersistenceMapper;
@@ -37,6 +39,13 @@ public class JpaPaymentOrderRepositoryAdapter implements PaymentOrderRepository 
     @Override
     public Optional<PaymentOrder> findByTransactionCode(String transactionCode) {
         return jpaRepository.findByTransactionCode(transactionCode).map(mapper::toDomain);
+    }
+
+    @Override
+    public PageResult<PaymentOrder> findByUserId(String userId, PageQuery query) {
+        return PageableMapper.toPageResult(
+                jpaRepository.findByUser_Id(userId, PageableMapper.toPageable(query)),
+                mapper::toDomain);
     }
 
     @Override

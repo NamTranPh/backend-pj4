@@ -4,13 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.PaymentOrder;
 
 /**
  * Đơn thanh toán.
- *
- * <p>Chưa có API quản trị liệt kê đơn nên chưa có {@code find}. Khi làm, thêm
- * {@code find(PaymentOrderFilter, PageQuery)}.
  */
 public interface PaymentOrderRepository {
     PaymentOrder save(PaymentOrder order);
@@ -18,6 +17,8 @@ public interface PaymentOrderRepository {
     Optional<PaymentOrder> findById(String id);
 
     Optional<PaymentOrder> findByTransactionCode(String transactionCode);
+
+    PageResult<PaymentOrder> findByUserId(String userId, PageQuery query);
 
     /** Đơn còn treo của một cổng thanh toán — job đối soát quét theo mốc thời gian. */
     List<PaymentOrder> findPendingByGatewaySince(String gateway, LocalDateTime since, int limit);

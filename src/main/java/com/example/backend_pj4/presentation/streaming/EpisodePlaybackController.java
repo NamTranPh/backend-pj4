@@ -31,6 +31,7 @@ public class EpisodePlaybackController {
         this.playEpisodeUseCase = playEpisodeUseCase;
     }
 
+    // Khởi tạo phiên xem tập phim: kiểm tra quyền VIP và cấp playback token
     @Operation(summary = "Bắt đầu xem tập phim, trả về playback URL và token.")
     @PostMapping("/{episodeNumber}/play")
     public ResponseEntity<PlayContentResult> play(

@@ -38,9 +38,8 @@ public class GetMyRatingQueryHandler implements GetMyRatingQuery {
         Movie movie = movieRepository.findBySlug(movieSlug)
                 .orElseThrow(() -> new CustomException(ErrorCode.MOVIE_NOT_FOUND));
 
-        Rating rating = ratingRepository.findByUserIdAndMovieId(userId, movie.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.RATING_NOT_FOUND));
-
-        return ratingResultMapper.toResult(rating, userRepository.findById(userId).orElse(null));
+        return ratingRepository.findByUserIdAndMovieId(userId, movie.getId())
+                .map(rating -> ratingResultMapper.toResult(rating, userRepository.findById(userId).orElse(null)))
+                .orElse(null);
     }
 }

@@ -39,6 +39,42 @@ public record MovieDetailResult(
         List<EpisodeResult> episodes,
         String createdByName,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        Boolean isFavorite
 ) {
+    public MovieDetailResult(
+            String id,
+            String slug,
+            String title,
+            String originalTitle,
+            String description,
+            Integer releaseYear,
+            Integer duration,
+            String director,
+            String actors,
+            String country,
+            String language,
+            String trailerUrl,
+            String posterUrl,
+            String backdropUrl,
+            MovieType movieType,
+            Integer totalEpisodes,
+            VideoStatus status,
+            VideoVisibility visibility,
+            Boolean isPremium,
+            Boolean isFeatured,
+            BigDecimal rating,
+            Long viewCount,
+            String rawFileKey,
+            String masterPlaylistKey,
+            List<GenreResult> genres,
+            List<EpisodeResult> episodes,
+            String createdByName,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        this(id, slug, title, originalTitle, description, releaseYear, duration, director, actors, country, language,
+                trailerUrl, posterUrl, backdropUrl, movieType, totalEpisodes, status, visibility, isPremium, isFeatured,
+                rating, viewCount, rawFileKey, masterPlaylistKey, genres, episodes, createdByName, createdAt, updatedAt, false);
+    }
 }

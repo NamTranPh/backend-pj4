@@ -2,9 +2,9 @@ package com.example.backend_pj4.presentation.payment;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.example.backend_pj4.common.annotation.AuthResultUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,9 +15,13 @@ import com.example.backend_pj4.application.dto.payment.PaymentOrderResult;
 import com.example.backend_pj4.application.port.in.payment.CreatePaymentOrderUseCase;
 import com.example.backend_pj4.application.port.in.payment.GetPaymentStatusUseCase;
 import com.example.backend_pj4.application.port.in.payment.HandlePayOsWebhookUseCase;
-import com.example.backend_pj4.infrastructure.security.AppUserDetails;
-
+import com.example.backend_pj4.application.port.in.payment.ListMyPaymentOrdersQuery;
 import com.example.backend_pj4.common.annotation.AuthRequired;
+import com.example.backend_pj4.common.annotation.AuthResultUser;
+import com.example.backend_pj4.common.pagination.PageResult;
+import com.example.backend_pj4.infrastructure.security.AppUserDetails;
+import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.common.request.PageableFactory;
 import com.example.backend_pj4.presentation.payment.request.CreatePaymentRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,15 +36,18 @@ public class PaymentController {
     private final CreatePaymentOrderUseCase createPaymentOrderUseCase;
     private final HandlePayOsWebhookUseCase handlePayOsWebhookUseCase;
     private final GetPaymentStatusUseCase getPaymentStatusUseCase;
+    private final ListMyPaymentOrdersQuery listMyPaymentOrdersQuery;
 
     public PaymentController(
             CreatePaymentOrderUseCase createPaymentOrderUseCase,
             HandlePayOsWebhookUseCase handlePayOsWebhookUseCase,
-            GetPaymentStatusUseCase getPaymentStatusUseCase
+            GetPaymentStatusUseCase getPaymentStatusUseCase,
+            ListMyPaymentOrdersQuery listMyPaymentOrdersQuery
     ) {
         this.createPaymentOrderUseCase = createPaymentOrderUseCase;
         this.handlePayOsWebhookUseCase = handlePayOsWebhookUseCase;
         this.getPaymentStatusUseCase = getPaymentStatusUseCase;
+        this.listMyPaymentOrdersQuery = listMyPaymentOrdersQuery;
     }
 
     @Operation(summary = "Tạo đơn thanh toán PayOS.")
@@ -71,6 +78,18 @@ public class PaymentController {
     ) {
         String userId = resolveUserId(userDetails);
         return getPaymentStatusUseCase.execute(transactionCode, userId);
+    }
+
+    @Operation(summary = "Lấy lịch sử các đơn thanh toán của tôi. Quyền truy cập: Người dùng đã đăng nhập.")
+    @AuthRequired
+    @GetMapping("/my-orders")
+    public PageResult<PaymentOrderResult> getMyOrders(
+            @AuthResultUser UserDetails userDetails,
+            @ModelAttribute PageQueryParamDto params
+    ) {
+        String userId = resolveUserId(userDetails);
+        return listMyPaymentOrdersQuery.execute(userId,
+                PageableFactory.create(params, ListMyPaymentOrdersQuery.SORTABLE, ListMyPaymentOrdersQuery.DEFAULT_SORT));
     }
 
     /** userId lấy thẳng từ principal — filter đã nạp sẵn, không cần tra lại database. */

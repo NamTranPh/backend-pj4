@@ -62,6 +62,10 @@ public class MovieResultMapper {
     }
 
     public MovieDetailResult toDetailResult(Movie movie, List<EpisodeResult> episodes) {
+        return toDetailResult(movie, episodes, false);
+    }
+
+    public MovieDetailResult toDetailResult(Movie movie, List<EpisodeResult> episodes, Boolean isFavorite) {
         List<GenreResult> genres = movie.getGenres() != null
                 ? movie.getGenres().stream().map(GenreResultMapper::toResult).toList()
                 : Collections.emptyList();
@@ -97,7 +101,8 @@ public class MovieResultMapper {
                 episodes,
                 createdByName,
                 movie.getCreatedAt(),
-                movie.getUpdatedAt()
+                movie.getUpdatedAt(),
+                Boolean.TRUE.equals(isFavorite)
         );
     }
 }
