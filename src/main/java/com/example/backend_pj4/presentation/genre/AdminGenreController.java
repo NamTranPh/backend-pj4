@@ -21,11 +21,12 @@ import com.example.backend_pj4.application.port.in.genre.DeleteGenreUseCase;
 import com.example.backend_pj4.application.port.in.genre.GetGenreByIdUseCase;
 import com.example.backend_pj4.application.port.in.genre.ListGenresQuery;
 import com.example.backend_pj4.domain.repository.filter.GenreFilter;
-import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
 import com.example.backend_pj4.presentation.common.request.PageableFactory;
 import com.example.backend_pj4.application.port.in.genre.UpdateGenreUseCase;
 import com.example.backend_pj4.presentation.genre.request.CreateGenreRequest;
+import com.example.backend_pj4.presentation.genre.request.RequestAdminGenreDto;
 import com.example.backend_pj4.presentation.genre.request.UpdateGenreRequest;
+import org.springdoc.core.annotations.ParameterObject;
 
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,10 +86,9 @@ public class AdminGenreController {
 
     @Operation(summary = "Lấy danh sách tất cả thể loại phim cho quản trị viên. Quyền truy cập: ADMIN.")
     @GetMapping
-    public PageResult<GenreResult> list(@ModelAttribute PageQueryParamDto params) {
-        // status = null: admin thấy cả thể loại đang tắt
+    public PageResult<GenreResult> list(@ParameterObject @ModelAttribute RequestAdminGenreDto params) {
         return listGenresQuery.execute(
-                new GenreFilter(params.search(), null),
+                new GenreFilter(params.search(), params.getStatus()),
                 PageableFactory.create(params, ListGenresQuery.SORTABLE, ListGenresQuery.DEFAULT_SORT));
     }
 

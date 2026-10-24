@@ -122,7 +122,8 @@ public class AdminMovieController {
     @GetMapping
     public PageResult<MovieResult> list(@ParameterObject @ModelAttribute RequestAdminMovieDto query) {
         return listMoviesQuery.execute(
-                new MovieFilter(query.search(), query.getType(), query.getStatus(), query.getGenreId(), query.getYear(), query.getCountry(), false),
+                new MovieFilter(query.search(), query.getType(), query.getStatus(), query.getGenreId(), query.getYear(), query.getCountry(),
+                        query.getAgeRating(), query.getQuality(), query.getAudioTrack(), false),
                 PageableFactory.create(query, ListMoviesQuery.SORTABLE, ListMoviesQuery.DEFAULT_SORT));
     }
 

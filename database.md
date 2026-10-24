@@ -86,17 +86,17 @@
 
 ### 2. genre (Thể loại phim)
 
-| STT | Column      | Type                   | Constraint                | Description       |
-| --- | ----------- | ---------------------- | ------------------------- | ----------------- |
-| 1   | id          | UUID (String)          | PRIMARY KEY               | ID thể loại       |
-| 2   | name        | VARCHAR(100)           | NOT NULL, UNIQUE          | Tên thể loại      |
-| 3   | slug        | VARCHAR(120)           | NOT NULL, UNIQUE          | Slug SEO-friendly |
-| 4   | icon        | VARCHAR(255)           | -                         | Icon thể loại     |
-| 5   | description | TEXT                   | -                         | Mô tả             |
-| 6   | status      | ENUM(ACTIVE, INACTIVE) | NOT NULL, length=20       | Trạng thái        |
-| 7   | deleted_at  | TIMESTAMP              | -                         | Soft delete       |
-| 8   | created_at  | TIMESTAMP              | DEFAULT CURRENT_TIMESTAMP | Ngày tạo          |
-| 9   | updated_at  | TIMESTAMP              | -                         | Ngày cập nhật     |
+| STT | Column      | Type                   | Constraint                            | Description       |
+| --- | ----------- | ---------------------- | ------------------------------------- | ----------------- |
+| 1   | id          | UUID (String)          | PRIMARY KEY                           | ID thể loại       |
+| 2   | name        | VARCHAR(100)           | NOT NULL, UNIQUE                      | Tên thể loại      |
+| 3   | slug        | VARCHAR(120)           | NOT NULL, UNIQUE                      | Slug SEO-friendly |
+| 4   | icon        | VARCHAR(255)           | -                                     | Icon thể loại     |
+| 5   | description | TEXT                   | -                                     | Mô tả             |
+| 6   | status      | ENUM(ACTIVE, INACTIVE) | NOT NULL, length=20, DEFAULT 'ACTIVE' | Trạng thái        |
+| 7   | deleted_at  | TIMESTAMP              | -                                     | Soft delete       |
+| 8   | created_at  | TIMESTAMP              | DEFAULT CURRENT_TIMESTAMP             | Ngày tạo          |
+| 9   | updated_at  | TIMESTAMP              | -                                     | Ngày cập nhật     |
 
 **Soft delete:** `@Where(clause = "deleted_at IS NULL")`
 
@@ -113,37 +113,40 @@
 
 ### 3. movie (Phim)
 
-| STT | Column              | Type                                                                | Constraint                | Description                       |
-| --- | ------------------- | ------------------------------------------------------------------- | ------------------------- | --------------------------------- |
-| 1   | id                  | UUID (String)                                                       | PRIMARY KEY               | ID phim                           |
-| 2   | slug                | VARCHAR(255)                                                        | NOT NULL, UNIQUE          | Slug SEO-friendly                 |
-| 3   | title               | VARCHAR(255)                                                        | NOT NULL                  | Tên phim                          |
-| 4   | original_title      | VARCHAR(255)                                                        | -                         | Tên gốc                           |
-| 5   | description         | TEXT                                                                | -                         | Mô tả                             |
-| 6   | release_year        | YEAR                                                                | -                         | Năm phát hành                     |
-| 7   | duration            | INT                                                                 | -                         | Thời lượng (phút)                 |
-| 8   | director            | VARCHAR(255)                                                        | -                         | Đạo diễn                          |
-| 9   | actors              | TEXT                                                                | -                         | Diễn viên                         |
-| 10  | country             | VARCHAR(100)                                                        | -                         | Quốc gia                          |
-| 11  | language            | VARCHAR(50)                                                         | -                         | Ngôn ngữ                          |
-| 12  | trailer_url         | VARCHAR(500)                                                        | -                         | URL trailer                       |
-| 13  | poster_url          | VARCHAR(500)                                                        | -                         | URL poster                        |
-| 14  | backdrop_url        | VARCHAR(500)                                                        | -                         | URL backdrop                      |
-| 15  | movie_type          | ENUM(SINGLE, SERIES)                                                | NOT NULL                  | Loại phim                         |
-| 16  | total_episodes      | INT                                                                 | -                         | Tổng tập (SERIES)                 |
-| 17  | status              | ENUM(DRAFT, PROCESSING, READY, PUBLISHED, FAILED, REJECTED, BANNED) | NOT NULL                  | Trạng thái video                  |
-| 18  | visibility          | ENUM(PUBLIC, PRIVATE, MEMBERS_ONLY)                                 | NOT NULL                  | Phạm vi hiển thị                  |
-| 19  | is_premium          | BOOLEAN                                                             | -                         | Phim premium                      |
-| 20  | is_featured         | BOOLEAN                                                             | -                         | Phim nổi bật                      |
-| 21  | rating              | DECIMAL(3,1)                                                        | -                         | Điểm đánh giá (0.0-10.0)          |
-| 22  | view_count          | BIGINT                                                              | -                         | Số lượt xem                       |
-| 23  | raw_file_key        | VARCHAR(500)                                                        | -                         | Key file gốc trên MinIO           |
-| 24  | master_playlist_key | VARCHAR(500)                                                        | -                         | Key HLS master playlist           |
-| 25  | resolutions         | JSON                                                                | -                         | Danh sách resolution đã transcode |
-| 26  | created_by          | UUID (String)                                                       | FOREIGN KEY (user)        | Người tạo (admin)                 |
-| 27  | deleted_at          | TIMESTAMP                                                           | -                         | Soft delete                       |
-| 28  | created_at          | TIMESTAMP                                                           | DEFAULT CURRENT_TIMESTAMP | Ngày tạo                          |
-| 29  | updated_at          | TIMESTAMP                                                           | -                         | Ngày cập nhật                     |
+| STT | Column              | Type                                                                | Constraint                  | Description                       |
+| --- | ------------------- | ------------------------------------------------------------------- | --------------------------- | --------------------------------- |
+| 1   | id                  | UUID (String)                                                       | PRIMARY KEY                 | ID phim                           |
+| 2   | slug                | VARCHAR(255)                                                        | NOT NULL, UNIQUE            | Slug SEO-friendly                 |
+| 3   | title               | VARCHAR(255)                                                        | NOT NULL                    | Tên phim                          |
+| 4   | original_title      | VARCHAR(255)                                                        | -                           | Tên gốc                           |
+| 5   | description         | TEXT                                                                | -                           | Mô tả                             |
+| 6   | release_year        | YEAR                                                                | -                           | Năm phát hành                     |
+| 7   | duration            | INT                                                                 | -                           | Thời lượng (phút)                 |
+| 8   | director            | VARCHAR(255)                                                        | -                           | Đạo diễn                          |
+| 9   | actors              | TEXT                                                                | -                           | Diễn viên                         |
+| 10  | country             | VARCHAR(100)                                                        | -                           | Quốc gia                          |
+| 11  | language            | VARCHAR(50)                                                         | -                           | Ngôn ngữ                          |
+| 12  | trailer_url         | VARCHAR(500)                                                        | -                           | URL trailer                       |
+| 13  | poster_url          | VARCHAR(500)                                                        | -                           | URL poster                        |
+| 14  | backdrop_url        | VARCHAR(500)                                                        | -                           | URL backdrop                      |
+| 15  | movie_type          | ENUM(SINGLE, SERIES)                                                | NOT NULL, DEFAULT 'SINGLE'  | Loại phim                         |
+| 16  | total_episodes      | INT                                                                 | -                           | Tổng tập (SERIES)                 |
+| 17  | status              | ENUM(DRAFT, PROCESSING, READY, PUBLISHED, FAILED, REJECTED, BANNED) | NOT NULL                    | Trạng thái video                  |
+| 18  | visibility          | ENUM(PUBLIC, PRIVATE, MEMBERS_ONLY)                                 | NOT NULL                    | Phạm vi hiển thị                  |
+| 19  | is_premium          | BOOLEAN                                                             | -                           | Phim premium                      |
+| 20  | is_featured         | BOOLEAN                                                             | -                           | Phim nổi bật                      |
+| 21  | rating              | DECIMAL(3,1)                                                        | -                           | Điểm đánh giá (0.0-10.0)          |
+| 22  | view_count          | BIGINT                                                              | -                           | Số lượt xem                       |
+| 23  | raw_file_key        | VARCHAR(500)                                                        | -                           | Key file gốc trên MinIO           |
+| 24  | master_playlist_key | VARCHAR(500)                                                        | -                           | Key HLS master playlist           |
+| 25  | resolutions         | JSON                                                                | -                           | Danh sách resolution đã transcode |
+| 26  | created_by          | UUID (String)                                                       | FOREIGN KEY (user)          | Người tạo (admin)                 |
+| 27  | deleted_at          | TIMESTAMP                                                           | -                           | Soft delete                       |
+| 28  | created_at          | TIMESTAMP                                                           | DEFAULT CURRENT_TIMESTAMP   | Ngày tạo                          |
+| 29  | updated_at          | TIMESTAMP                                                           | -                           | Ngày cập nhật                     |
+| 30  | age_rating          | ENUM(P, K, T13, T16, T18, C)                                        | NOT NULL, DEFAULT 'T18'     | Độ tuổi giới hạn                  |
+| 31  | video_qualities     | VARCHAR(255)                                                        | NOT NULL, DEFAULT 'HD'      | Chất lượng video (CSV)            |
+| 32  | audio_tracks        | VARCHAR(255)                                                        | NOT NULL, DEFAULT 'VIETSUB' | Âm thanh / phụ đề (CSV)           |
 
 **Soft delete:** `@Where(clause = "deleted_at IS NULL")`
 

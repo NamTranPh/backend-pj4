@@ -60,11 +60,8 @@ public class JpaMovieRepositoryAdapter implements MovieRepository {
     public PageResult<Movie> find(MovieFilter filter, PageQuery query) {
         return PageableMapper.toPageResult(
                 movieJpaRepository.findAll(
-                        MovieSpecification.buildFilter(filter.q(), filter.movieType(), filter.status(),
-                                filter.genreId(), filter.year(), filter.country(), filter.publicOnly()),
+                        MovieSpecification.buildFilter(filter),
                         PageableMapper.toPageable(query)),
-                // toListDomain, không phải toDomain: DTO danh sách không dùng episodes và
-                // createdBy, nạp về là 30 truy vấn thừa cho một trang 15 phim
                 moviePersistenceMapper::toListDomain);
     }
 

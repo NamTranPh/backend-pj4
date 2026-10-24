@@ -48,7 +48,8 @@ public class PublicMovieController {
     @GetMapping
     public PageResult<MovieResult> list(@ParameterObject @ModelAttribute RequestPublicMovieDto query) {
         return listMoviesQuery.execute(
-                new MovieFilter(query.search(), query.getType(), null, query.getGenreId(), query.getYear(), query.getCountry(), true),
+                new MovieFilter(query.search(), query.getType(), null, query.getGenreId(), query.getYear(), query.getCountry(),
+                        query.getAgeRating(), query.getQuality(), query.getAudioTrack(), true),
                 PageableFactory.create(query, ListMoviesQuery.SORTABLE, ListMoviesQuery.DEFAULT_SORT));
     }
 

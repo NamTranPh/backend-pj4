@@ -2,8 +2,8 @@
 
 > **Mục đích:** Tài liệu API cho Frontend - danh sách endpoint, request/response, flow
 
-**Cập nhật lần cuối:** 2026-10-23  
-**Version:** 4.7
+**Cập nhật lần cuối:** 2026-10-24  
+**Version:** 4.8
 
 ---
 
@@ -43,6 +43,24 @@
 
 ```json
 ["SINGLE", "SERIES"]
+```
+
+### AgeRating
+
+```json
+["P", "K", "T13", "T16", "T18", "C"]
+```
+
+### VideoQuality
+
+```json
+["HD", "FULL_HD", "FOUR_K"]
+```
+
+### AudioTrackType
+
+```json
+["VIETSUB", "DUBBED", "VOICEOVER", "MULTI_AUDIO"]
 ```
 
 ### VideoStatus
@@ -393,15 +411,15 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ### Admin
 
-| STT | Chức năng        | Method | Path                                           | Auth  | Request                             | Response               |
-| --- | ---------------- | ------ | ---------------------------------------------- | ----- | ----------------------------------- | ---------------------- |
-| 1   | Create genre     | POST   | `/api/v1/admin/genres`                         | Admin | name, icon?, description?           | GenreResult            |
-| 2   | Update genre     | PATCH  | `/api/v1/admin/genres/{id}`                    | Admin | name?, icon?, description?, status? | GenreResult            |
-| 3   | Get genre detail | GET    | `/api/v1/admin/genres/{slug}`                  | Admin | -                                   | GenreResult            |
-| 4   | Get all genres   | GET    | `/api/v1/admin/genres?search=&page=1&limit=10` | Admin | search, page, limit                 | GenreList + pagination |
-| 5   | Delete genre     | DELETE | `/api/v1/admin/genres/{id}`                    | Admin | -                                   | void                   |
+| STT | Chức năng        | Method | Path                                                   | Auth  | Request                             | Response               |
+| --- | ---------------- | ------ | ------------------------------------------------------ | ----- | ----------------------------------- | ---------------------- |
+| 1   | Create genre     | POST   | `/api/v1/admin/genres`                                 | Admin | name, icon?, description?           | GenreResult            |
+| 2   | Update genre     | PATCH  | `/api/v1/admin/genres/{id}`                            | Admin | name?, icon?, description?, status? | GenreResult            |
+| 3   | Get genre detail | GET    | `/api/v1/admin/genres/{slug}`                          | Admin | -                                   | GenreResult            |
+| 4   | Get all genres   | GET    | `/api/v1/admin/genres?search=&status=&page=1&limit=10` | Admin | search, status, page, limit         | GenreList + pagination |
+| 5   | Delete genre     | DELETE | `/api/v1/admin/genres/{id}`                            | Admin | -                                   | void                   |
 
-> Admin GET detail dùng slug (hỗ trợ fallback UUID). Admin list trả tất cả status.
+> Admin GET detail dùng slug (hỗ trợ fallback UUID). Admin list trả tất cả status (hoặc lọc theo param status).
 
 **GenreResult DTO:**
 
@@ -442,26 +460,26 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ### Public
 
-| STT | Chức năng        | Method | Path                                                                   | Auth   | Request                                           | Response               |
-| --- | ---------------- | ------ | ---------------------------------------------------------------------- | ------ | ------------------------------------------------- | ---------------------- |
-| 1   | Get all movies   | GET    | `/api/v1/movies?search=&type=&genreId=&year=&country=&page=1&limit=20` | Public | search, type, genreId, year, country, page, limit | MovieList + pagination |
-| 2   | Get movie detail | GET    | `/api/v1/movies/{slug}`                                                | Public | -                                                 | MovieDetailResult      |
+| STT | Chức năng        | Method | Path                                                                                                   | Auth   | Request                                                                           | Response               |
+| --- | ---------------- | ------ | ------------------------------------------------------------------------------------------------------ | ------ | --------------------------------------------------------------------------------- | ---------------------- |
+| 1   | Get all movies   | GET    | `/api/v1/movies?search=&type=&genreId=&year=&country=&ageRating=&quality=&audioTrack=&page=1&limit=20` | Public | search, type, genreId, year, country, ageRating, quality, audioTrack, page, limit | MovieList + pagination |
+| 2   | Get movie detail | GET    | `/api/v1/movies/{slug}`                                                                                | Public | -                                                                                 | MovieDetailResult      |
 
 > Public chỉ trả movie không bị soft-delete. Detail kèm episodes (nếu SERIES).
 
 ### Admin
 
-| STT | Chức năng        | Method | Path                                                                                 | Auth  | Request                                                                                                                                                                  | Response               |
-| --- | ---------------- | ------ | ------------------------------------------------------------------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- |
-| 1   | Create movie     | POST   | `/api/v1/admin/movies`                                                               | Admin | title, originalTitle?, description?, releaseYear?, duration?, director?, actors?, country?, language?, trailerUrl?, movieType (SINGLE/SERIES), totalEpisodes?, genreIds? | MovieResult            |
-| 2   | Update movie     | PATCH  | `/api/v1/admin/movies/{id}`                                                          | Admin | (all fields optional + isFeatured?, isPremium?, status?, visibility?)                                                                                                    | MovieResult            |
-| 3   | Get movie detail | GET    | `/api/v1/admin/movies/{slug}`                                                        | Admin | -                                                                                                                                                                        | MovieDetailResult      |
-| 4   | Get all movies   | GET    | `/api/v1/admin/movies?search=&type=&status=&genreId=&year=&country=&page=1&limit=10` | Admin | search, type, status, genreId, year, country, page, limit                                                                                                                | MovieList + pagination |
-| 5   | Delete movie     | DELETE | `/api/v1/admin/movies/{id}`                                                          | Admin | -                                                                                                                                                                        | void                   |
-| 6   | Restore movie    | PATCH  | `/api/v1/admin/movies/{id}/restore`                                                  | Admin | -                                                                                                                                                                        | MovieResult            |
-| 7   | Upload poster    | POST   | `/api/v1/admin/movies/{id}/poster`                                                   | Admin | file (multipart)                                                                                                                                                         | MovieResult            |
-| 8   | Upload backdrop  | POST   | `/api/v1/admin/movies/{id}/backdrop`                                                 | Admin | file (multipart)                                                                                                                                                         | MovieResult            |
-| 9   | Publish movie    | POST   | `/api/v1/admin/movies/{id}/publish`                                                  | Admin | -                                                                                                                                                                        | MovieResult            |
+| STT | Chức năng        | Method | Path                                                                                                                 | Auth  | Request                                                                                                                                                                                                                                                                                               | Response               |
+| --- | ---------------- | ------ | -------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| 1   | Create movie     | POST   | `/api/v1/admin/movies`                                                                                               | Admin | title, originalTitle?, description?, releaseYear?, duration?, director?, actors?, country?, language?, trailerUrl?, movieType (SINGLE/SERIES - default SINGLE), totalEpisodes?, genreIds?, ageRating? (P/K/T13/T16/T18/C - default T18), videoQualities? (default HD), audioTracks? (default VIETSUB) | MovieResult            |
+| 2   | Update movie     | PATCH  | `/api/v1/admin/movies/{id}`                                                                                          | Admin | (all fields optional + isFeatured?, isPremium?, status?, visibility?, ageRating?, videoQualities?, audioTracks?)                                                                                                                                                                                      | MovieResult            |
+| 3   | Get movie detail | GET    | `/api/v1/admin/movies/{slug}`                                                                                        | Admin | -                                                                                                                                                                                                                                                                                                     | MovieDetailResult      |
+| 4   | Get all movies   | GET    | `/api/v1/admin/movies?search=&type=&status=&genreId=&year=&country=&ageRating=&quality=&audioTrack=&page=1&limit=10` | Admin | search, type, status, genreId, year, country, ageRating, quality, audioTrack, page, limit                                                                                                                                                                                                             | MovieList + pagination |
+| 5   | Delete movie     | DELETE | `/api/v1/admin/movies/{id}`                                                                                          | Admin | -                                                                                                                                                                                                                                                                                                     | void                   |
+| 6   | Restore movie    | PATCH  | `/api/v1/admin/movies/{id}/restore`                                                                                  | Admin | -                                                                                                                                                                                                                                                                                                     | MovieResult            |
+| 7   | Upload poster    | POST   | `/api/v1/admin/movies/{id}/poster`                                                                                   | Admin | file (multipart)                                                                                                                                                                                                                                                                                      | MovieResult            |
+| 8   | Upload backdrop  | POST   | `/api/v1/admin/movies/{id}/backdrop`                                                                                 | Admin | file (multipart)                                                                                                                                                                                                                                                                                      | MovieResult            |
+| 9   | Publish movie    | POST   | `/api/v1/admin/movies/{id}/publish`                                                                                  | Admin | -                                                                                                                                                                                                                                                                                                     | MovieResult            |
 
 > Admin GET detail dùng slug (hỗ trợ fallback UUID).
 
@@ -493,6 +511,9 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
   "ratingCount": "number",
   "commentCount": "number",
   "viewCount": "number",
+  "ageRating": "P|K|T13|T16|T18|C",
+  "videoQualities": "HD,FULL_HD,FOUR_K",
+  "audioTracks": "VIETSUB,DUBBED,VOICEOVER,MULTI_AUDIO",
   "genres": ["GenreResult"],
   "createdAt": "datetime",
   "updatedAt": "datetime"
