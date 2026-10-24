@@ -20,5 +20,6 @@ public interface MovieRepository {
     Optional<Movie> findByIdIncludingDeleted(String id);
     void softDeleteEpisodesByMovieId(String movieId);
     void restoreEpisodesByMovieId(String movieId);
+    List<Movie> findRelatedMovies(String currentMovieId, List<String> genreIds, int limit);
     void deleteById(String id);
 }

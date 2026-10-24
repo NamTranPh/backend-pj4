@@ -3,8 +3,12 @@ package com.example.backend_pj4.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
+import com.example.backend_pj4.common.constants.enums.AgeRating;
+import com.example.backend_pj4.common.constants.enums.AudioTrackType;
 import com.example.backend_pj4.common.constants.enums.MovieType;
+import com.example.backend_pj4.common.constants.enums.VideoQuality;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 
@@ -34,6 +38,9 @@ public class Movie {
     private VideoVisibility visibility;
     private Boolean isPremium;
     private Boolean isFeatured;
+    private AgeRating ageRating;
+    private Set<VideoQuality> videoQualities;
+    private Set<AudioTrackType> audioTracks;
     private BigDecimal rating;
     private Long viewCount;
     private String rawFileKey;

@@ -9,7 +9,6 @@ import com.example.backend_pj4.application.port.in.rating.GetMyRatingQuery;
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.domain.model.Movie;
-import com.example.backend_pj4.domain.model.Rating;
 import com.example.backend_pj4.domain.repository.MovieRepository;
 import com.example.backend_pj4.domain.repository.RatingRepository;
 import com.example.backend_pj4.domain.repository.UserRepository;

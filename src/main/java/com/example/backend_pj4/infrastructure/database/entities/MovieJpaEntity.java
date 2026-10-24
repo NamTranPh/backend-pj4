@@ -1,9 +1,16 @@
 package com.example.backend_pj4.infrastructure.database.entities;
 
+import com.example.backend_pj4.common.constants.enums.AgeRating;
+import com.example.backend_pj4.common.constants.enums.AudioTrackType;
 import com.example.backend_pj4.common.constants.enums.MovieType;
+import com.example.backend_pj4.common.constants.enums.VideoQuality;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
+import com.example.backend_pj4.infrastructure.database.converter.AudioTrackTypeSetConverter;
+import com.example.backend_pj4.infrastructure.database.converter.VideoQualitySetConverter;
 import org.hibernate.annotations.BatchSize;
+
+import java.util.Set;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -93,6 +100,18 @@ public class MovieJpaEntity {
 
     @Column(name = "is_featured")
     private Boolean isFeatured;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "age_rating", length = 10, nullable = false)
+    private AgeRating ageRating = AgeRating.T18;
+
+    @Convert(converter = VideoQualitySetConverter.class)
+    @Column(name = "video_qualities", length = 255, nullable = false)
+    private Set<VideoQuality> videoQualities = Set.of(VideoQuality.HD);
+
+    @Convert(converter = AudioTrackTypeSetConverter.class)
+    @Column(name = "audio_tracks", length = 255, nullable = false)
+    private Set<AudioTrackType> audioTracks = Set.of(AudioTrackType.VIETSUB);
 
     @Column(name = "rating", precision = 3, scale = 1)
     private BigDecimal rating;
@@ -225,6 +244,9 @@ public class MovieJpaEntity {
     public void setVisibility(VideoVisibility visibility) { this.visibility = visibility; }
     public void setIsPremium(Boolean isPremium) { this.isPremium = isPremium; }
     public void setIsFeatured(Boolean isFeatured) { this.isFeatured = isFeatured; }
+    public void setAgeRating(AgeRating ageRating) { this.ageRating = ageRating; }
+    public void setVideoQualities(Set<VideoQuality> videoQualities) { this.videoQualities = videoQualities; }
+    public void setAudioTracks(Set<AudioTrackType> audioTracks) { this.audioTracks = audioTracks; }
     public void setRating(BigDecimal rating) { this.rating = rating; }
     public void setViewCount(Long viewCount) { this.viewCount = viewCount; }
     public void setRawFileKey(String rawFileKey) { this.rawFileKey = rawFileKey; }

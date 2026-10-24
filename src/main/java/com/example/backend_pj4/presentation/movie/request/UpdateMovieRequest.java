@@ -1,8 +1,12 @@
 package com.example.backend_pj4.presentation.movie.request;
 
 import java.util.List;
+import java.util.Set;
 
+import com.example.backend_pj4.common.constants.enums.AgeRating;
+import com.example.backend_pj4.common.constants.enums.AudioTrackType;
 import com.example.backend_pj4.common.constants.enums.MovieType;
+import com.example.backend_pj4.common.constants.enums.VideoQuality;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 
@@ -21,6 +25,9 @@ public record UpdateMovieRequest(
         @Size(max = 500) String trailerUrl,
         MovieType movieType,
         Integer totalEpisodes,
+        AgeRating ageRating,
+        Set<VideoQuality> videoQualities,
+        Set<AudioTrackType> audioTracks,
         Boolean isFeatured,
         Boolean isPremium,
         VideoStatus status,

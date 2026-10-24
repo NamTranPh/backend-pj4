@@ -2,6 +2,7 @@ package com.example.backend_pj4.infrastructure.database.mappers;
 
 import org.springframework.stereotype.Component;
 
+import com.example.backend_pj4.common.constants.enums.GenreStatus;
 import com.example.backend_pj4.domain.model.Genre;
 import com.example.backend_pj4.infrastructure.database.entities.GenreJpaEntity;
 
@@ -31,7 +32,7 @@ public class GenrePersistenceMapper {
         entity.setSlug(domain.getSlug());
         entity.setIcon(domain.getIcon());
         entity.setDescription(domain.getDescription());
-        entity.setStatus(domain.getStatus());
+        entity.setStatus(domain.getStatus() != null ? domain.getStatus() : GenreStatus.ACTIVE);
         entity.setDeletedAt(domain.getDeletedAt());
         return entity;
     }

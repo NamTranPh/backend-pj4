@@ -2,6 +2,7 @@ package com.example.backend_pj4.application.usecase.movie;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,10 @@ import com.example.backend_pj4.application.mapper.MovieResultMapper;
 import com.example.backend_pj4.application.port.in.movie.CreateMovieUseCase;
 
 import com.example.backend_pj4.common.constants.ErrorCode;
+import com.example.backend_pj4.common.constants.enums.AgeRating;
+import com.example.backend_pj4.common.constants.enums.AudioTrackType;
+import com.example.backend_pj4.common.constants.enums.MovieType;
+import com.example.backend_pj4.common.constants.enums.VideoQuality;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 import com.example.backend_pj4.common.exceptions.CustomException;
@@ -53,6 +58,13 @@ public class CreateMovieService implements CreateMovieUseCase {
             slug = slug + "-" + System.currentTimeMillis();
         }
 
+        MovieType movieType = command.movieType() != null ? command.movieType() : MovieType.SINGLE;
+        AgeRating ageRating = command.ageRating() != null ? command.ageRating() : AgeRating.T18;
+        Set<VideoQuality> videoQualities = (command.videoQualities() != null && !command.videoQualities().isEmpty())
+                ? command.videoQualities() : Set.of(VideoQuality.HD);
+        Set<AudioTrackType> audioTracks = (command.audioTracks() != null && !command.audioTracks().isEmpty())
+                ? command.audioTracks() : Set.of(AudioTrackType.VIETSUB);
+
         Movie movie = Movie.builder()
                 .slug(slug)
                 .title(command.title())
@@ -65,8 +77,11 @@ public class CreateMovieService implements CreateMovieUseCase {
                 .country(command.country())
                 .language(command.language())
                 .trailerUrl(command.trailerUrl())
-                .movieType(command.movieType())
+                .movieType(movieType)
                 .totalEpisodes(command.totalEpisodes())
+                .ageRating(ageRating)
+                .videoQualities(videoQualities)
+                .audioTracks(audioTracks)
                 .status(VideoStatus.DRAFT)
                 .visibility(VideoVisibility.PUBLIC)
                 .isPremium(false)

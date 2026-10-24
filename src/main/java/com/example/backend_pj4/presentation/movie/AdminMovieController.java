@@ -90,6 +90,7 @@ public class AdminMovieController {
                 request.releaseYear(), request.duration(), request.director(),
                 request.actors(), request.country(), request.language(),
                 request.trailerUrl(), request.movieType(), request.totalEpisodes(),
+                request.ageRating(), request.videoQualities(), request.audioTracks(),
                 request.genreIds(), userDetails.getUsername()));
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -105,6 +106,7 @@ public class AdminMovieController {
                 request.releaseYear(), request.duration(), request.director(),
                 request.actors(), request.country(), request.language(),
                 request.trailerUrl(), request.movieType(), request.totalEpisodes(),
+                request.ageRating(), request.videoQualities(), request.audioTracks(),
                 request.isFeatured(), request.isPremium(), request.status(),
                 request.visibility(), request.genreIds()));
         return ResponseEntity.ok(result);

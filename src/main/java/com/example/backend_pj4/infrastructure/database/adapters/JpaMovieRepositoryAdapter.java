@@ -1,9 +1,12 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.backend_pj4.common.pagination.PageQuery;
@@ -11,6 +14,7 @@ import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.Movie;
 import com.example.backend_pj4.domain.repository.MovieRepository;
 import com.example.backend_pj4.domain.repository.filter.MovieFilter;
+import com.example.backend_pj4.infrastructure.database.entities.MovieJpaEntity;
 import com.example.backend_pj4.infrastructure.database.mappers.MoviePersistenceMapper;
 import com.example.backend_pj4.infrastructure.database.repositories.MovieJpaRepository;
 import com.example.backend_pj4.infrastructure.database.specifications.MovieSpecification;
@@ -82,6 +86,27 @@ public class JpaMovieRepositoryAdapter implements MovieRepository {
     @Override
     public void restoreEpisodesByMovieId(String movieId) {
         movieJpaRepository.restoreEpisodesByMovieId(movieId);
+    }
+
+    @Override
+    public List<Movie> findRelatedMovies(String currentMovieId, List<String> genreIds, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<MovieJpaEntity> entities;
+        if (genreIds != null && !genreIds.isEmpty()) {
+            entities = new ArrayList<>(movieJpaRepository.findRelatedByGenres(currentMovieId, genreIds, pageable));
+            if (entities.size() < limit) {
+                List<MovieJpaEntity> top = movieJpaRepository.findTopPublicMovies(currentMovieId, pageable);
+                for (MovieJpaEntity m : top) {
+                    if (entities.size() >= limit) break;
+                    if (!entities.contains(m)) {
+                        entities.add(m);
+                    }
+                }
+            }
+        } else {
+            entities = movieJpaRepository.findTopPublicMovies(currentMovieId, pageable);
+        }
+        return entities.stream().map(moviePersistenceMapper::toListDomain).toList();
     }
 
     @Override

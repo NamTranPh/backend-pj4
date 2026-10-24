@@ -1,11 +1,14 @@
 package com.example.backend_pj4.presentation.movie.request;
 
 import java.util.List;
+import java.util.Set;
 
+import com.example.backend_pj4.common.constants.enums.AgeRating;
+import com.example.backend_pj4.common.constants.enums.AudioTrackType;
 import com.example.backend_pj4.common.constants.enums.MovieType;
+import com.example.backend_pj4.common.constants.enums.VideoQuality;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CreateMovieRequest(
@@ -19,8 +22,11 @@ public record CreateMovieRequest(
         @Size(max = 100) String country,
         @Size(max = 50) String language,
         @Size(max = 500) String trailerUrl,
-        @NotNull MovieType movieType,
+        MovieType movieType,
         Integer totalEpisodes,
+        AgeRating ageRating,
+        Set<VideoQuality> videoQualities,
+        Set<AudioTrackType> audioTracks,
         List<String> genreIds
 ) {
 }

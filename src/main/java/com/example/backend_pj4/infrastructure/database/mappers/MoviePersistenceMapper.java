@@ -90,6 +90,9 @@ public class MoviePersistenceMapper {
                 .visibility(entity.getVisibility())
                 .isPremium(entity.getIsPremium())
                 .isFeatured(entity.getIsFeatured())
+                .ageRating(entity.getAgeRating())
+                .videoQualities(entity.getVideoQualities())
+                .audioTracks(entity.getAudioTracks())
                 .rating(entity.getRating())
                 .viewCount(entity.getViewCount())
                 .deletedAt(entity.getDeletedAt())
@@ -126,6 +129,15 @@ public class MoviePersistenceMapper {
         entity.setVisibility(domain.getVisibility());
         entity.setIsPremium(domain.getIsPremium());
         entity.setIsFeatured(domain.getIsFeatured());
+        if (domain.getAgeRating() != null) {
+            entity.setAgeRating(domain.getAgeRating());
+        }
+        if (domain.getVideoQualities() != null && !domain.getVideoQualities().isEmpty()) {
+            entity.setVideoQualities(domain.getVideoQualities());
+        }
+        if (domain.getAudioTracks() != null && !domain.getAudioTracks().isEmpty()) {
+            entity.setAudioTracks(domain.getAudioTracks());
+        }
         entity.setRating(domain.getRating());
         entity.setViewCount(domain.getViewCount());
         entity.setRawFileKey(domain.getRawFileKey());

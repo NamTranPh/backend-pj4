@@ -6,9 +6,14 @@ import java.util.List;
 
 import com.example.backend_pj4.application.dto.episode.EpisodeResult;
 import com.example.backend_pj4.application.dto.genre.GenreResult;
+import com.example.backend_pj4.common.constants.enums.AgeRating;
+import com.example.backend_pj4.common.constants.enums.AudioTrackType;
 import com.example.backend_pj4.common.constants.enums.MovieType;
+import com.example.backend_pj4.common.constants.enums.VideoQuality;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
+
+import java.util.Set;
 
 public record MovieDetailResult(
         String id,
@@ -31,6 +36,9 @@ public record MovieDetailResult(
         VideoVisibility visibility,
         Boolean isPremium,
         Boolean isFeatured,
+        AgeRating ageRating,
+        Set<VideoQuality> videoQualities,
+        Set<AudioTrackType> audioTracks,
         BigDecimal rating,
         Long viewCount,
         String rawFileKey,
@@ -63,6 +71,9 @@ public record MovieDetailResult(
             VideoVisibility visibility,
             Boolean isPremium,
             Boolean isFeatured,
+            AgeRating ageRating,
+            Set<VideoQuality> videoQualities,
+            Set<AudioTrackType> audioTracks,
             BigDecimal rating,
             Long viewCount,
             String rawFileKey,
@@ -75,6 +86,7 @@ public record MovieDetailResult(
     ) {
         this(id, slug, title, originalTitle, description, releaseYear, duration, director, actors, country, language,
                 trailerUrl, posterUrl, backdropUrl, movieType, totalEpisodes, status, visibility, isPremium, isFeatured,
+                ageRating, videoQualities, audioTracks,
                 rating, viewCount, rawFileKey, masterPlaylistKey, genres, episodes, createdByName, createdAt, updatedAt, false);
     }
 }

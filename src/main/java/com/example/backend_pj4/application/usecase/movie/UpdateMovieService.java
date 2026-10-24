@@ -10,6 +10,7 @@ import com.example.backend_pj4.application.dto.movie.MovieResult;
 import com.example.backend_pj4.application.mapper.MovieResultMapper;
 import com.example.backend_pj4.application.port.in.movie.UpdateMovieUseCase;
 import com.example.backend_pj4.common.constants.ErrorCode;
+import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.common.util.SlugUtils;
 import com.example.backend_pj4.domain.model.Genre;
@@ -57,11 +58,14 @@ public class UpdateMovieService implements UpdateMovieUseCase {
         if (command.trailerUrl() != null) builder.trailerUrl(command.trailerUrl());
         if (command.movieType() != null) builder.movieType(command.movieType());
         if (command.totalEpisodes() != null) builder.totalEpisodes(command.totalEpisodes());
+        if (command.ageRating() != null) builder.ageRating(command.ageRating());
+        if (command.videoQualities() != null && !command.videoQualities().isEmpty()) builder.videoQualities(command.videoQualities());
+        if (command.audioTracks() != null && !command.audioTracks().isEmpty()) builder.audioTracks(command.audioTracks());
         if (command.isFeatured() != null) builder.isFeatured(command.isFeatured());
         if (command.isPremium() != null) builder.isPremium(command.isPremium());
         if (command.status() != null) {
-            if (command.status() == com.example.backend_pj4.common.constants.enums.VideoStatus.READY
-                    || command.status() == com.example.backend_pj4.common.constants.enums.VideoStatus.PROCESSING) {
+            if (command.status() == VideoStatus.READY
+                    || command.status() == VideoStatus.PROCESSING) {
                 throw new CustomException(ErrorCode.INVALID_STATUS_TRANSITION);
             }
             builder.status(command.status());

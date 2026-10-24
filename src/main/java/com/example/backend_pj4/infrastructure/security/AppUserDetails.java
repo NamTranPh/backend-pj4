@@ -4,6 +4,9 @@ import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import com.example.backend_pj4.common.constants.enums.UserRole;
 
 /**
  * Mặc định, lớp User của Spring Security chỉ lưu username (email), password và authorities (danh sách quyền). 
@@ -39,21 +42,19 @@ public class AppUserDetails extends User {
     /**
      * Lấy Role đọc từ authorities người dùng thay vì tra database.
      */
-    public static com.example.backend_pj4.common.constants.enums.UserRole roleOf(
-            org.springframework.security.core.userdetails.UserDetails principal) {
+    public static UserRole roleOf(UserDetails principal) {
         return principal.getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
+                .map(GrantedAuthority::getAuthority)
                 .filter(authority -> authority.startsWith("ROLE_"))
-                .map(authority -> com.example.backend_pj4.common.constants.enums.UserRole
-                        .valueOf(authority.substring("ROLE_".length())))
+                .map(authority -> UserRole.valueOf(authority.substring("ROLE_".length())))
                 .findFirst()
-                .orElse(com.example.backend_pj4.common.constants.enums.UserRole.USER);
+                .orElse(UserRole.USER);
     }
 
     /**
      * Lấy userId từ thông tin đăng nhập. Dùng ở controller thay cho việc gọi thêm một use case chỉ để tra id.
      */
-    public static String userIdOf(org.springframework.security.core.userdetails.UserDetails principal) {
+    public static String userIdOf(UserDetails principal) {
         if (principal instanceof AppUserDetails appUser) {
             return appUser.getUserId();
         }
