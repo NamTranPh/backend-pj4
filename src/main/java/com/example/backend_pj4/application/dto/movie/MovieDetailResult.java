@@ -14,6 +14,7 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 
 import java.util.Set;
+import com.example.backend_pj4.application.dto.actor.MovieActorResult;
 
 public record MovieDetailResult(
         String id,
@@ -24,7 +25,7 @@ public record MovieDetailResult(
         Integer releaseYear,
         Integer duration,
         String director,
-        String actors,
+        List<MovieActorResult> movieActors,
         String country,
         String language,
         String trailerUrl,
@@ -59,7 +60,6 @@ public record MovieDetailResult(
             Integer releaseYear,
             Integer duration,
             String director,
-            String actors,
             String country,
             String language,
             String trailerUrl,
@@ -84,7 +84,7 @@ public record MovieDetailResult(
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
-        this(id, slug, title, originalTitle, description, releaseYear, duration, director, actors, country, language,
+        this(id, slug, title, originalTitle, description, releaseYear, duration, director, List.of(), country, language,
                 trailerUrl, posterUrl, backdropUrl, movieType, totalEpisodes, status, visibility, isPremium, isFeatured,
                 ageRating, videoQualities, audioTracks,
                 rating, viewCount, rawFileKey, masterPlaylistKey, genres, episodes, createdByName, createdAt, updatedAt, false);

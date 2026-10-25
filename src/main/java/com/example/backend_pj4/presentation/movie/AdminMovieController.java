@@ -85,10 +85,17 @@ public class AdminMovieController {
             @Valid @RequestBody CreateMovieRequest request,
             @AuthResultUser UserDetails userDetails
     ) {
+        java.util.List<com.example.backend_pj4.application.command.actor.MovieActorAssignmentCommand> movieActors =
+                request.movieActors() != null
+                        ? request.movieActors().stream()
+                                .map(a -> new com.example.backend_pj4.application.command.actor.MovieActorAssignmentCommand(a.actorId(), a.characterName(), a.orderIndex()))
+                                .toList()
+                        : java.util.Collections.emptyList();
+
         MovieResult result = createMovieUseCase.execute(new CreateMovieCommand(
                 request.title(), request.originalTitle(), request.description(),
                 request.releaseYear(), request.duration(), request.director(),
-                request.actors(), request.country(), request.language(),
+                movieActors, request.country(), request.language(),
                 request.trailerUrl(), request.movieType(), request.totalEpisodes(),
                 request.ageRating(), request.videoQualities(), request.audioTracks(),
                 request.genreIds(), userDetails.getUsername()));
@@ -101,10 +108,17 @@ public class AdminMovieController {
             @PathVariable String id,
             @Valid @RequestBody UpdateMovieRequest request
     ) {
+        java.util.List<com.example.backend_pj4.application.command.actor.MovieActorAssignmentCommand> movieActors =
+                request.movieActors() != null
+                        ? request.movieActors().stream()
+                                .map(a -> new com.example.backend_pj4.application.command.actor.MovieActorAssignmentCommand(a.actorId(), a.characterName(), a.orderIndex()))
+                                .toList()
+                        : null;
+
         MovieResult result = updateMovieUseCase.execute(new UpdateMovieCommand(
                 id, request.title(), request.originalTitle(), request.description(),
                 request.releaseYear(), request.duration(), request.director(),
-                request.actors(), request.country(), request.language(),
+                movieActors, request.country(), request.language(),
                 request.trailerUrl(), request.movieType(), request.totalEpisodes(),
                 request.ageRating(), request.videoQualities(), request.audioTracks(),
                 request.isFeatured(), request.isPremium(), request.status(),

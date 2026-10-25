@@ -13,6 +13,7 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 
 import java.util.Set;
+import com.example.backend_pj4.application.dto.actor.MovieActorResult;
 
 public record MovieResult(
         String id,
@@ -23,7 +24,7 @@ public record MovieResult(
         Integer releaseYear,
         Integer duration,
         String director,
-        String actors,
+        List<MovieActorResult> movieActors,
         String country,
         String language,
         String trailerUrl,
@@ -48,13 +49,13 @@ public record MovieResult(
 ) {
     public MovieResult(
             String id, String slug, String title, String originalTitle, String description,
-            Integer releaseYear, Integer duration, String director, String actors,
+            Integer releaseYear, Integer duration, String director,
             String country, String language, String trailerUrl, String posterUrl, String backdropUrl,
             MovieType movieType, Integer totalEpisodes, VideoStatus status, VideoVisibility visibility,
             Boolean isPremium, Boolean isFeatured, BigDecimal rating, Long viewCount,
             List<GenreResult> genres, LocalDateTime createdAt, LocalDateTime updatedAt
     ) {
-        this(id, slug, title, originalTitle, description, releaseYear, duration, director, actors,
+        this(id, slug, title, originalTitle, description, releaseYear, duration, director, List.of(),
                 country, language, trailerUrl, posterUrl, backdropUrl, movieType, totalEpisodes,
                 status, visibility, isPremium, isFeatured, AgeRating.T18,
                 Set.of(VideoQuality.HD), Set.of(AudioTrackType.VIETSUB),

@@ -42,6 +42,8 @@
 | 19  | `report`             | ⏳ **CHƯA DÙNG** — module chưa làm        | **0**        |
 | 20  | `outbox_event`       | ⏳ **CHƯA DÙNG** — chưa có message broker | **0**        |
 | 21  | `comment_like`       | Lượt thích bình luận                      | ~300k        |
+| 22  | `actor`              | Diễn viên                                 | ~10k         |
+| 23  | `movie_actor`        | Phân vai diễn viên trong phim             | ~50k         |
 
 ---
 
@@ -113,40 +115,40 @@
 
 ### 3. movie (Phim)
 
-| STT | Column              | Type                                                                | Constraint                  | Description                       |
-| --- | ------------------- | ------------------------------------------------------------------- | --------------------------- | --------------------------------- |
-| 1   | id                  | UUID (String)                                                       | PRIMARY KEY                 | ID phim                           |
-| 2   | slug                | VARCHAR(255)                                                        | NOT NULL, UNIQUE            | Slug SEO-friendly                 |
-| 3   | title               | VARCHAR(255)                                                        | NOT NULL                    | Tên phim                          |
-| 4   | original_title      | VARCHAR(255)                                                        | -                           | Tên gốc                           |
-| 5   | description         | TEXT                                                                | -                           | Mô tả                             |
-| 6   | release_year        | YEAR                                                                | -                           | Năm phát hành                     |
-| 7   | duration            | INT                                                                 | -                           | Thời lượng (phút)                 |
-| 8   | director            | VARCHAR(255)                                                        | -                           | Đạo diễn                          |
-| 9   | actors              | TEXT                                                                | -                           | Diễn viên                         |
-| 10  | country             | VARCHAR(100)                                                        | -                           | Quốc gia                          |
-| 11  | language            | VARCHAR(50)                                                         | -                           | Ngôn ngữ                          |
-| 12  | trailer_url         | VARCHAR(500)                                                        | -                           | URL trailer                       |
-| 13  | poster_url          | VARCHAR(500)                                                        | -                           | URL poster                        |
-| 14  | backdrop_url        | VARCHAR(500)                                                        | -                           | URL backdrop                      |
-| 15  | movie_type          | ENUM(SINGLE, SERIES)                                                | NOT NULL, DEFAULT 'SINGLE'  | Loại phim                         |
-| 16  | total_episodes      | INT                                                                 | -                           | Tổng tập (SERIES)                 |
-| 17  | status              | ENUM(DRAFT, PROCESSING, READY, PUBLISHED, FAILED, REJECTED, BANNED) | NOT NULL                    | Trạng thái video                  |
-| 18  | visibility          | ENUM(PUBLIC, PRIVATE, MEMBERS_ONLY)                                 | NOT NULL                    | Phạm vi hiển thị                  |
-| 19  | is_premium          | BOOLEAN                                                             | -                           | Phim premium                      |
-| 20  | is_featured         | BOOLEAN                                                             | -                           | Phim nổi bật                      |
-| 21  | rating              | DECIMAL(3,1)                                                        | -                           | Điểm đánh giá (0.0-10.0)          |
-| 22  | view_count          | BIGINT                                                              | -                           | Số lượt xem                       |
-| 23  | raw_file_key        | VARCHAR(500)                                                        | -                           | Key file gốc trên MinIO           |
-| 24  | master_playlist_key | VARCHAR(500)                                                        | -                           | Key HLS master playlist           |
-| 25  | resolutions         | JSON                                                                | -                           | Danh sách resolution đã transcode |
-| 26  | created_by          | UUID (String)                                                       | FOREIGN KEY (user)          | Người tạo (admin)                 |
-| 27  | deleted_at          | TIMESTAMP                                                           | -                           | Soft delete                       |
-| 28  | created_at          | TIMESTAMP                                                           | DEFAULT CURRENT_TIMESTAMP   | Ngày tạo                          |
-| 29  | updated_at          | TIMESTAMP                                                           | -                           | Ngày cập nhật                     |
-| 30  | age_rating          | ENUM(P, K, T13, T16, T18, C)                                        | NOT NULL, DEFAULT 'T18'     | Độ tuổi giới hạn                  |
-| 31  | video_qualities     | VARCHAR(255)                                                        | NOT NULL, DEFAULT 'HD'      | Chất lượng video (CSV)            |
-| 32  | audio_tracks        | VARCHAR(255)                                                        | NOT NULL, DEFAULT 'VIETSUB' | Âm thanh / phụ đề (CSV)           |
+| STT | Column              | Type                                                                | Constraint                   | Description                       |
+| --- | ------------------- | ------------------------------------------------------------------- | ---------------------------- | --------------------------------- |
+| 1   | id                  | UUID (String)                                                       | PRIMARY KEY                  | ID phim                           |
+| 2   | slug                | VARCHAR(255)                                                        | NOT NULL, UNIQUE             | Slug SEO-friendly                 |
+| 3   | title               | VARCHAR(255)                                                        | NOT NULL                     | Tên phim                          |
+| 4   | original_title      | VARCHAR(255)                                                        | -                            | Tên gốc                           |
+| 5   | description         | TEXT                                                                | -                            | Mô tả                             |
+| 6   | release_year        | YEAR                                                                | -                            | Năm phát hành                     |
+| 7   | duration            | INT                                                                 | -                            | Thời lượng (phút)                 |
+| 8   | director            | VARCHAR(255)                                                        | -                            | Đạo diễn                          |
+| -   | movie_actor         | RELATION                                                            | Many-to-Many via movie_actor | Danh sách diễn viên & phân vai    |
+| 9   | country             | VARCHAR(100)                                                        | -                            | Quốc gia                          |
+| 10  | language            | VARCHAR(50)                                                         | -                            | Ngôn ngữ                          |
+| 11  | trailer_url         | VARCHAR(500)                                                        | -                            | URL trailer                       |
+| 12  | poster_url          | VARCHAR(500)                                                        | -                            | URL poster                        |
+| 13  | backdrop_url        | VARCHAR(500)                                                        | -                            | URL backdrop                      |
+| 14  | movie_type          | ENUM(SINGLE, SERIES)                                                | NOT NULL, DEFAULT 'SINGLE'   | Loại phim                         |
+| 15  | total_episodes      | INT                                                                 | -                            | Tổng tập (SERIES)                 |
+| 16  | status              | ENUM(DRAFT, PROCESSING, READY, PUBLISHED, FAILED, REJECTED, BANNED) | NOT NULL                     | Trạng thái video                  |
+| 17  | visibility          | ENUM(PUBLIC, PRIVATE, MEMBERS_ONLY)                                 | NOT NULL                     | Phạm vi hiển thị                  |
+| 18  | is_premium          | BOOLEAN                                                             | -                            | Phim premium                      |
+| 19  | is_featured         | BOOLEAN                                                             | -                            | Phim nổi bật                      |
+| 20  | rating              | DECIMAL(3,1)                                                        | -                            | Điểm đánh giá (0.0-10.0)          |
+| 21  | view_count          | BIGINT                                                              | -                            | Số lượt xem                       |
+| 22  | raw_file_key        | VARCHAR(500)                                                        | -                            | Key file gốc trên MinIO           |
+| 23  | master_playlist_key | VARCHAR(500)                                                        | -                            | Key HLS master playlist           |
+| 24  | resolutions         | JSON                                                                | -                            | Danh sách resolution đã transcode |
+| 25  | created_by          | UUID (String)                                                       | FOREIGN KEY (user)           | Người tạo (admin)                 |
+| 26  | deleted_at          | TIMESTAMP                                                           | -                            | Soft delete                       |
+| 27  | created_at          | TIMESTAMP                                                           | DEFAULT CURRENT_TIMESTAMP    | Ngày tạo                          |
+| 28  | updated_at          | TIMESTAMP                                                           | -                            | Ngày cập nhật                     |
+| 29  | age_rating          | ENUM(P, K, T13, T16, T18, C)                                        | NOT NULL, DEFAULT 'T18'      | Độ tuổi giới hạn                  |
+| 30  | video_qualities     | VARCHAR(255)                                                        | NOT NULL, DEFAULT 'HD'       | Chất lượng video (CSV)            |
+| 31  | audio_tracks        | VARCHAR(255)                                                        | NOT NULL, DEFAULT 'VIETSUB'  | Âm thanh / phụ đề (CSV)           |
 
 **Soft delete:** `@Where(clause = "deleted_at IS NULL")`
 
@@ -157,7 +159,10 @@
 - FOREIGN KEY: created_by → user(id)
 - INDEX: idx_movie_movie_type, idx_movie_release_year, idx_movie_rating, idx_movie_status, idx_movie_deleted_at
 
-**Many-to-Many:** movie ↔ genre (via movie_genre table)
+**Many-to-Many:**
+
+- movie ↔ genre (via `movie_genre` table)
+- movie ↔ actor (via `movie_actor` table)
 
 > Slug auto-generate từ title: "Hoa Khai Cẩm Tú" → "hoa-khai-cam-tu"
 
@@ -309,16 +314,15 @@ Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, 
 
 ### 9. rating (Đánh giá)
 
-| STT | Column     | Type          | Constraint                    | Description                   |
-| --- | ---------- | ------------- | ----------------------------- | ----------------------------- |
-| 1   | id         | UUID (String) | PRIMARY KEY                   | ID đánh giá                   |
-| 2   | user_id    | UUID (String) | FOREIGN KEY (user), NOT NULL  | ID người đánh giá             |
-| 3   | movie_id   | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim                       |
-| 4   | score      | INT           | NOT NULL                      | Điểm                          |
-| 5   | review     | TEXT          | -                             | Nhận xét                      |
-| 6   | deleted_at | TIMESTAMP     | -                             | ⛔ **CỘT CHẾT** — xem ghi chú |
-| 7   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo                      |
-| 8   | updated_at | TIMESTAMP     | -                             | Ngày cập nhật                 |
+| STT | Column     | Type          | Constraint                    | Description       |
+| --- | ---------- | ------------- | ----------------------------- | ----------------- |
+| 1   | id         | UUID (String) | PRIMARY KEY                   | ID đánh giá       |
+| 2   | user_id    | UUID (String) | FOREIGN KEY (user), NOT NULL  | ID người đánh giá |
+| 3   | movie_id   | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim           |
+| 4   | score      | INT           | NOT NULL                      | Điểm              |
+| 5   | review     | TEXT          | -                             | Nhận xét          |
+| 6   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo          |
+| 7   | updated_at | TIMESTAMP     | -                             | Ngày cập nhật     |
 
 `score` là **số nguyên 1–5** (số sao). Ràng buộc nằm ở tầng ứng dụng (`RateMovieService` + `@Min/@Max` ở DTO), không có `CHECK` ở database.
 
@@ -326,24 +330,11 @@ Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, 
 
 - PRIMARY KEY: id
 - UNIQUE: (user_id, movie_id)
-- INDEX: idx_rating_movie_id, idx_rating_score, idx_rating_deleted_at
+- INDEX: idx_rating_movie_id, idx_rating_score
 
-**⛔ Bảng này XOÁ CỨNG, cột `deleted_at` không bao giờ được ghi.**
+**⛔ Bảng này XOÁ CỨNG (Hard Delete), không dùng soft delete.**
 
-Entity vẫn mang `@Where(deleted_at IS NULL)` từ thiết kế ban đầu, nhưng **không được xoá mềm**, vì nó xung khắc với `UNIQUE(user_id, movie_id)`:
-
-```
-1. A chấm phim X 5 sao        -> dòng (A, X, 5), deleted_at = NULL
-2. A xoá (nếu xoá mềm)        -> dòng (A, X, 5), deleted_at = now   <- DÒNG VẪN CÒN
-3. A chấm lại phim X 3 sao
-   findByUserIdAndMovieId     -> @Where thêm "AND deleted_at IS NULL" -> KHÔNG thấy dòng cũ
-                              -> code tưởng chưa từng chấm           -> INSERT dòng mới
-   MySQL                      -> Duplicate entry for key uk_rating_user_movie   ✗
-```
-
-Kết quả nếu làm sai: **người dùng không bao giờ chấm lại được phim đã xoá đánh giá**. Bảng `list_favorite` có đúng cặp ràng buộc này và cũng xoá cứng, vì cùng lý do.
-
-Xoá cứng an toàn ở đây vì một đánh giá chỉ là một con số và một đoạn nhận xét của chính người đó — không ai trả lời nó, không có nhánh con, không nghiệp vụ nào cần lịch sử. Khác hẳn `comment`, vốn có con cháu nên vẫn xoá mềm.
+Đã loại bỏ hoàn toàn cột `deleted_at` vì nó xung khắc với `UNIQUE(user_id, movie_id)`. Xoá cứng an toàn ở đây vì một đánh giá chỉ là một con số và một đoạn nhận xét của chính người đó — không có nhánh con trả lời, không nghiệp vụ nào cần lịch sử.
 
 ---
 
@@ -354,16 +345,17 @@ Xoá cứng an toàn ở đây vì một đánh giá chỉ là một con số v�
 | 1   | id         | UUID (String) | PRIMARY KEY                   | ID yêu thích  |
 | 2   | user_id    | UUID (String) | FOREIGN KEY (user), NOT NULL  | ID người dùng |
 | 3   | movie_id   | UUID (String) | FOREIGN KEY (movie), NOT NULL | ID phim       |
-| 4   | deleted_at | TIMESTAMP     | -                             | Soft delete   |
-| 5   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày thêm     |
+| 4   | created_at | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP     | Ngày thêm     |
 
-**Soft delete:** `@Where(clause = "deleted_at IS NULL")`
+**⛔ Bảng này XOÁ CỨNG (Hard Delete), không dùng soft delete.**
+
+Đã loại bỏ cột `deleted_at` vì xung khắc với ràng buộc `UNIQUE(user_id, movie_id)` khi người dùng huỷ thích rồi thích lại phim đó.
 
 **Index:**
 
 - PRIMARY KEY: id
 - UNIQUE: (user_id, movie_id)
-- INDEX: idx_list_favorite_user_id, idx_list_favorite_deleted_at
+- INDEX: idx_list_favorite_user_id
 
 ---
 
@@ -680,6 +672,55 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 Đây là **nguồn sự thật**; `comment.like_count` chỉ là ảnh chụp để trang danh sách khỏi phải `COUNT(*)` cho từng dòng.
 
 **Relationships:** ManyToOne → user, comment
+
+---
+
+### 22. actor (Diễn viên)
+
+| STT | Column        | Type          | Constraint                                            | Description                                   |
+| --- | ------------- | ------------- | ----------------------------------------------------- | --------------------------------------------- |
+| 1   | id            | UUID (String) | PRIMARY KEY                                           | ID diễn viên                                  |
+| 2   | name          | VARCHAR(255)  | NOT NULL                                              | Tên diễn viên (nghệ danh hoặc tên tiếng Việt) |
+| 3   | original_name | VARCHAR(255)  | -                                                     | Tên gốc (tiếng Nhật, Anh, Hàn, Trung...)      |
+| 4   | avatar_url    | VARCHAR(500)  | -                                                     | Key ảnh đại diện trong bucket actor-avatars   |
+| 5   | bio           | TEXT          | -                                                     | Tiểu sử tóm tắt                               |
+| 6   | birth_date    | DATE          | -                                                     | Ngày sinh                                     |
+| 7   | nationality   | VARCHAR(100)  | -                                                     | Quốc tịch (Japan, Korea, USA...)              |
+| 8   | deleted_at    | TIMESTAMP     | NULL                                                  | Xoá mềm                                       |
+| 9   | created_at    | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP                             | Thời điểm tạo                                 |
+| 10  | updated_at    | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | Thời điểm cập nhật                            |
+
+**Indexes:**
+
+- PRIMARY KEY: id
+- INDEX: idx_actor_name (name), idx_actor_original_name (original_name), idx_actor_nationality (nationality), idx_actor_deleted_at (deleted_at)
+
+**Relationships:**
+
+- OneToMany → `movie_actor`
+
+---
+
+### 23. movie_actor (Phân vai diễn viên trong phim)
+
+| STT | Column         | Type          | Constraint                    | Description                          |
+| --- | -------------- | ------------- | ----------------------------- | ------------------------------------ |
+| 1   | id             | UUID (String) | PRIMARY KEY                   | ID bản ghi phân vai                  |
+| 2   | movie_id       | UUID (String) | FOREIGN KEY (movie), NOT NULL | Phim tham gia                        |
+| 3   | actor_id       | UUID (String) | FOREIGN KEY (actor), NOT NULL | Diễn viên                            |
+| 4   | character_name | VARCHAR(255)  | -                             | Tên nhân vật / vai diễn trong phim   |
+| 5   | order_index    | INT           | DEFAULT 0                     | Thứ tự ưu tiên (diễn viên chính/phụ) |
+
+**Indexes:**
+
+- PRIMARY KEY: id
+- UNIQUE: uk_movie_actor (movie_id, actor_id)
+- INDEX: idx_movie_actor_movie (movie_id), idx_movie_actor_actor (actor_id)
+
+**Relationships:**
+
+- ManyToOne → `movie` (ON DELETE CASCADE)
+- ManyToOne → `actor` (ON DELETE CASCADE)
 
 ---
 

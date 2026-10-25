@@ -2,16 +2,18 @@ package com.example.backend_pj4.application.usecase.movie;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend_pj4.application.command.actor.MovieActorAssignmentCommand;
 import com.example.backend_pj4.application.command.movie.CreateMovieCommand;
 import com.example.backend_pj4.application.dto.movie.MovieResult;
 import com.example.backend_pj4.application.mapper.MovieResultMapper;
 import com.example.backend_pj4.application.port.in.movie.CreateMovieUseCase;
-
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.constants.enums.AgeRating;
 import com.example.backend_pj4.common.constants.enums.AudioTrackType;
@@ -21,8 +23,11 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.constants.enums.VideoVisibility;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.common.util.SlugUtils;
+import com.example.backend_pj4.domain.model.Actor;
 import com.example.backend_pj4.domain.model.Genre;
 import com.example.backend_pj4.domain.model.Movie;
+import com.example.backend_pj4.domain.model.MovieActor;
+import com.example.backend_pj4.domain.repository.ActorRepository;
 import com.example.backend_pj4.domain.repository.GenreRepository;
 import com.example.backend_pj4.domain.repository.MovieRepository;
 import com.example.backend_pj4.domain.repository.UserRepository;
@@ -32,12 +37,18 @@ public class CreateMovieService implements CreateMovieUseCase {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+    private final ActorRepository actorRepository;
     private final UserRepository userRepository;
     private final MovieResultMapper movieResultMapper;
 
-    public CreateMovieService(MovieRepository movieRepository, GenreRepository genreRepository, UserRepository userRepository, MovieResultMapper movieResultMapper) {
+    public CreateMovieService(MovieRepository movieRepository,
+                              GenreRepository genreRepository,
+                              ActorRepository actorRepository,
+                              UserRepository userRepository,
+                              MovieResultMapper movieResultMapper) {
         this.movieRepository = movieRepository;
         this.genreRepository = genreRepository;
+        this.actorRepository = actorRepository;
         this.userRepository = userRepository;
         this.movieResultMapper = movieResultMapper;
     }
@@ -51,6 +62,28 @@ public class CreateMovieService implements CreateMovieUseCase {
             if (genres.size() != command.genreIds().size()) {
                 throw new CustomException(ErrorCode.INVALID_GENRE_IDS);
             }
+        }
+
+        List<MovieActor> movieActors = Collections.emptyList();
+        if (command.movieActors() != null && !command.movieActors().isEmpty()) {
+            List<String> actorIds = command.movieActors().stream()
+                    .map(MovieActorAssignmentCommand::actorId)
+                    .distinct()
+                    .toList();
+            List<Actor> foundActors = actorRepository.findByIds(actorIds);
+            if (foundActors.size() != actorIds.size()) {
+                throw new CustomException(ErrorCode.INVALID_ACTOR_IDS);
+            }
+            Map<String, Actor> actorMap = foundActors.stream()
+                    .collect(Collectors.toMap(Actor::getId, a -> a));
+
+            movieActors = command.movieActors().stream().map(a -> MovieActor.builder()
+                    .actorId(a.actorId())
+                    .actor(actorMap.get(a.actorId()))
+                    .characterName(a.characterName())
+                    .orderIndex(a.orderIndex() != null ? a.orderIndex() : 0)
+                    .build()
+            ).toList();
         }
 
         String slug = SlugUtils.generateSlug(command.title());
@@ -73,7 +106,7 @@ public class CreateMovieService implements CreateMovieUseCase {
                 .releaseYear(command.releaseYear())
                 .duration(command.duration())
                 .director(command.director())
-                .actors(command.actors())
+                .movieActors(movieActors)
                 .country(command.country())
                 .language(command.language())
                 .trailerUrl(command.trailerUrl())

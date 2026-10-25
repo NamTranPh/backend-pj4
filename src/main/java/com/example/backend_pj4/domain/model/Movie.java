@@ -26,7 +26,7 @@ public class Movie {
     private Integer releaseYear;
     private Integer duration;
     private String director;
-    private String actors;
+    private List<MovieActor> movieActors;
     private String country;
     private String language;
     private String trailerUrl;

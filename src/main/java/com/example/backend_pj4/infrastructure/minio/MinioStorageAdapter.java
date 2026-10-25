@@ -174,7 +174,9 @@ public class MinioStorageAdapter implements FileStorageService {
     }
 
     private boolean isPublicBucket(String bucket) {
-        return bucket != null && (bucket.equals(minioProperties.getBucketPublic()) || bucket.equals(minioProperties.getBucketAvatar()));
+        return bucket != null && (bucket.equals(minioProperties.getBucketPublic())
+                || bucket.equals(minioProperties.getBucketAvatar())
+                || bucket.equals(minioProperties.getBucketActor()));
     }
 
     private void setPublicBucketPolicy(String bucket) {

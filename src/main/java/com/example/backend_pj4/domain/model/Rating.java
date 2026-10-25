@@ -13,7 +13,6 @@ public class Rating {
     private String movieId;
     private Integer score;
     private String review;
-    private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

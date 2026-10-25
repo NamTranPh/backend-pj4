@@ -1,10 +1,13 @@
 package com.example.backend_pj4.application.usecase.movie;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.backend_pj4.application.command.actor.MovieActorAssignmentCommand;
 import com.example.backend_pj4.application.command.movie.UpdateMovieCommand;
 import com.example.backend_pj4.application.dto.movie.MovieResult;
 import com.example.backend_pj4.application.mapper.MovieResultMapper;
@@ -13,8 +16,11 @@ import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.common.util.SlugUtils;
+import com.example.backend_pj4.domain.model.Actor;
 import com.example.backend_pj4.domain.model.Genre;
 import com.example.backend_pj4.domain.model.Movie;
+import com.example.backend_pj4.domain.model.MovieActor;
+import com.example.backend_pj4.domain.repository.ActorRepository;
 import com.example.backend_pj4.domain.repository.GenreRepository;
 import com.example.backend_pj4.domain.repository.MovieRepository;
 
@@ -23,11 +29,16 @@ public class UpdateMovieService implements UpdateMovieUseCase {
 
     private final MovieRepository movieRepository;
     private final GenreRepository genreRepository;
+    private final ActorRepository actorRepository;
     private final MovieResultMapper movieResultMapper;
 
-    public UpdateMovieService(MovieRepository movieRepository, GenreRepository genreRepository, MovieResultMapper movieResultMapper) {
+    public UpdateMovieService(MovieRepository movieRepository,
+                              GenreRepository genreRepository,
+                              ActorRepository actorRepository,
+                              MovieResultMapper movieResultMapper) {
         this.movieRepository = movieRepository;
         this.genreRepository = genreRepository;
+        this.actorRepository = actorRepository;
         this.movieResultMapper = movieResultMapper;
     }
 
@@ -52,7 +63,6 @@ public class UpdateMovieService implements UpdateMovieUseCase {
         if (command.releaseYear() != null) builder.releaseYear(command.releaseYear());
         if (command.duration() != null) builder.duration(command.duration());
         if (command.director() != null) builder.director(command.director());
-        if (command.actors() != null) builder.actors(command.actors());
         if (command.country() != null) builder.country(command.country());
         if (command.language() != null) builder.language(command.language());
         if (command.trailerUrl() != null) builder.trailerUrl(command.trailerUrl());
@@ -78,6 +88,30 @@ public class UpdateMovieService implements UpdateMovieUseCase {
                 throw new CustomException(ErrorCode.INVALID_GENRE_IDS);
             }
             builder.genres(genres);
+        }
+
+        if (command.movieActors() != null) {
+            List<String> actorIds = command.movieActors().stream()
+                    .map(MovieActorAssignmentCommand::actorId)
+                    .distinct()
+                    .toList();
+            List<Actor> foundActors = actorRepository.findByIds(actorIds);
+            if (foundActors.size() != actorIds.size()) {
+                throw new CustomException(ErrorCode.INVALID_ACTOR_IDS);
+            }
+            Map<String, Actor> actorMap = foundActors.stream()
+                    .collect(Collectors.toMap(Actor::getId, a -> a));
+
+            List<MovieActor> movieActors = command.movieActors().stream().map(a -> MovieActor.builder()
+                    .movieId(movie.getId())
+                    .actorId(a.actorId())
+                    .actor(actorMap.get(a.actorId()))
+                    .characterName(a.characterName())
+                    .orderIndex(a.orderIndex() != null ? a.orderIndex() : 0)
+                    .build()
+            ).toList();
+
+            builder.movieActors(movieActors);
         }
 
         Movie saved = movieRepository.save(builder.build());

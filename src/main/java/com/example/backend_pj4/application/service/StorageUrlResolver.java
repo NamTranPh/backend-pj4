@@ -26,6 +26,10 @@ public class StorageUrlResolver {
         return resolvePublic(minioProperties.getBucketAvatar(), objectKey);
     }
 
+    public String resolveActorAvatar(String objectKey) {
+        return resolvePublic(minioProperties.getBucketActor(), objectKey);
+    }
+
     public String resolveRaw(String objectKey) {
         return resolvePresigned(minioProperties.getBucketRaw(), objectKey);
     }

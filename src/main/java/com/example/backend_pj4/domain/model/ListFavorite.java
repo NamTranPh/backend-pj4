@@ -11,6 +11,5 @@ public class ListFavorite {
     private String id;
     private String userId;
     private String movieId;
-    private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
 }

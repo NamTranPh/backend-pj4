@@ -16,13 +16,16 @@ public class MoviePersistenceMapper {
     private final GenrePersistenceMapper genrePersistenceMapper;
     private final EpisodePersistenceMapper episodePersistenceMapper;
     private final UserPersistenceMapper userPersistenceMapper;
+    private final ActorPersistenceMapper actorPersistenceMapper;
 
     public MoviePersistenceMapper(GenrePersistenceMapper genrePersistenceMapper,
                                   EpisodePersistenceMapper episodePersistenceMapper,
-                                  UserPersistenceMapper userPersistenceMapper) {
+                                  UserPersistenceMapper userPersistenceMapper,
+                                  ActorPersistenceMapper actorPersistenceMapper) {
         this.genrePersistenceMapper = genrePersistenceMapper;
         this.episodePersistenceMapper = episodePersistenceMapper;
         this.userPersistenceMapper = userPersistenceMapper;
+        this.actorPersistenceMapper = actorPersistenceMapper;
     }
 
     /**
@@ -40,6 +43,9 @@ public class MoviePersistenceMapper {
                 .resolutions(entity.getResolutions())
                 .createdBy(userPersistenceMapper.toSimpleDomain(entity.getCreatedBy()))
                 .genres(mapGenres(entity))
+                .movieActors(entity.getMovieActors() != null
+                        ? entity.getMovieActors().stream().map(actorPersistenceMapper::toDomain).toList()
+                        : Collections.emptyList())
                 .episodes(entity.getEpisodes() != null
                         ? entity.getEpisodes().stream().map(episodePersistenceMapper::toSimpleDomain).toList()
                         : Collections.emptyList())
@@ -63,6 +69,9 @@ public class MoviePersistenceMapper {
         if (entity == null) return null;
         return baseBuilder(entity)
                 .genres(mapGenres(entity))
+                .movieActors(entity.getMovieActors() != null
+                        ? entity.getMovieActors().stream().map(actorPersistenceMapper::toDomain).toList()
+                        : Collections.emptyList())
                 .episodes(Collections.emptyList())
                 .build();
     }
@@ -78,7 +87,6 @@ public class MoviePersistenceMapper {
                 .releaseYear(entity.getReleaseYear())
                 .duration(entity.getDuration())
                 .director(entity.getDirector())
-                .actors(entity.getActors())
                 .country(entity.getCountry())
                 .language(entity.getLanguage())
                 .trailerUrl(entity.getTrailerUrl())
@@ -117,7 +125,6 @@ public class MoviePersistenceMapper {
         entity.setReleaseYear(domain.getReleaseYear());
         entity.setDuration(domain.getDuration());
         entity.setDirector(domain.getDirector());
-        entity.setActors(domain.getActors());
         entity.setCountry(domain.getCountry());
         entity.setLanguage(domain.getLanguage());
         entity.setTrailerUrl(domain.getTrailerUrl());
@@ -151,6 +158,20 @@ public class MoviePersistenceMapper {
         }
         if (domain.getGenres() != null) {
             entity.setGenres(domain.getGenres().stream().map(genrePersistenceMapper::toEntity).toList());
+        }
+        if (domain.getMovieActors() != null) {
+            List<com.example.backend_pj4.infrastructure.database.entities.MovieActorJpaEntity> actorEntities =
+                    domain.getMovieActors().stream().map(ma -> {
+                        com.example.backend_pj4.infrastructure.database.entities.MovieActorJpaEntity mae = actorPersistenceMapper.toEntity(ma);
+                        mae.setMovie(entity);
+                        return mae;
+                    }).toList();
+            if (entity.getMovieActors() == null) {
+                entity.setMovieActors(new java.util.ArrayList<>());
+            } else {
+                entity.getMovieActors().clear();
+            }
+            entity.getMovieActors().addAll(actorEntities);
         }
         return entity;
     }

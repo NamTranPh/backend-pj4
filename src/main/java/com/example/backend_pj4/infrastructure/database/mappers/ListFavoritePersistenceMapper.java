@@ -16,7 +16,6 @@ public class ListFavoritePersistenceMapper {
                 .id(entity.getId())
                 .userId(entity.getUser() != null ? entity.getUser().getId() : null)
                 .movieId(entity.getMovie() != null ? entity.getMovie().getId() : null)
-                .deletedAt(entity.getDeletedAt())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
@@ -25,7 +24,6 @@ public class ListFavoritePersistenceMapper {
         if (domain == null) return null;
         ListFavoriteJpaEntity entity = new ListFavoriteJpaEntity();
         entity.setId(domain.getId());
-        entity.setDeletedAt(domain.getDeletedAt());
         if (domain.getUserId() != null) {
             UserJpaEntity user = new UserJpaEntity();
             user.setId(domain.getUserId());

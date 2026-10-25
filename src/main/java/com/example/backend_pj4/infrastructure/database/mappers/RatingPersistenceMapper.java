@@ -18,7 +18,6 @@ public class RatingPersistenceMapper {
                 .movieId(entity.getMovie() != null ? entity.getMovie().getId() : null)
                 .score(entity.getScore())
                 .review(entity.getReview())
-                .deletedAt(entity.getDeletedAt())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -30,7 +29,6 @@ public class RatingPersistenceMapper {
         entity.setId(domain.getId());
         entity.setScore(domain.getScore());
         entity.setReview(domain.getReview());
-        entity.setDeletedAt(domain.getDeletedAt());
         if (domain.getUserId() != null) {
             UserJpaEntity user = new UserJpaEntity();
             user.setId(domain.getUserId());

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -13,10 +12,8 @@ import java.time.LocalDateTime;
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "movie_id"}),
         indexes = {
                 @Index(name = "idx_rating_movie_id", columnList = "movie_id"),
-                @Index(name = "idx_rating_score", columnList = "score"),
-                @Index(name = "idx_rating_deleted_at", columnList = "deleted_at")
+                @Index(name = "idx_rating_score", columnList = "score")
         })
-@SQLRestriction("deleted_at IS NULL")
 @Getter
 public class RatingJpaEntity {
 
@@ -39,9 +36,6 @@ public class RatingJpaEntity {
     @Column(name = "review", columnDefinition = "TEXT")
     private String review;
 
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -55,14 +49,13 @@ public class RatingJpaEntity {
     public void setId(String id) { this.id = id; }
 
     public RatingJpaEntity(String id, UserJpaEntity user, MovieJpaEntity movie, Integer score,
-                        String review, LocalDateTime deletedAt, LocalDateTime createdAt,
+                        String review, LocalDateTime createdAt,
                         LocalDateTime updatedAt) {
         this.id = id;
         this.user = user;
         this.movie = movie;
         this.score = score;
         this.review = review;
-        this.deletedAt = deletedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -71,6 +64,5 @@ public class RatingJpaEntity {
     public void setMovie(MovieJpaEntity movie) { this.movie = movie; }
     public void setScore(Integer score) { this.score = score; }
     public void setReview(String review) { this.review = review; }
-    public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
 }
 

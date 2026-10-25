@@ -8,6 +8,7 @@ import com.example.backend_pj4.common.constants.enums.AudioTrackType;
 import com.example.backend_pj4.common.constants.enums.MovieType;
 import com.example.backend_pj4.common.constants.enums.VideoQuality;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -18,7 +19,7 @@ public record CreateMovieRequest(
         Integer releaseYear,
         Integer duration,
         @Size(max = 255) String director,
-        @Size(max = 2000) String actors,
+        @Valid List<MovieActorAssignmentRequest> movieActors,
         @Size(max = 100) String country,
         @Size(max = 50) String language,
         @Size(max = 500) String trailerUrl,

@@ -15,4 +15,5 @@ public class MinioProperties {
     private String bucketProcessed;
     private String bucketPublic;
     private String bucketAvatar;
+    private String bucketActor;
 }

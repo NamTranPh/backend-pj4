@@ -33,10 +33,22 @@ public final class MovieSpecification {
 
             if (filter.q() != null && !filter.q().isBlank()) {
                 String pattern = "%" + filter.q().toLowerCase() + "%";
+                jakarta.persistence.criteria.Join<MovieJpaEntity, com.example.backend_pj4.infrastructure.database.entities.MovieActorJpaEntity> movieActorJoin =
+                        root.join("movieActors", jakarta.persistence.criteria.JoinType.LEFT);
+                jakarta.persistence.criteria.Join<com.example.backend_pj4.infrastructure.database.entities.MovieActorJpaEntity, com.example.backend_pj4.infrastructure.database.entities.ActorJpaEntity> actorJoin =
+                        movieActorJoin.join("actor", jakarta.persistence.criteria.JoinType.LEFT);
+
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("title")), pattern),
-                        cb.like(cb.lower(root.get("originalTitle")), pattern)
+                        cb.like(cb.lower(root.get("originalTitle")), pattern),
+                        cb.like(cb.lower(root.get("director")), pattern),
+                        cb.like(cb.lower(actorJoin.get("name")), pattern),
+                        cb.like(cb.lower(actorJoin.get("originalName")), pattern),
+                        cb.like(cb.lower(movieActorJoin.get("characterName")), pattern)
                 ));
+                if (query != null) {
+                    query.distinct(true);
+                }
             }
 
             if (filter.movieType() != null) {

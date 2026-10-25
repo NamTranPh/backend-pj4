@@ -456,6 +456,58 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ---
 
+## ACTOR Module (Admin)
+
+| STT | Chức năng           | Method | Path                                                        | Auth  | Request                                           | Response               |
+| --- | ------------------- | ------ | ----------------------------------------------------------- | ----- | ------------------------------------------------- | ---------------------- |
+| 1   | Tạo mới diễn viên   | POST   | `/api/v1/admin/actors`                                      | Admin | CreateActorRequest                                | ActorResult            |
+| 2   | Cập nhật diễn viên  | PATCH  | `/api/v1/admin/actors/{id}`                                 | Admin | UpdateActorRequest                                | ActorResult            |
+| 3   | Chi tiết diễn viên  | GET    | `/api/v1/admin/actors/{id}`                                 | Admin | -                                                 | ActorResult            |
+| 4   | Danh sách diễn viên | GET    | `/api/v1/admin/actors?search=&nationality=&page=1&limit=10` | Admin | search, nationality, page, limit, sortBy, sortDir | ActorList + pagination |
+| 5   | Xoá mềm diễn viên   | DELETE | `/api/v1/admin/actors/{id}`                                 | Admin | -                                                 | void                   |
+| 6   | Upload avatar       | POST   | `/api/v1/admin/actors/{id}/avatar`                          | Admin | file (multipart)                                  | ActorResult            |
+
+**ActorResult DTO:**
+
+```json
+{
+  "id": "uuid",
+  "name": "string",
+  "originalName": "string",
+  "avatarUrl": "url (tự động resolve từ MinIO actor-avatars)",
+  "bio": "string",
+  "birthDate": "YYYY-MM-DD",
+  "nationality": "string",
+  "createdAt": "datetime",
+  "updatedAt": "datetime"
+}
+```
+
+**Request DTOs:**
+
+```json
+{
+  "CreateActorRequest": {
+    "name": "string (required, max 255)",
+    "originalName": "string (max 255)",
+    "avatarUrl": "string (optional)",
+    "bio": "string (optional)",
+    "birthDate": "YYYY-MM-DD (optional)",
+    "nationality": "string (max 100, optional)"
+  },
+  "UpdateActorRequest": {
+    "name": "string (max 255, optional)",
+    "originalName": "string (max 255, optional)",
+    "avatarUrl": "string (optional)",
+    "bio": "string (optional)",
+    "birthDate": "YYYY-MM-DD (optional)",
+    "nationality": "string (max 100, optional)"
+  }
+}
+```
+
+---
+
 ## MOVIE Module (Public & Admin)
 
 ### Public
@@ -469,17 +521,17 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ### Admin
 
-| STT | Chức năng        | Method | Path                                                                                                                 | Auth  | Request                                                                                                                                                                                                                                                                                               | Response               |
-| --- | ---------------- | ------ | -------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| 1   | Create movie     | POST   | `/api/v1/admin/movies`                                                                                               | Admin | title, originalTitle?, description?, releaseYear?, duration?, director?, actors?, country?, language?, trailerUrl?, movieType (SINGLE/SERIES - default SINGLE), totalEpisodes?, genreIds?, ageRating? (P/K/T13/T16/T18/C - default T18), videoQualities? (default HD), audioTracks? (default VIETSUB) | MovieResult            |
-| 2   | Update movie     | PATCH  | `/api/v1/admin/movies/{id}`                                                                                          | Admin | (all fields optional + isFeatured?, isPremium?, status?, visibility?, ageRating?, videoQualities?, audioTracks?)                                                                                                                                                                                      | MovieResult            |
-| 3   | Get movie detail | GET    | `/api/v1/admin/movies/{slug}`                                                                                        | Admin | -                                                                                                                                                                                                                                                                                                     | MovieDetailResult      |
-| 4   | Get all movies   | GET    | `/api/v1/admin/movies?search=&type=&status=&genreId=&year=&country=&ageRating=&quality=&audioTrack=&page=1&limit=10` | Admin | search, type, status, genreId, year, country, ageRating, quality, audioTrack, page, limit                                                                                                                                                                                                             | MovieList + pagination |
-| 5   | Delete movie     | DELETE | `/api/v1/admin/movies/{id}`                                                                                          | Admin | -                                                                                                                                                                                                                                                                                                     | void                   |
-| 6   | Restore movie    | PATCH  | `/api/v1/admin/movies/{id}/restore`                                                                                  | Admin | -                                                                                                                                                                                                                                                                                                     | MovieResult            |
-| 7   | Upload poster    | POST   | `/api/v1/admin/movies/{id}/poster`                                                                                   | Admin | file (multipart)                                                                                                                                                                                                                                                                                      | MovieResult            |
-| 8   | Upload backdrop  | POST   | `/api/v1/admin/movies/{id}/backdrop`                                                                                 | Admin | file (multipart)                                                                                                                                                                                                                                                                                      | MovieResult            |
-| 9   | Publish movie    | POST   | `/api/v1/admin/movies/{id}/publish`                                                                                  | Admin | -                                                                                                                                                                                                                                                                                                     | MovieResult            |
+| STT | Chức năng        | Method | Path                                                                                                                 | Auth  | Request                                                                                                                                                                                                                                                                                                                                               | Response               |
+| --- | ---------------- | ------ | -------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| 1   | Create movie     | POST   | `/api/v1/admin/movies`                                                                                               | Admin | title, originalTitle?, description?, releaseYear?, duration?, director?, movieActors? [{ actorId, characterName?, orderIndex? }], country?, language?, trailerUrl?, movieType (SINGLE/SERIES - default SINGLE), totalEpisodes?, ageRating? (P/K/T13/T16/T18/C - default T18), videoQualities? (default HD), audioTracks? (default VIETSUB), genreIds? | MovieResult            |
+| 2   | Update movie     | PATCH  | `/api/v1/admin/movies/{id}`                                                                                          | Admin | (all fields optional: title?, originalTitle?, description?, releaseYear?, duration?, director?, movieActors? [{ actorId, characterName?, orderIndex? }], country?, language?, trailerUrl?, movieType?, totalEpisodes?, ageRating?, videoQualities?, audioTracks?, isFeatured?, isPremium?, status?, visibility?, genreIds?)                           | MovieResult            |
+| 3   | Get movie detail | GET    | `/api/v1/admin/movies/{slug}`                                                                                        | Admin | -                                                                                                                                                                                                                                                                                                                                                     | MovieDetailResult      |
+| 4   | Get all movies   | GET    | `/api/v1/admin/movies?search=&type=&status=&genreId=&year=&country=&ageRating=&quality=&audioTrack=&page=1&limit=10` | Admin | search, type, status, genreId, year, country, ageRating, quality, audioTrack, page, limit                                                                                                                                                                                                                                                             | MovieList + pagination |
+| 5   | Delete movie     | DELETE | `/api/v1/admin/movies/{id}`                                                                                          | Admin | -                                                                                                                                                                                                                                                                                                                                                     | void                   |
+| 6   | Restore movie    | PATCH  | `/api/v1/admin/movies/{id}/restore`                                                                                  | Admin | -                                                                                                                                                                                                                                                                                                                                                     | MovieResult            |
+| 7   | Upload poster    | POST   | `/api/v1/admin/movies/{id}/poster`                                                                                   | Admin | file (multipart)                                                                                                                                                                                                                                                                                                                                      | MovieResult            |
+| 8   | Upload backdrop  | POST   | `/api/v1/admin/movies/{id}/backdrop`                                                                                 | Admin | file (multipart)                                                                                                                                                                                                                                                                                                                                      | MovieResult            |
+| 9   | Publish movie    | POST   | `/api/v1/admin/movies/{id}/publish`                                                                                  | Admin | -                                                                                                                                                                                                                                                                                                                                                     | MovieResult            |
 
 > Admin GET detail dùng slug (hỗ trợ fallback UUID).
 
@@ -495,7 +547,17 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
   "releaseYear": "number",
   "duration": "number (minutes)",
   "director": "string",
-  "actors": "string",
+  "movieActors": [
+    {
+      "actorId": "string",
+      "name": "string",
+      "originalName": "string",
+      "avatarUrl": "url",
+      "nationality": "string",
+      "characterName": "string",
+      "orderIndex": 0
+    }
+  ],
   "country": "string",
   "language": "string",
   "trailerUrl": "url",

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.example.backend_pj4.application.dto.actor.MovieActorResult;
 import com.example.backend_pj4.application.dto.episode.EpisodeResult;
 import com.example.backend_pj4.application.dto.genre.GenreResult;
 import com.example.backend_pj4.application.dto.movie.MovieDetailResult;
@@ -16,9 +17,11 @@ import com.example.backend_pj4.domain.model.Movie;
 public class MovieResultMapper {
 
     private final StorageUrlResolver storageUrlResolver;
+    private final ActorResultMapper actorResultMapper;
 
-    public MovieResultMapper(StorageUrlResolver storageUrlResolver) {
+    public MovieResultMapper(StorageUrlResolver storageUrlResolver, ActorResultMapper actorResultMapper) {
         this.storageUrlResolver = storageUrlResolver;
+        this.actorResultMapper = actorResultMapper;
     }
 
     public MovieResult toResult(Movie movie) {
@@ -30,6 +33,10 @@ public class MovieResultMapper {
                 ? movie.getGenres().stream().map(GenreResultMapper::toResult).toList()
                 : Collections.emptyList();
 
+        List<MovieActorResult> movieActors = movie.getMovieActors() != null
+                ? movie.getMovieActors().stream().map(actorResultMapper::toMovieActorResult).toList()
+                : Collections.emptyList();
+
         return new MovieResult(
                 movie.getId(),
                 movie.getSlug(),
@@ -39,7 +46,7 @@ public class MovieResultMapper {
                 movie.getReleaseYear(),
                 movie.getDuration(),
                 movie.getDirector(),
-                movie.getActors(),
+                movieActors,
                 movie.getCountry(),
                 movie.getLanguage(),
                 movie.getTrailerUrl(),
@@ -73,6 +80,10 @@ public class MovieResultMapper {
                 ? movie.getGenres().stream().map(GenreResultMapper::toResult).toList()
                 : Collections.emptyList();
 
+        List<MovieActorResult> movieActors = movie.getMovieActors() != null
+                ? movie.getMovieActors().stream().map(actorResultMapper::toMovieActorResult).toList()
+                : Collections.emptyList();
+
         String createdByName = movie.getCreatedBy() != null ? movie.getCreatedBy().getName() : null;
 
         return new MovieDetailResult(
@@ -84,7 +95,7 @@ public class MovieResultMapper {
                 movie.getReleaseYear(),
                 movie.getDuration(),
                 movie.getDirector(),
-                movie.getActors(),
+                movieActors,
                 movie.getCountry(),
                 movie.getLanguage(),
                 movie.getTrailerUrl(),

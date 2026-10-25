@@ -37,6 +37,10 @@ public enum ErrorCode {
     GENRE_NOT_FOUND("Genre not found.", HttpStatus.NOT_FOUND),
     GENRE_NAME_ALREADY_EXISTS("Genre name already exists.", HttpStatus.CONFLICT),
 
+    // ===== ACTOR =====
+    ACTOR_NOT_FOUND("Actor not found.", HttpStatus.NOT_FOUND),
+    INVALID_ACTOR_IDS("One or more actor IDs are invalid.", HttpStatus.BAD_REQUEST),
+
     // ===== MOVIE =====
     MOVIE_NOT_FOUND("Movie not found.", HttpStatus.NOT_FOUND),
     MOVIE_NOT_SERIES("Movie is not a series type.", HttpStatus.BAD_REQUEST),

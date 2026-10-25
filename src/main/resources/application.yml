@@ -149,6 +149,7 @@ minio:
   bucket-processed: ${MINIO_BUCKET_PROCESSED:movie-processed}
   bucket-public: ${MINIO_BUCKET_PUBLIC:movie-public}
   bucket-avatar: ${MINIO_BUCKET_AVATAR:avatars}
+  bucket-actor: ${MINIO_BUCKET_ACTOR:actor-avatars}
 
 mail:
   from-address: ${MAIL_FROM_ADDRESS:no-reply@localhost}

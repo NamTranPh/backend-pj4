@@ -62,8 +62,9 @@ public class MovieJpaEntity {
     @Column(name = "director")
     private String director;
 
-    @Column(name = "actors", columnDefinition = "TEXT")
-    private String actors;
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "movie", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MovieActorJpaEntity> movieActors = new ArrayList<>();
 
     @Column(name = "country", length = 100)
     private String country;
@@ -178,7 +179,7 @@ public class MovieJpaEntity {
     public void setId(String id) { this.id = id; }
 
     public MovieJpaEntity(String id, String title, String originalTitle, String description,
-                       Integer releaseYear, Integer duration, String director, String actors,
+                       Integer releaseYear, Integer duration, String director,
                        String country, String language, String trailerUrl, String posterUrl,
                        String backdropUrl, MovieType movieType, Integer totalEpisodes,
                        VideoStatus status, VideoVisibility visibility, Boolean isPremium,
@@ -196,7 +197,6 @@ public class MovieJpaEntity {
         this.releaseYear = releaseYear;
         this.duration = duration;
         this.director = director;
-        this.actors = actors;
         this.country = country;
         this.language = language;
         this.trailerUrl = trailerUrl;
@@ -232,7 +232,7 @@ public class MovieJpaEntity {
     public void setReleaseYear(Integer releaseYear) { this.releaseYear = releaseYear; }
     public void setDuration(Integer duration) { this.duration = duration; }
     public void setDirector(String director) { this.director = director; }
-    public void setActors(String actors) { this.actors = actors; }
+    public void setMovieActors(List<MovieActorJpaEntity> movieActors) { this.movieActors = movieActors; }
     public void setCountry(String country) { this.country = country; }
     public void setLanguage(String language) { this.language = language; }
     public void setTrailerUrl(String trailerUrl) { this.trailerUrl = trailerUrl; }
