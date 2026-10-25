@@ -48,6 +48,7 @@ class LoginLockoutPersistenceIT {
     @ServiceConnection
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0");
 
+    @SuppressWarnings("resource")
     @Container
     @ServiceConnection(name = "redis")
     static GenericContainer<?> redis = new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);

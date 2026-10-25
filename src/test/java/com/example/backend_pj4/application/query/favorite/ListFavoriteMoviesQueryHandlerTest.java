@@ -2,6 +2,7 @@ package com.example.backend_pj4.application.query.favorite;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -13,7 +14,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -113,7 +113,7 @@ class ListFavoriteMoviesQueryHandlerTest {
 
         assertThat(handler.execute(FILTER, QUERY).items()).isEmpty();
 
-        verify(movieRepository, never()).findByIds(any(Collection.class));
+        verify(movieRepository, never()).findByIds(anyCollection());
     }
 
     @Test
