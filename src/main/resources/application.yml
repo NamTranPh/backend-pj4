@@ -85,7 +85,7 @@ auth:
 
     refresh-path: ${AUTH_REFRESH_COOKIE_PATH:/api/v1/auth}
     admin-refresh-name: ${AUTH_ADMIN_REFRESH_COOKIE_NAME:admin_refresh_token}
-    admin-refresh-path: ${AUTH_ADMIN_REFRESH_COOKIE_PATH:/api/v1/admin/auth}
+    admin-refresh-path: ${AUTH_ADMIN_REFRESH_COOKIE_PATH:/api/v1/admin}
   otp:
     length: ${AUTH_OTP_LENGTH:6}
     ttl-minutes: ${AUTH_OTP_TTL_MINUTES:5}
