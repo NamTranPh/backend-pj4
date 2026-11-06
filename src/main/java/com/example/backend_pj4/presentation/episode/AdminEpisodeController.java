@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
-import com.example.backend_pj4.common.pagination.PageResult;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,31 +23,34 @@ import com.example.backend_pj4.application.command.episode.UpdateEpisodeCommand;
 import com.example.backend_pj4.application.command.movie.RecordUploadPartCommand;
 import com.example.backend_pj4.application.command.movie.StartUploadCommand;
 import com.example.backend_pj4.application.dto.episode.EpisodeResult;
+import com.example.backend_pj4.application.dto.media.MediaUploadResult;
 import com.example.backend_pj4.application.dto.movie.PresignedUrlResult;
 import com.example.backend_pj4.application.dto.movie.UploadSessionResult;
 import com.example.backend_pj4.application.port.in.episode.CreateEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.DeleteEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.ListEpisodesByMovieQuery;
-import com.example.backend_pj4.domain.repository.filter.EpisodeFilter;
 import com.example.backend_pj4.application.port.in.episode.PublishEpisodeUseCase;
 import com.example.backend_pj4.application.port.in.episode.UpdateEpisodeUseCase;
-import com.example.backend_pj4.application.port.in.episode.UploadEpisodeThumbnailUseCase;
+import com.example.backend_pj4.application.port.in.episode.UploadEpisodePreviewImageUseCase;
 import com.example.backend_pj4.application.port.in.movie.CancelUploadUseCase;
 import com.example.backend_pj4.application.port.in.movie.CompleteUploadUseCase;
 import com.example.backend_pj4.application.port.in.movie.GetPartUrlsUseCase;
 import com.example.backend_pj4.application.port.in.movie.GetUploadStatusUseCase;
 import com.example.backend_pj4.application.port.in.movie.RecordUploadPartUseCase;
 import com.example.backend_pj4.application.port.in.movie.StartUploadUseCase;
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import com.example.backend_pj4.common.constants.ErrorCode;
+import com.example.backend_pj4.common.exceptions.CustomException;
+import com.example.backend_pj4.common.pagination.PageResult;
+import com.example.backend_pj4.domain.repository.filter.EpisodeFilter;
+import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
+import com.example.backend_pj4.presentation.common.request.PageableFactory;
 import com.example.backend_pj4.presentation.episode.request.CreateEpisodeRequest;
 import com.example.backend_pj4.presentation.episode.request.UpdateEpisodeRequest;
 import com.example.backend_pj4.presentation.movie.request.GetPartUrlsRequest;
 import com.example.backend_pj4.presentation.movie.request.RecordPartRequest;
 import com.example.backend_pj4.presentation.movie.request.StartUploadRequest;
 
-import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
-import com.example.backend_pj4.presentation.common.request.PageableFactory;
-
-import com.example.backend_pj4.common.annotation.AuthRequired;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -62,7 +65,7 @@ public class AdminEpisodeController {
     private final UpdateEpisodeUseCase updateEpisodeUseCase;
     private final ListEpisodesByMovieQuery listEpisodesByMovieQuery;
     private final DeleteEpisodeUseCase deleteEpisodeUseCase;
-    private final UploadEpisodeThumbnailUseCase uploadEpisodeThumbnailUseCase;
+    private final UploadEpisodePreviewImageUseCase uploadEpisodePreviewImageUseCase;
     private final StartUploadUseCase startUploadUseCase;
     private final GetPartUrlsUseCase getPartUrlsUseCase;
     private final RecordUploadPartUseCase recordUploadPartUseCase;
@@ -76,7 +79,7 @@ public class AdminEpisodeController {
             UpdateEpisodeUseCase updateEpisodeUseCase,
             ListEpisodesByMovieQuery listEpisodesByMovieQuery,
             DeleteEpisodeUseCase deleteEpisodeUseCase,
-            UploadEpisodeThumbnailUseCase uploadEpisodeThumbnailUseCase,
+            UploadEpisodePreviewImageUseCase uploadEpisodePreviewImageUseCase,
             StartUploadUseCase startUploadUseCase,
             GetPartUrlsUseCase getPartUrlsUseCase,
             RecordUploadPartUseCase recordUploadPartUseCase,
@@ -89,7 +92,7 @@ public class AdminEpisodeController {
         this.updateEpisodeUseCase = updateEpisodeUseCase;
         this.listEpisodesByMovieQuery = listEpisodesByMovieQuery;
         this.deleteEpisodeUseCase = deleteEpisodeUseCase;
-        this.uploadEpisodeThumbnailUseCase = uploadEpisodeThumbnailUseCase;
+        this.uploadEpisodePreviewImageUseCase = uploadEpisodePreviewImageUseCase;
         this.startUploadUseCase = startUploadUseCase;
         this.getPartUrlsUseCase = getPartUrlsUseCase;
         this.recordUploadPartUseCase = recordUploadPartUseCase;
@@ -101,6 +104,24 @@ public class AdminEpisodeController {
 
     // ===== CRUD =====
 
+    @Operation(summary = "Upload ảnh Thumbnail cho tập phim. Quyền truy cập: ADMIN.")
+    @PostMapping(value = "/thumbnails", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaUploadResult> uploadThumbnail(
+            @PathVariable String movieId,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
+        MediaUploadResult result = uploadEpisodePreviewImageUseCase.execute(
+                movieId,
+                file.getOriginalFilename(),
+                file.getInputStream(),
+                file.getSize(),
+                file.getContentType());
+        return ResponseEntity.ok(result);
+    }
+
     @Operation(summary = "Tạo mới tập phim cho một bộ phim. Quyền truy cập: ADMIN.")
     @PostMapping
     public ResponseEntity<EpisodeResult> create(
@@ -109,7 +130,7 @@ public class AdminEpisodeController {
     ) {
         EpisodeResult result = createEpisodeUseCase.execute(new CreateEpisodeCommand(
                 movieId, request.episodeNumber(), request.title(),
-                request.description(), request.duration(), request.airDate()));
+                request.description(), request.duration(), request.airDate(), request.thumbnailUrl()));
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -122,7 +143,7 @@ public class AdminEpisodeController {
     ) {
         EpisodeResult result = updateEpisodeUseCase.execute(new UpdateEpisodeCommand(
                 id, movieId, request.episodeNumber(), request.title(),
-                request.description(), request.duration(), request.airDate()));
+                request.description(), request.duration(), request.airDate(), request.thumbnailUrl()));
         return ResponseEntity.ok(result);
     }
 
@@ -147,21 +168,6 @@ public class AdminEpisodeController {
     @PostMapping("/{id}/publish")
     public ResponseEntity<EpisodeResult> publish(@PathVariable String id) {
         return ResponseEntity.ok(publishEpisodeUseCase.execute(id));
-    }
-
-    // ===== Thumbnail =====
-
-    @Operation(summary = "Upload ảnh Thumbnail cho tập phim. Quyền truy cập: ADMIN.")
-    @PostMapping("/{id}/thumbnail")
-    public ResponseEntity<EpisodeResult> uploadThumbnail(
-            @PathVariable String movieId,
-            @PathVariable String id,
-            @RequestParam("file") MultipartFile file
-    ) throws IOException {
-        EpisodeResult result = uploadEpisodeThumbnailUseCase.execute(
-                movieId, id, file.getOriginalFilename(),
-                file.getInputStream(), file.getSize(), file.getContentType());
-        return ResponseEntity.ok(result);
     }
 
     // ===== Video Upload (reuse upload services with targetType=episode) =====

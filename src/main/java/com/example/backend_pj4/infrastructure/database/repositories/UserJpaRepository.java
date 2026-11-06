@@ -19,6 +19,8 @@ public interface UserJpaRepository extends JpaRepository<UserJpaEntity, String> 
 
     boolean existsByEmail(String email);
 
+    boolean existsByProfileUrl(String profileUrl);
+
     /** Tìm theo email hoặc tên; search rỗng thì trả tất cả. */
     @Query("SELECT u FROM UserJpaEntity u WHERE :search IS NULL OR :search = '' "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) "

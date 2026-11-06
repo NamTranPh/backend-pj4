@@ -18,7 +18,8 @@ public class UpdateActorService implements UpdateActorUseCase {
     private final ActorRepository actorRepository;
     private final ActorResultMapper actorResultMapper;
 
-    public UpdateActorService(ActorRepository actorRepository, ActorResultMapper actorResultMapper) {
+    public UpdateActorService(ActorRepository actorRepository,
+                              ActorResultMapper actorResultMapper) {
         this.actorRepository = actorRepository;
         this.actorResultMapper = actorResultMapper;
     }
@@ -29,10 +30,15 @@ public class UpdateActorService implements UpdateActorUseCase {
         Actor actor = actorRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACTOR_NOT_FOUND));
 
+        String newAvatarUrl = actor.getAvatarUrl();
+        if (command.avatarUrl() != null && !command.avatarUrl().equals(actor.getAvatarUrl())) {
+            newAvatarUrl = command.avatarUrl();
+        }
+
         Actor updated = actor.toBuilder()
                 .name(command.name())
                 .originalName(command.originalName())
-                .avatarUrl(command.avatarUrl() != null ? command.avatarUrl() : actor.getAvatarUrl())
+                .avatarUrl(newAvatarUrl)
                 .bio(command.bio())
                 .birthDate(command.birthDate())
                 .nationality(command.nationality())

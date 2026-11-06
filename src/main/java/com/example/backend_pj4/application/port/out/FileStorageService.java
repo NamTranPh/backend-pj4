@@ -1,6 +1,7 @@
 package com.example.backend_pj4.application.port.out;
 
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.List;
 
 public interface FileStorageService {
@@ -15,5 +16,8 @@ public interface FileStorageService {
     void completeMultipartUpload(String bucket, String objectKey, String uploadId, List<PartETag> parts);
     void abortMultipartUpload(String bucket, String objectKey, String uploadId);
 
+    List<StorageItem> listObjects(String bucket, String prefix);
+
     record PartETag(int partNumber, String etag) {}
+    record StorageItem(String objectKey, Instant lastModified) {}
 }

@@ -1,6 +1,8 @@
 package com.example.backend_pj4.infrastructure.minio;
 
 import java.io.InputStream;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,16 +15,19 @@ import com.example.backend_pj4.infrastructure.config.properties.MinioProperties;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-import io.minio.GetObjectArgs;
 import io.minio.BucketExistsArgs;
 import io.minio.CreateMultipartUploadResponse;
+import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import io.minio.Result;
 import io.minio.SetBucketPolicyArgs;
 import io.minio.http.Method;
+import io.minio.messages.Item;
 import io.minio.messages.Part;
 import lombok.extern.slf4j.Slf4j;
 
@@ -157,6 +162,33 @@ public class MinioStorageAdapter implements FileStorageService {
         } catch (Exception e) {
             log.warn("Failed to abort multipart upload: bucket={}, key={}, uploadId={}", bucket, objectKey, uploadId, e);
         }
+    }
+
+    @Override
+    public List<StorageItem> listObjects(String bucket, String prefix) {
+        List<StorageItem> items = new ArrayList<>();
+        try {
+            ensureBucketExists(bucket);
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(bucket)
+                            .prefix(prefix)
+                            .recursive(true)
+                            .build()
+            );
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                if (!item.isDir()) {
+                    Instant lastModified = item.lastModified() != null
+                            ? item.lastModified().toInstant()
+                            : Instant.now();
+                    items.add(new StorageItem(item.objectName(), lastModified));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to list objects in MinIO: bucket={}, prefix={}", bucket, prefix, e);
+        }
+        return items;
     }
 
     private void ensureBucketExists(String bucket) {

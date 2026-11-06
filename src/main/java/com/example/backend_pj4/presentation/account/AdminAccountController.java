@@ -19,30 +19,26 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.backend_pj4.application.command.auth.ChangePasswordCommand;
-import com.example.backend_pj4.application.command.upload.UploadFileCommand;
 import com.example.backend_pj4.application.command.user.UpdateProfileCommand;
 import com.example.backend_pj4.application.dto.auth.SessionResult;
-import com.example.backend_pj4.application.dto.upload.UploadResult;
 import com.example.backend_pj4.application.dto.user.UserProfileResult;
 import com.example.backend_pj4.application.port.in.auth.ChangePasswordUseCase;
 import com.example.backend_pj4.application.port.in.auth.GetCurrentUserUseCase;
 import com.example.backend_pj4.application.port.in.auth.ListSessionsQuery;
 import com.example.backend_pj4.application.port.in.auth.RevokeOtherSessionsUseCase;
 import com.example.backend_pj4.application.port.in.auth.RevokeSessionUseCase;
-import com.example.backend_pj4.application.port.in.upload.UploadFileUseCase;
 import com.example.backend_pj4.application.port.in.user.DeleteAvatarUseCase;
 import com.example.backend_pj4.application.port.in.user.UpdateUserProfileUseCase;
+import com.example.backend_pj4.application.port.in.user.UploadAvatarUseCase;
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import com.example.backend_pj4.common.annotation.AuthResultUser;
 import com.example.backend_pj4.common.constants.ErrorCode;
-import com.example.backend_pj4.common.constants.enums.UploadType;
-import com.example.backend_pj4.common.constants.enums.UserRole;
 import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.repository.filter.SessionFilter;
 import com.example.backend_pj4.infrastructure.security.AppUserDetails;
-import com.example.backend_pj4.presentation.account.request.UpdateProfileRequest;
 import com.example.backend_pj4.presentation.auth.request.ChangePasswordRequest;
+import com.example.backend_pj4.presentation.account.request.UpdateProfileRequest;
 import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
 import com.example.backend_pj4.presentation.common.request.PageableFactory;
 
@@ -50,7 +46,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(name = "Account Management - Admin")
+@Tag(name = "Auth - Admin Account Management")
 @AuthRequired
 @RestController
 @RequestMapping("/api/v1/admin/account")
@@ -63,7 +59,7 @@ public class AdminAccountController {
     private final ListSessionsQuery listSessionsQuery;
     private final RevokeSessionUseCase revokeSessionUseCase;
     private final RevokeOtherSessionsUseCase revokeOtherSessionsUseCase;
-    private final UploadFileUseCase uploadFileUseCase;
+    private final UploadAvatarUseCase uploadAvatarUseCase;
 
     public AdminAccountController(
             GetCurrentUserUseCase getCurrentUserUseCase,
@@ -73,7 +69,7 @@ public class AdminAccountController {
             ListSessionsQuery listSessionsQuery,
             RevokeSessionUseCase revokeSessionUseCase,
             RevokeOtherSessionsUseCase revokeOtherSessionsUseCase,
-            UploadFileUseCase uploadFileUseCase) {
+            UploadAvatarUseCase uploadAvatarUseCase) {
         this.getCurrentUserUseCase = getCurrentUserUseCase;
         this.updateUserProfileUseCase = updateUserProfileUseCase;
         this.deleteAvatarUseCase = deleteAvatarUseCase;
@@ -81,7 +77,7 @@ public class AdminAccountController {
         this.listSessionsQuery = listSessionsQuery;
         this.revokeSessionUseCase = revokeSessionUseCase;
         this.revokeOtherSessionsUseCase = revokeOtherSessionsUseCase;
-        this.uploadFileUseCase = uploadFileUseCase;
+        this.uploadAvatarUseCase = uploadAvatarUseCase;
     }
 
     @Operation(summary = "Lấy thông tin profile Admin hiện tại. Quyền truy cập: ADMIN.")
@@ -112,21 +108,12 @@ public class AdminAccountController {
         }
 
         String userId = AppUserDetails.userIdOf(userDetails);
-        UserRole userRole = AppUserDetails.roleOf(userDetails);
-
-        UploadResult uploadResult = uploadFileUseCase.execute(new UploadFileCommand(
+        UserProfileResult updatedProfile = uploadAvatarUseCase.execute(
+                userId,
+                file.getOriginalFilename(),
                 file.getInputStream(),
                 file.getSize(),
-                file.getContentType(),
-                file.getOriginalFilename(),
-                UploadType.AVATAR,
-                userRole,
-                userId
-        ));
-
-        // Cập nhật URL ảnh vào thông tin cá nhân của Admin
-        UserProfileResult updatedProfile = updateUserProfileUseCase.execute(
-                new UpdateProfileCommand(userId, null, null, null, uploadResult.previewUrl()));
+                file.getContentType());
 
         return ResponseEntity.ok(updatedProfile);
     }

@@ -24,6 +24,10 @@ public interface MovieJpaRepository
 
     boolean existsBySlug(String slug);
 
+    boolean existsByPosterUrl(String posterUrl);
+
+    boolean existsByBackdropUrl(String backdropUrl);
+
     /** Bỏ qua bộ lọc soft-delete của Hibernate, dùng cho luồng khôi phục phim. */
     @Query(value = "SELECT * FROM movie WHERE id = :id", nativeQuery = true)
     Optional<MovieJpaEntity> findByIdIncludingDeleted(@Param("id") String id);

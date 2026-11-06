@@ -18,7 +18,8 @@ public class UpdateEpisodeService implements UpdateEpisodeUseCase {
     private final EpisodeRepository episodeRepository;
     private final EpisodeResultMapper episodeResultMapper;
 
-    public UpdateEpisodeService(EpisodeRepository episodeRepository, EpisodeResultMapper episodeResultMapper) {
+    public UpdateEpisodeService(EpisodeRepository episodeRepository,
+                                EpisodeResultMapper episodeResultMapper) {
         this.episodeRepository = episodeRepository;
         this.episodeResultMapper = episodeResultMapper;
     }
@@ -52,6 +53,10 @@ public class UpdateEpisodeService implements UpdateEpisodeUseCase {
         }
         if (command.airDate() != null) {
             builder.airDate(command.airDate());
+        }
+
+        if (command.thumbnailUrl() != null && !command.thumbnailUrl().equals(episode.getThumbnailUrl())) {
+            builder.thumbnailUrl(command.thumbnailUrl());
         }
 
         Episode saved = episodeRepository.save(builder.build());

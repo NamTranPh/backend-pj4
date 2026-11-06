@@ -49,6 +49,7 @@ public class CreateEpisodeService implements CreateEpisodeUseCase {
                 .description(command.description())
                 .duration(command.duration())
                 .airDate(command.airDate())
+                .thumbnailUrl(command.thumbnailUrl())
                 .status(VideoStatus.DRAFT)
                 .isPremium(false)
                 .viewCount(0L)

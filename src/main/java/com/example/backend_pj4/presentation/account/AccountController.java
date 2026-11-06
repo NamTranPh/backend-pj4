@@ -1,36 +1,47 @@
 package com.example.backend_pj4.presentation.account;
 
-import com.example.backend_pj4.common.pagination.PageResult;
+import java.io.IOException;
+
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import com.example.backend_pj4.common.annotation.AuthResultUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.example.backend_pj4.application.command.auth.ChangePasswordCommand;
 import com.example.backend_pj4.application.command.user.UpdateProfileCommand;
-import com.example.backend_pj4.application.dto.user.UserProfileResult;
 import com.example.backend_pj4.application.dto.auth.SessionResult;
+import com.example.backend_pj4.application.dto.user.UserProfileResult;
+import com.example.backend_pj4.application.port.in.auth.ChangePasswordUseCase;
 import com.example.backend_pj4.application.port.in.auth.GetCurrentUserUseCase;
 import com.example.backend_pj4.application.port.in.auth.ListSessionsQuery;
 import com.example.backend_pj4.application.port.in.auth.RevokeOtherSessionsUseCase;
 import com.example.backend_pj4.application.port.in.auth.RevokeSessionUseCase;
-import com.example.backend_pj4.domain.repository.filter.SessionFilter;
 import com.example.backend_pj4.application.port.in.user.DeleteAvatarUseCase;
 import com.example.backend_pj4.application.port.in.user.UpdateUserProfileUseCase;
-import com.example.backend_pj4.presentation.account.request.UpdateProfileRequest;
-
+import com.example.backend_pj4.application.port.in.user.UploadAvatarUseCase;
+import com.example.backend_pj4.common.annotation.AuthRequired;
+import com.example.backend_pj4.common.annotation.AuthResultUser;
+import com.example.backend_pj4.common.constants.ErrorCode;
+import com.example.backend_pj4.common.exceptions.CustomException;
+import com.example.backend_pj4.common.pagination.PageResult;
+import com.example.backend_pj4.domain.repository.filter.SessionFilter;
 import com.example.backend_pj4.infrastructure.security.AppUserDetails;
+import com.example.backend_pj4.presentation.account.request.UpdateProfileRequest;
+import com.example.backend_pj4.presentation.auth.request.ChangePasswordRequest;
 import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
 import com.example.backend_pj4.presentation.common.request.PageableFactory;
 
-import com.example.backend_pj4.common.annotation.AuthRequired;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -43,20 +54,26 @@ public class AccountController {
 
     private final GetCurrentUserUseCase getCurrentUserUseCase;
     private final UpdateUserProfileUseCase updateUserProfileUseCase;
+    private final UploadAvatarUseCase uploadAvatarUseCase;
     private final DeleteAvatarUseCase deleteAvatarUseCase;
+    private final ChangePasswordUseCase changePasswordUseCase;
     private final ListSessionsQuery listSessionsQuery;
     private final RevokeSessionUseCase revokeSessionUseCase;
     private final RevokeOtherSessionsUseCase revokeOtherSessionsUseCase;
 
     public AccountController(GetCurrentUserUseCase getCurrentUserUseCase,
                              UpdateUserProfileUseCase updateUserProfileUseCase,
+                             UploadAvatarUseCase uploadAvatarUseCase,
                              DeleteAvatarUseCase deleteAvatarUseCase,
+                             ChangePasswordUseCase changePasswordUseCase,
                              ListSessionsQuery listSessionsQuery,
                              RevokeSessionUseCase revokeSessionUseCase,
                              RevokeOtherSessionsUseCase revokeOtherSessionsUseCase) {
         this.getCurrentUserUseCase = getCurrentUserUseCase;
         this.updateUserProfileUseCase = updateUserProfileUseCase;
+        this.uploadAvatarUseCase = uploadAvatarUseCase;
         this.deleteAvatarUseCase = deleteAvatarUseCase;
+        this.changePasswordUseCase = changePasswordUseCase;
         this.listSessionsQuery = listSessionsQuery;
         this.revokeSessionUseCase = revokeSessionUseCase;
         this.revokeOtherSessionsUseCase = revokeOtherSessionsUseCase;
@@ -109,11 +126,40 @@ public class AccountController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Upload ảnh đại diện avatar cá nhân. Quyền truy cập: Người dùng đã đăng nhập.")
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserProfileResult> uploadAvatar(
+            @RequestParam("file") MultipartFile file,
+            @AuthResultUser UserDetails userDetails) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
+        String userId = AppUserDetails.userIdOf(userDetails);
+        UserProfileResult result = uploadAvatarUseCase.execute(
+                userId,
+                file.getOriginalFilename(),
+                file.getInputStream(),
+                file.getSize(),
+                file.getContentType());
+        return ResponseEntity.ok(result);
+    }
+
     @Operation(summary = "Xóa ảnh đại diện avatar cá nhân. Quyền truy cập: Người dùng đã đăng nhập.")
-    @DeleteMapping("/me/avatar")
+    @DeleteMapping("/avatar")
     public ResponseEntity<Void> deleteAvatar(@AuthResultUser UserDetails userDetails) {
         String userId = AppUserDetails.userIdOf(userDetails);
         deleteAvatarUseCase.execute(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Đổi mật khẩu tài khoản người dùng. Quyền truy cập: Người dùng đã đăng nhập.")
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @AuthResultUser UserDetails userDetails) {
+        String userId = AppUserDetails.userIdOf(userDetails);
+        changePasswordUseCase.execute(
+                new ChangePasswordCommand(userId, request.oldPassword(), request.newPassword()));
         return ResponseEntity.ok().build();
     }
 }

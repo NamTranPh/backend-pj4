@@ -19,4 +19,6 @@ public interface ActorJpaRepository extends JpaRepository<ActorJpaEntity, String
                                 Pageable pageable);
 
     boolean existsByName(String name);
+
+    boolean existsByAvatarUrl(String avatarUrl);
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,13 +21,16 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.backend_pj4.application.command.actor.CreateActorCommand;
 import com.example.backend_pj4.application.command.actor.UpdateActorCommand;
 import com.example.backend_pj4.application.dto.actor.ActorResult;
+import com.example.backend_pj4.application.dto.media.MediaUploadResult;
 import com.example.backend_pj4.application.port.in.actor.CreateActorUseCase;
 import com.example.backend_pj4.application.port.in.actor.DeleteActorUseCase;
 import com.example.backend_pj4.application.port.in.actor.GetActorByIdUseCase;
 import com.example.backend_pj4.application.port.in.actor.ListActorsQuery;
 import com.example.backend_pj4.application.port.in.actor.UpdateActorUseCase;
-import com.example.backend_pj4.application.port.in.actor.UploadActorAvatarUseCase;
+import com.example.backend_pj4.application.port.in.actor.UploadActorPreviewImageUseCase;
 import com.example.backend_pj4.common.annotation.AuthRequired;
+import com.example.backend_pj4.common.constants.ErrorCode;
+import com.example.backend_pj4.common.exceptions.CustomException;
 import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.repository.filter.ActorFilter;
 import com.example.backend_pj4.presentation.actor.request.CreateActorRequest;
@@ -49,7 +53,7 @@ public class AdminActorController {
     private final GetActorByIdUseCase getActorByIdUseCase;
     private final ListActorsQuery listActorsQuery;
     private final DeleteActorUseCase deleteActorUseCase;
-    private final UploadActorAvatarUseCase uploadActorAvatarUseCase;
+    private final UploadActorPreviewImageUseCase uploadActorPreviewImageUseCase;
 
     public AdminActorController(
             CreateActorUseCase createActorUseCase,
@@ -57,14 +61,30 @@ public class AdminActorController {
             GetActorByIdUseCase getActorByIdUseCase,
             ListActorsQuery listActorsQuery,
             DeleteActorUseCase deleteActorUseCase,
-            UploadActorAvatarUseCase uploadActorAvatarUseCase
+            UploadActorPreviewImageUseCase uploadActorPreviewImageUseCase
     ) {
         this.createActorUseCase = createActorUseCase;
         this.updateActorUseCase = updateActorUseCase;
         this.getActorByIdUseCase = getActorByIdUseCase;
         this.listActorsQuery = listActorsQuery;
         this.deleteActorUseCase = deleteActorUseCase;
-        this.uploadActorAvatarUseCase = uploadActorAvatarUseCase;
+        this.uploadActorPreviewImageUseCase = uploadActorPreviewImageUseCase;
+    }
+
+    @Operation(summary = "Upload ảnh đại diện avatar cho diễn viên. Quyền truy cập: ADMIN.")
+    @PostMapping(value = "/avatars", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaUploadResult> uploadAvatar(
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
+        MediaUploadResult result = uploadActorPreviewImageUseCase.execute(
+                file.getOriginalFilename(),
+                file.getInputStream(),
+                file.getSize(),
+                file.getContentType());
+        return ResponseEntity.ok(result);
     }
 
     @Operation(summary = "Tạo mới diễn viên. Quyền truy cập: ADMIN.")
@@ -118,21 +138,5 @@ public class AdminActorController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         deleteActorUseCase.execute(id);
         return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Upload ảnh đại diện avatar cho diễn viên. Quyền truy cập: ADMIN.")
-    @PostMapping("/{id}/avatar")
-    public ResponseEntity<ActorResult> uploadAvatar(
-            @PathVariable String id,
-            @RequestParam("file") MultipartFile file
-    ) throws IOException {
-        ActorResult result = uploadActorAvatarUseCase.execute(
-                id,
-                file.getOriginalFilename(),
-                file.getInputStream(),
-                file.getSize(),
-                file.getContentType()
-        );
-        return ResponseEntity.ok(result);
     }
 }

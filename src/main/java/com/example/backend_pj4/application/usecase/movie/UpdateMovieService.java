@@ -66,6 +66,12 @@ public class UpdateMovieService implements UpdateMovieUseCase {
         if (command.country() != null) builder.country(command.country());
         if (command.language() != null) builder.language(command.language());
         if (command.trailerUrl() != null) builder.trailerUrl(command.trailerUrl());
+        if (command.posterUrl() != null && !command.posterUrl().equals(movie.getPosterUrl())) {
+            builder.posterUrl(command.posterUrl());
+        }
+        if (command.backdropUrl() != null && !command.backdropUrl().equals(movie.getBackdropUrl())) {
+            builder.backdropUrl(command.backdropUrl());
+        }
         if (command.movieType() != null) builder.movieType(command.movieType());
         if (command.totalEpisodes() != null) builder.totalEpisodes(command.totalEpisodes());
         if (command.ageRating() != null) builder.ageRating(command.ageRating());

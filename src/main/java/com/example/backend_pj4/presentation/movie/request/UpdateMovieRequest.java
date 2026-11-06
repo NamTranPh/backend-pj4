@@ -24,6 +24,8 @@ public record UpdateMovieRequest(
         @Size(max = 100) String country,
         @Size(max = 50) String language,
         @Size(max = 500) String trailerUrl,
+        @Size(max = 500) String posterUrl,
+        @Size(max = 500) String backdropUrl,
         MovieType movieType,
         Integer totalEpisodes,
         AgeRating ageRating,

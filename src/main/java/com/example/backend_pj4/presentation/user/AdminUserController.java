@@ -1,6 +1,5 @@
 package com.example.backend_pj4.presentation.user;
 
-
 import com.example.backend_pj4.common.pagination.PageResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,15 +28,15 @@ import jakarta.validation.Valid;
 @AuthRequired
 @RestController
 @RequestMapping("/api/v1/admin/users")
-public class UserController {
+public class AdminUserController {
 
     private final ListUsersQuery listUsersQuery;
     private final GetUserByIdUseCase getUserByIdUseCase;
     private final ToggleUserBanUseCase toggleUserBanUseCase;
 
-    public UserController(ListUsersQuery listUsersQuery,
-                          GetUserByIdUseCase getUserByIdUseCase,
-                          ToggleUserBanUseCase toggleUserBanUseCase) {
+    public AdminUserController(ListUsersQuery listUsersQuery,
+                               GetUserByIdUseCase getUserByIdUseCase,
+                               ToggleUserBanUseCase toggleUserBanUseCase) {
         this.listUsersQuery = listUsersQuery;
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.toggleUserBanUseCase = toggleUserBanUseCase;
@@ -65,3 +64,4 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 }
+

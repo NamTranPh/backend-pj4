@@ -20,6 +20,8 @@ public record CreateMovieCommand(
         String country,
         String language,
         String trailerUrl,
+        String posterUrl,
+        String backdropUrl,
         MovieType movieType,
         Integer totalEpisodes,
         AgeRating ageRating,

@@ -8,6 +8,7 @@ public record CreateEpisodeCommand(
         String title,
         String description,
         Integer duration,
-        LocalDate airDate
+        LocalDate airDate,
+        String thumbnailUrl
 ) {
 }

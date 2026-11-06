@@ -20,6 +20,9 @@ public record CreateEpisodeRequest(
         @Min(1)
         Integer duration,
 
-        LocalDate airDate
+        LocalDate airDate,
+
+        @Size(max = 500)
+        String thumbnailUrl
 ) {
 }

@@ -110,6 +110,8 @@ public class CreateMovieService implements CreateMovieUseCase {
                 .country(command.country())
                 .language(command.language())
                 .trailerUrl(command.trailerUrl())
+                .posterUrl(command.posterUrl())
+                .backdropUrl(command.backdropUrl())
                 .movieType(movieType)
                 .totalEpisodes(command.totalEpisodes())
                 .ageRating(ageRating)
