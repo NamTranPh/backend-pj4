@@ -1,5 +1,7 @@
 package com.example.backend_pj4.application.service;
 
+import java.util.function.Function;
+
 import org.springframework.stereotype.Service;
 
 import com.example.backend_pj4.application.port.out.FileStorageService;
@@ -34,34 +36,29 @@ public class StorageUrlResolver {
         return resolvePresigned(minioProperties.getBucketRaw(), objectKey);
     }
 
-    private String resolvePublic(String bucket, String objectKey) {
+    private String resolve(String bucket, String objectKey, Function<String, String> urlBuilder) {
         if (objectKey == null || objectKey.isBlank()) {
             return null;
         }
-        String key = normalizeObjectKey(objectKey, bucket);
-        return fileStorageService.getPublicUrl(bucket, key);
+
+        if (objectKey.startsWith("http://") || objectKey.startsWith("https://")) {
+            String marker = "/" + bucket + "/";
+            int idx = objectKey.indexOf(marker);
+            if (idx >= 0) {
+                String key = objectKey.substring(idx + marker.length());
+                return urlBuilder.apply(key);
+            }
+            return objectKey;
+        }
+        return urlBuilder.apply(objectKey);
+    }
+
+    private String resolvePublic(String bucket, String objectKey) {
+        return resolve(bucket, objectKey, key -> fileStorageService.getPublicUrl(bucket, key));
     }
 
     private String resolvePresigned(String bucket, String objectKey) {
-        if (objectKey == null || objectKey.isBlank()) {
-            return null;
-        }
-        String key = normalizeObjectKey(objectKey, bucket);
-        return fileStorageService.getPresignedGetUrl(bucket, key, DEFAULT_EXPIRY_SECONDS);
-    }
-
-    /**
-     * Strips full URL prefix if DB has legacy data with full URLs.
-     * e.g. "http://localhost:9000/movie-public/movies/x/poster.jpg" → "movies/x/poster.jpg"
-     */
-    private String normalizeObjectKey(String value, String bucket) {
-        if (value.startsWith("http://") || value.startsWith("https://")) {
-            String marker = "/" + bucket + "/";
-            int idx = value.indexOf(marker);
-            if (idx >= 0) {
-                return value.substring(idx + marker.length());
-            }
-        }
-        return value;
+        return resolve(bucket, objectKey,
+                key -> fileStorageService.getPresignedGetUrl(bucket, key, DEFAULT_EXPIRY_SECONDS));
     }
 }

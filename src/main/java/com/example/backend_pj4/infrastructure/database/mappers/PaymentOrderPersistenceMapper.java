@@ -30,6 +30,8 @@ public class PaymentOrderPersistenceMapper {
                 .completedAt(entity.getCompletedAt())
                 .failedAt(entity.getFailedAt())
                 .cancelledAt(entity.getCancelledAt())
+                .refundedAt(entity.getRefundedAt())
+                .refundedAmount(entity.getRefundedAmount())                
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -53,6 +55,8 @@ public class PaymentOrderPersistenceMapper {
         entity.setCompletedAt(domain.getCompletedAt());
         entity.setFailedAt(domain.getFailedAt());
         entity.setCancelledAt(domain.getCancelledAt());
+        entity.setRefundedAt(domain.getRefundedAt());
+        entity.setRefundedAmount(domain.getRefundedAmount());
         if (domain.getUserId() != null) {
             UserJpaEntity user = new UserJpaEntity();
             user.setId(domain.getUserId());

@@ -7,13 +7,16 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.backend_pj4.infrastructure.database.entities.PaymentOrderJpaEntity;
 
-public interface PaymentOrderJpaRepository extends JpaRepository<PaymentOrderJpaEntity, String> {
+public interface PaymentOrderJpaRepository extends 
+        JpaRepository<PaymentOrderJpaEntity, String>,
+        JpaSpecificationExecutor<PaymentOrderJpaEntity> {
 
     Optional<PaymentOrderJpaEntity> findByTransactionCode(String transactionCode);
 
@@ -23,7 +26,7 @@ public interface PaymentOrderJpaRepository extends JpaRepository<PaymentOrderJpa
             + "AND p.createdAt >= :since ORDER BY p.createdAt ASC")
     List<PaymentOrderJpaEntity> findPendingByGatewaySince(@Param("gateway") String gateway,
                                                           @Param("since") LocalDateTime since,
-                                                          @Param("limit") int limit);
+                                                          Pageable pageable);
 
     /**
      * Giành quyền quyết toán một đơn bằng một câu UPDATE nguyên tử.
@@ -49,4 +52,11 @@ public interface PaymentOrderJpaRepository extends JpaRepository<PaymentOrderJpa
     int markFailedIfPending(@Param("id") String id,
                             @Param("reason") String reason,
                             @Param("now") LocalDateTime now);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE PaymentOrderJpaEntity p SET p.status = 'CANCELLED', p.cancelledAt = :now, "
+            + "p.failureReason = :reason WHERE p.id = :id AND p.status = 'PENDING'")
+    int markCancelledIfPending(@Param("id") String id,
+                               @Param("reason") String reason,
+                               @Param("now") LocalDateTime now);
 }

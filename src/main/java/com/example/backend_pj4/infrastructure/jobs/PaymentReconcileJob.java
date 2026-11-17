@@ -60,6 +60,7 @@ public class PaymentReconcileJob {
 
             int completed = 0;
             int expired = 0;
+            int cancelled = 0;
             int failed = 0;
             int errors = 0;
 
@@ -67,7 +68,7 @@ public class PaymentReconcileJob {
                 try {
                     boolean isExpired = isPaymentLinkExpired(order);
                     if (isExpired) {
-                        cancelAndFail(order);
+                        cancelAndExpire(order);
                         expired++;
                         continue;
                     }
@@ -81,11 +82,19 @@ public class PaymentReconcileJob {
                     // Kiểm tra giá trị từ PayOs trả về
                     switch (status.status()) {
                         case "PAID" -> {
-                            settlementService.completePayment(order, order.getGatewayTransactionId());
+                            settlementService.completePayment(order, order.getGatewayTransactionId(), status.amount());
                             completed++;
                         }
-                        case "EXPIRED", "CANCELLED" -> {
-                            settlementService.failPayment(order, "PayOS status: " + status.status());
+                        case "CANCELLED" -> {
+                            settlementService.cancelPayment(order, "Hủy thanh toán theo trạng thái từ cổng PayOS");
+                            cancelled++;
+                        }
+                        case "EXPIRED" -> {
+                            settlementService.cancelPayment(order, "Hết hạn thanh toán theo trạng thái từ cổng PayOS");
+                            cancelled++;
+                        }
+                        case "FAILED" -> {
+                            settlementService.failPayment(order, "Thanh toán thất bại theo trạng thái từ cổng PayOS");
                             failed++;
                         }
                         default -> { /* still PENDING, skip */ }
@@ -96,8 +105,8 @@ public class PaymentReconcileJob {
                 }
             }
 
-            log.info("Reconcile done: scanned={} completed={} expired={} failed={} errors={}",
-                    pendingOrders.size(), completed, expired, failed, errors);
+            log.info("Reconcile done: scanned={} completed={} expired={} cancelled={} failed={} errors={}",
+                    pendingOrders.size(), completed, expired, cancelled, failed, errors);
         } finally {
             running.set(false);
         }
@@ -111,7 +120,7 @@ public class PaymentReconcileJob {
         return LocalDateTime.now().isAfter(expiryTime);
     }
 
-    private void cancelAndFail(PaymentOrder order) {
+    private void cancelAndExpire(PaymentOrder order) {
         if (order.getGatewayTransactionId() != null) {
             try {
                 paymentGatewayPort.cancelPaymentLink(order.getGatewayTransactionId());
@@ -119,6 +128,6 @@ public class PaymentReconcileJob {
                 log.warn("Reconcile: cancel link failed for orderId={}", order.getId(), e);
             }
         }
-        settlementService.failPayment(order, "Payment link expired");
+        settlementService.cancelPayment(order, "Đơn thanh toán đã hết thời gian chờ xử lý");
     }
 }

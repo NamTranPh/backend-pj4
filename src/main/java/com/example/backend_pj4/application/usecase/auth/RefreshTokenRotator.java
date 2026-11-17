@@ -72,7 +72,7 @@ public class RefreshTokenRotator {
 
         String newTokenId = UUID.randomUUID().toString();
         String newAccessToken = jwtTokenProvider.generateAccessToken(
-                user.getEmail(), expectedChannel, LoginService.tokenVersionOf(user));
+                user.getEmail(), expectedChannel, LoginService.tokenVersionOf(user), stored.getSessionId());
         String newRefreshJwt = jwtTokenProvider.generateRefreshToken(user.getEmail(), newTokenId, expectedChannel);
 
         LocalDateTime now = LocalDateTime.now();

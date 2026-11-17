@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,9 +27,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleCustomException(CustomException ex) {
         ErrorCode errorCode = ex.getErrorCode();
+        String message = ex.getCustomMessage() != null ? ex.getCustomMessage() : errorCode.getMessage();
         ApiResponseDto<Void> body = ApiResponseDto.error(
                 errorCode.name().toLowerCase(),
-                errorCode.getMessage()
+                message
         );
         return ResponseEntity.status(errorCode.getStatus()).body(body);
     }
@@ -62,6 +65,16 @@ public class GlobalExceptionHandler {
     // 🔹 Access Denied (Lỗi không đủ quyền hạn truy cập API)
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponseDto<Void>> handleAccessDenied(AccessDeniedException ex) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        // Nếu chưa xác thực hoặc là anonymous (ví dụ session bị thu hồi) -> Trả về 401 UNAUTHORIZED chuẩn RESTful
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            ApiResponseDto<Void> body = ApiResponseDto.error(
+                    ErrorCode.UNAUTHORIZED.name().toLowerCase(),
+                    ErrorCode.UNAUTHORIZED.getMessage()
+            );
+            return ResponseEntity.status(ErrorCode.UNAUTHORIZED.getStatus()).body(body);
+        }
+
         ApiResponseDto<Void> body = ApiResponseDto.error(
                 ErrorCode.ACCESS_DENIED.name().toLowerCase(),
                 ErrorCode.ACCESS_DENIED.getMessage()

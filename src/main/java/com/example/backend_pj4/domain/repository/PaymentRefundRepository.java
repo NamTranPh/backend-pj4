@@ -1,0 +1,16 @@
+package com.example.backend_pj4.domain.repository;
+
+import java.util.List;
+import java.util.Optional;
+
+import com.example.backend_pj4.common.pagination.PageQuery;
+import com.example.backend_pj4.common.pagination.PageResult;
+import com.example.backend_pj4.domain.model.PaymentRefund;
+import com.example.backend_pj4.domain.repository.filter.PaymentRefundFilter;
+
+public interface PaymentRefundRepository {
+    PaymentRefund save(PaymentRefund refund);
+    Optional<PaymentRefund> findById(String id);
+    List<PaymentRefund> findByPaymentOrderId(String paymentOrderId);
+    PageResult<PaymentRefund> findWithFilter(PaymentRefundFilter filter, PageQuery query);
+}

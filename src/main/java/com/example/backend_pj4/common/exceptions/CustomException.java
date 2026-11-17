@@ -10,10 +10,19 @@ public class CustomException extends RuntimeException {
 
     private final ErrorCode errorCode;
     private final int statusCode;
+    private final String customMessage;
 
     public CustomException(ErrorCode errorCode) {
         super(errorCode.name().toLowerCase());
         this.errorCode = errorCode;
         this.statusCode = errorCode.getStatus().value();
+        this.customMessage = null;
+    }
+
+    public CustomException(ErrorCode errorCode, String message) {
+        super(message != null ? message : errorCode.name().toLowerCase());
+        this.errorCode = errorCode;
+        this.statusCode = errorCode.getStatus().value();
+        this.customMessage = message;
     }
 }

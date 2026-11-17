@@ -7,10 +7,7 @@ import java.util.Optional;
 import com.example.backend_pj4.common.pagination.PageQuery;
 import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.PaymentOrder;
-
-/**
- * Đơn thanh toán.
- */
+import com.example.backend_pj4.domain.repository.filter.PaymentOrderFilter;
 public interface PaymentOrderRepository {
     PaymentOrder save(PaymentOrder order);
 
@@ -34,4 +31,13 @@ public interface PaymentOrderRepository {
 
     /** Chuyển đơn PENDING -> FAILED bằng một câu UPDATE nguyên tử. */
     int markFailedIfPending(String orderId, String reason, LocalDateTime now);
+
+    /** Chuyển đơn PENDING -> CANCELLED bằng một câu UPDATE nguyên tử. */
+    int markCancelledIfPending(String orderId, String reason, LocalDateTime now);
+
+    /** Lấy danh sách đơn thanh toán có phân trang và lọc đa tiêu chí cho Admin. */
+    PageResult<PaymentOrder> findWithFilter(PaymentOrderFilter filter, PageQuery query);
+
+    /** Lấy tất cả đơn trong khoảng thời gian để tính toán thống kê doanh thu. */
+    List<PaymentOrder> findAllByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
 }

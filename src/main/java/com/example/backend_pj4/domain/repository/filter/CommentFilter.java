@@ -1,7 +1,7 @@
 package com.example.backend_pj4.domain.repository.filter;
 
 /**
- * Bộ lọc danh sách bình luận. Một filter phục vụ cả hai màn hình: danh sách công khai dưới phim
+ * Filter phục vụ cả hai màn hình: danh sách công khai dưới phim
  * và màn kiểm duyệt của admin.
  * @param movieId       null nghĩa là mọi phim (màn admin)
  * @param episodeId     chỉ có nghĩa khi {@code episodeScoped} là true; null lúc đó nghĩa là
@@ -11,8 +11,6 @@ package com.example.backend_pj4.domain.repository.filter;
  * @param rootOnly      true thì chỉ lấy bình luận gốc ({@code parent_id IS NULL}) — danh sách
  *                      công khai phân trang theo gốc; false thì lấy phẳng (màn admin)
  * @param isApproved    null nghĩa là không lọc theo trạng thái duyệt
- * @param q             từ khoá tìm kiếm nội dung
- * @param userId        null nghĩa là không lọc theo người dùng; truyền id để lấy bình luận của người đó
  */
 public record CommentFilter(
         String movieId,

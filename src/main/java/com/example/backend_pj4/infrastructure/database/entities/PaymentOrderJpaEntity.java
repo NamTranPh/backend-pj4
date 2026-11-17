@@ -74,6 +74,12 @@ public class PaymentOrderJpaEntity {
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
+    @Column(name = "refunded_amount", precision = 10, scale = 2)
+    private BigDecimal refundedAmount;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -90,6 +96,7 @@ public class PaymentOrderJpaEntity {
                               String gatewayTransactionId, String checkoutUrl, String failureReason,
                               String metadata, LocalDateTime requestedAt, LocalDateTime completedAt,
                               LocalDateTime failedAt, LocalDateTime cancelledAt,
+                              LocalDateTime refundedAt, BigDecimal refundedAmount,
                               LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.user = user;
@@ -108,6 +115,8 @@ public class PaymentOrderJpaEntity {
         this.completedAt = completedAt;
         this.failedAt = failedAt;
         this.cancelledAt = cancelledAt;
+        this.refundedAt = refundedAt;
+        this.refundedAmount = refundedAmount;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -128,6 +137,8 @@ public class PaymentOrderJpaEntity {
     public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
     public void setFailedAt(LocalDateTime failedAt) { this.failedAt = failedAt; }
     public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
+    public void setRefundedAt(LocalDateTime refundedAt) { this.refundedAt = refundedAt; }
+    public void setRefundedAmount(BigDecimal refundedAmount) { this.refundedAmount = refundedAmount; }
     public void setId(String id) { this.id = id; }
 }
 

@@ -1,5 +1,6 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -75,5 +76,13 @@ public class JpaEpisodeRepositoryAdapter implements EpisodeRepository {
     @Override
     public void deleteById(String id) {
         episodeJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Episode> findStuckProcessingEpisodes(LocalDateTime threshold) {
+        return episodeJpaRepository.findStuckProcessingEpisodes(VideoStatus.PROCESSING, threshold)
+                .stream()
+                .map(episodePersistenceMapper::toDomain)
+                .toList();
     }
 }

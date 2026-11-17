@@ -90,7 +90,13 @@
 ### PaymentOrderStatus
 
 ```json
-["PENDING", "COMPLETED", "FAILED", "CANCELLED"]
+["PENDING", "COMPLETED", "FAILED", "CANCELLED", "REFUNDED"]
+```
+
+### RefundStatus
+
+```json
+["REQUESTED", "PROCESSING", "COMPLETED", "CANCELLED", "REJECTED"]
 ```
 
 ### PaymentGateway
@@ -228,9 +234,11 @@ DELETE /api/v1/admin/movies/{movieId}/uploads/{uploadId}
 
 Episode upload tương tự, path: `/api/v1/admin/movies/{movieId}/episodes/{id}/uploads/...`
 
-### 6. Payment Flow (PayOS)
+
+### 6. Payment Flow (PayOS) & Refund Flow
 
 ```
+[Luồng Mua Gói VIP]
 GET /api/v1/membership-plans
   → Response: List<MembershipPlanResult> (active plans)
 
@@ -238,16 +246,38 @@ POST /api/v1/payments/create-order
   → Request: { planSlug }
   → Response: { id, planName, price, status: "PENDING", checkoutUrl, transactionCode }
 
-[Frontend redirect user tới checkoutUrl → User thanh toán trên PayOS]
-
-[PayOS gọi webhook]
+[Trường hợp 1: Người dùng thanh toán]
+Frontend redirect user tới checkoutUrl → User thanh toán trên PayOS
+  ↓
+PayOS gọi webhook:
 POST /api/v1/payments/payos/webhook
-  → Body: raw JSON từ PayOS (verify HMAC-SHA256)
-  → Backend: cập nhật order → kích hoạt/gia hạn Membership → tạo Notification
-
-[Frontend poll trạng thái]
+  → Body: raw JSON từ PayOS (verify HMAC-SHA256, kiểm tra số tiền)
+  → Backend: đối soát số tiền → cập nhật order COMPLETED → kích hoạt/gia hạn Membership → tạo Notification
+  ↓
+Frontend poll trạng thái hoặc nghe SSE/Notification:
 GET /api/v1/payments/{transactionCode}/status
   → Response: { id, planName, price, status: "COMPLETED", transactionCode }
+
+[Trường hợp 2: Người dùng chủ động hủy đơn đang chờ]
+POST /api/v1/payments/{transactionCode}/cancel
+  → Backend: cập nhật CANCELLED nguyên tử (nếu đơn đã COMPLETED thì giữ nguyên và trả 200 OK với status hiện tại)
+  → Response: HTTP 200 OK kèm PaymentOrderResult (F12 sạch bóng, không lỗi đỏ)
+
+[Luồng Hoàn Tiền - Admin]
+1. Admin tạo yêu cầu hoàn tiền:
+   POST /api/v1/admin/refunds/request
+   → Body: { paymentOrderId, amount, reason }
+   → Response: PaymentRefundResult (status: "REQUESTED")
+
+2. Admin thực hiện chuyển khoản cho khách xong → Xác nhận hoàn tiền:
+   POST /api/v1/admin/refunds/{id}/process
+   → Body: { refundTransactionCode, adminNote }
+   → Backend:
+       - Cập nhật refund COMPLETED
+       - Cập nhật payment_order: status = REFUNDED, cộng dồn refund_amount, lưu refunded_at (giữ nguyên completed_at)
+       - Tự động trừ lùi số ngày VIP hoặc hủy kích hoạt gói Membership tương ứng
+       - Gửi Notification hệ thống tới người dùng
+   → Response: PaymentRefundResult (status: "COMPLETED")
 ```
 
 ### 7. Streaming Flow (HLS)
@@ -351,7 +381,7 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 > Quản lý người dùng cho quản trị viên (AdminUserController). Profile cá nhân (get/update/avatar) nằm ở **ACCOUNT Module** (`/api/v1/account`).
 
 | STT | Chức năng      | Method | Path                                                  | Auth  | Request                    | Response                        | Note       |
-| --- | -------------- | ------ | ----------------------------------------------------- | ----- | -------------------        | -------------------------       | ---------- |
+| --- | -------------- | ------ | ----------------------------------------------------- | ----- | -------------------------- | ------------------------------- | ---------- |
 | 1   | Get all users  | GET    | `/api/v1/admin/users?search=&page=1&limit=10&sortBy=` | Admin | search, page, limit        | PageResult\<UserProfileResult\> | Admin only |
 | 2   | Get user by ID | GET    | `/api/v1/admin/users/{id}`                            | Admin | -                          | UserProfileResult               | Admin only |
 | 3   | Toggle ban     | PATCH  | `/api/v1/admin/users/{id}/ban`                        | Admin | banned (boolean, required) | void                            | Admin only |
@@ -652,14 +682,14 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ### CRUD
 
-| STT | Chức năng                | Method | Path                                                     | Auth  | Request                                                                  | Response          |
-| --- | ------------------------ | ------ | -------------------------------------------------------- | ----- | ------------------------------------------------------------------------ | ----------------- |
-| 1   | Create episode           | POST   | `/api/v1/admin/movies/{movieId}/episodes`                | Admin | episodeNumber, title?, description?, duration?, airDate?, thumbnailUrl?  | EpisodeResult     |
-| 2   | Update episode           | PATCH  | `/api/v1/admin/movies/{movieId}/episodes/{id}`           | Admin | episodeNumber?, title?, description?, duration?, airDate?, thumbnailUrl? | EpisodeResult     |
-| 3   | List episodes            | GET    | `/api/v1/admin/movies/{movieId}/episodes`                | Admin | -                                                                        | [EpisodeResult]   |
-| 4   | Delete episode           | DELETE | `/api/v1/admin/movies/{movieId}/episodes/{id}`           | Admin | -                                                                        | void              |
-| 5   | Upload thumbnail preview | POST   | `/api/v1/admin/movies/{movieId}/episodes/thumbnails`     | Admin | file (multipart)                                                         | MediaUploadResult |
-| 5.1 | Publish episode          | POST   | `/api/v1/admin/movies/{movieId}/episodes/{id}/publish`   | Admin | -                                                                        | EpisodeResult     |
+| STT | Chức năng                | Method | Path                                                   | Auth  | Request                                                                  | Response          |
+| --- | ------------------------ | ------ | ------------------------------------------------------ | ----- | ------------------------------------------------------------------------ | ----------------- |
+| 1   | Create episode           | POST   | `/api/v1/admin/movies/{movieId}/episodes`              | Admin | episodeNumber, title?, description?, duration?, airDate?, thumbnailUrl?  | EpisodeResult     |
+| 2   | Update episode           | PATCH  | `/api/v1/admin/movies/{movieId}/episodes/{id}`         | Admin | episodeNumber?, title?, description?, duration?, airDate?, thumbnailUrl? | EpisodeResult     |
+| 3   | List episodes            | GET    | `/api/v1/admin/movies/{movieId}/episodes`              | Admin | -                                                                        | [EpisodeResult]   |
+| 4   | Delete episode           | DELETE | `/api/v1/admin/movies/{movieId}/episodes/{id}`         | Admin | -                                                                        | void              |
+| 5   | Upload thumbnail preview | POST   | `/api/v1/admin/movies/{movieId}/episodes/thumbnails`   | Admin | file (multipart)                                                         | MediaUploadResult |
+| 5.1 | Publish episode          | POST   | `/api/v1/admin/movies/{movieId}/episodes/{id}/publish` | Admin | -                                                                        | EpisodeResult     |
 
 ### Episode Video Upload
 
@@ -925,12 +955,15 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
 
 ## PAYMENT Module (User)
 
-| STT | Chức năng           | Method | Path                                        | Auth   | Request                                   | Response                                |
-| --- | ------------------- | ------ | ------------------------------------------- | ------ | ----------------------------------------- | --------------------------------------- |
-| 1   | Tạo đơn thanh toán  | POST   | `/api/v1/payments/create-order`             | User   | CreatePaymentRequest                      | PaymentOrderResult (201)                |
-| 2   | PayOS webhook       | POST   | `/api/v1/payments/payos/webhook`            | Public | raw JSON (PayOS)                          | void                                    |
-| 3   | Kiểm tra trạng thái | GET    | `/api/v1/payments/{transactionCode}/status` | User   | -                                         | PaymentOrderResult                      |
-| 4   | Lịch sử đơn của tôi | GET    | `/api/v1/payments/my-orders`                | User   | phân trang (page, limit, sortBy, sortDir) | List\<PaymentOrderResult\> + pagination |
+| STT | Chức năng             | Method | Path                                        | Auth   | Request                                                                     | Response                                |
+| --- | --------------------- | ------ | ------------------------------------------- | ------ | --------------------------------------------------------------------------- | --------------------------------------- |
+| 1   | Tạo đơn thanh toán    | POST   | `/api/v1/payments/create-order`             | User   | CreatePaymentRequest                                                        | PaymentOrderResult (201)                |
+| 2   | Hủy đơn đang chờ      | POST   | `/api/v1/payments/{transactionCode}/cancel` | User   | -                                                                           | PaymentOrderResult (200)                |
+| 3   | PayOS webhook         | POST   | `/api/v1/payments/payos/webhook`            | Public | raw JSON (PayOS)                                                            | void                                    |
+| 4   | Kiểm tra trạng thái   | GET    | `/api/v1/payments/{transactionCode}/status` | User   | -                                                                           | PaymentOrderResult                      |
+| 5   | Lịch sử đơn của tôi   | GET    | `/api/v1/payments/my-orders`                | User   | phân trang (`page`, `limit`, `sortBy`, `sortDir`)                           | List\<PaymentOrderResult\> + pagination |
+
+> **Lưu ý F12 Cleanliness:** API hủy đơn `POST /{transactionCode}/cancel` luôn trả về **HTTP 200 OK** kể cả khi đơn đã `COMPLETED` hoặc đã `CANCELLED` trước đó. FE đọc trường `status` trong `data` để hiển thị Toast thông báo trạng thái hiện tại của đơn, không ném HTTP 400 làm đỏ Network tab (F12).
 
 **Request/Response DTO:**
 
@@ -944,19 +977,239 @@ Episode streaming tương tự: `POST /api/v1/movies/{movieSlug}/episodes/{episo
   "paymentOrder": {
     "response": {
       "id": "string",
+      "userId": "string",
+      "membershipPlanId": "string",
       "planName": "string",
       "price": 99000,
-      "status": "PENDING | COMPLETED | FAILED | CANCELLED",
+      "durationDays": 30,
+      "gateway": "PAYOS",
+      "status": "PENDING | COMPLETED | FAILED | CANCELLED | REFUNDED",
       "transactionCode": "string",
+      "gatewayTransactionId": "string (nullable)",
       "checkoutUrl": "string (PayOS checkout link, chỉ có khi PENDING)",
+      "failureReason": "string (nullable)",
+      "requestedAt": "datetime",
+      "completedAt": "datetime (nullable)",
+      "failedAt": "datetime (nullable)",
+      "cancelledAt": "datetime (nullable)",
+      "refundedAt": "datetime (nullable)",
+      "refundedAmount": "number (nullable, tổng tiền đã hoàn)",
       "createdAt": "datetime",
-      "completedAt": "datetime (nullable)"
+      "updatedAt": "datetime"
     }
   }
 }
 ```
 
 > **Flow:** Tạo order → FE redirect tới `checkoutUrl` → User thanh toán → PayOS gọi webhook → Backend kích hoạt membership + tạo notification → FE poll status.
+
+---
+
+## PAYMENT Module (Admin)
+
+Base path: `/api/v1/admin/payments` (Yêu cầu quyền: `ADMIN`)
+
+| STT | Chức năng                    | Method | Path                                 | Auth  | Request                                   | Response                         |
+| --- | ---------------------------- | ------ | ------------------------------------ | ----- | ----------------------------------------- | -------------------------------- |
+| 1   | Danh sách đơn thanh toán     | GET    | `/api/v1/admin/payments`             | Admin | `@ModelAttribute RequestAdminPaymentDto`  | PageResult\<PaymentOrderResult\> |
+| 2   | Xem chi tiết đơn hàng        | GET    | `/api/v1/admin/payments/{id}`        | Admin | Path variable `id`                        | AdminPaymentDetailResult         |
+| 3   | Đồng bộ thủ công từ PayOS    | POST   | `/api/v1/admin/payments/{id}/sync`   | Admin | Path variable `id`                        | PaymentOrderResult               |
+| 4   | Admin hủy đơn treo (PENDING) | POST   | `/api/v1/admin/payments/{id}/cancel` | Admin | AdminCancelPaymentRequest                 | PaymentOrderResult               |
+| 5   | Báo cáo thống kê doanh thu   | GET    | `/api/v1/admin/payments/statistics`  | Admin | Query params: `fromDate`, `toDate` (Date) | AdminPaymentStatisticsResult     |
+
+**Request/Response DTO (Admin):**
+
+```json
+{
+  "requestAdminPaymentFilter": {
+    "params": {
+      "page": 1,
+      "limit": 10,
+      "sortBy": "createdAt",
+      "sortDir": "desc",
+      "search": "mã đơn, mã giao dịch, email khách...",
+      "status": "PENDING | COMPLETED | FAILED | CANCELLED | REFUNDED (nullable)",
+      "gateway": "PAYOS (nullable)",
+      "membershipPlanId": "uuid (nullable)",
+      "userId": "uuid (nullable)",
+      "fromDate": "2026-11-01 (nullable, YYYY-MM-DD)",
+      "toDate": "2026-11-30 (nullable, YYYY-MM-DD)"
+    }
+  },
+  "adminCancelPayment": {
+    "request": {
+      "reason": "Khách đổi ý / Đơn treo quá lâu"
+    }
+  },
+  "adminPaymentDetail": {
+    "response": {
+      "id": "string",
+      "user": {
+        "id": "string",
+        "email": "user@example.com",
+        "name": "Nguyễn Văn A",
+        "profileUrl": "https://..."
+      },
+      "plan": {
+        "id": "string",
+        "name": "VIP 1 Tháng",
+        "durationDays": 30,
+        "price": 99000
+      },
+      "price": 99000,
+      "durationDays": 30,
+      "gateway": "PAYOS",
+      "status": "COMPLETED | REFUNDED",
+      "transactionCode": "TX173116...",
+      "gatewayTransactionId": "payos_link_id",
+      "checkoutUrl": null,
+      "failureReason": null,
+      "metadata": null,
+      "requestedAt": "2026-11-10T14:00:00",
+      "completedAt": "2026-11-10T14:02:15",
+      "failedAt": null,
+      "cancelledAt": null,
+      "refundedAt": null,
+      "refundedAmount": 0,
+      "createdAt": "2026-11-10T14:00:00",
+      "updatedAt": "2026-11-10T14:02:15",
+      "refundHistory": [
+        {
+          "id": "refund_uuid",
+          "paymentOrderId": "order_uuid",
+          "userId": "user_uuid",
+          "amount": 99000,
+          "status": "COMPLETED",
+          "reason": "Hoàn tiền do lỗi dịch vụ",
+          "adminNote": "Đã chuyển khoản qua Vietcombank",
+          "refundTransactionCode": "VCB123456789",
+          "processedBy": "admin_uuid",
+          "requestedAt": "2026-11-10T15:00:00",
+          "processedAt": "2026-11-10T15:30:00",
+          "createdAt": "2026-11-10T15:00:00"
+        }
+      ]
+    }
+  },
+  "adminPaymentStatistics": {
+    "response": {
+      "grossRevenue": 15000000,
+      "totalRefunded": 200000,
+      "netRevenue": 14800000,
+      "totalOrders": 120,
+      "completedOrders": 105,
+      "pendingOrders": 5,
+      "cancelledOrders": 8,
+      "failedOrders": 2,
+      "refundedOrders": 3,
+      "successRate": 87.5,
+      "revenueByPlan": [
+        {
+          "membershipPlanId": "plan_01",
+          "planName": "Gói VIP 1 Tháng",
+          "totalOrders": 80,
+          "completedOrders": 75,
+          "revenue": 7425000
+        }
+      ]
+    }
+  }
+}
+```
+
+---
+
+## REFUND Module (Admin)
+
+Base path: `/api/v1/admin/refunds` (Yêu cầu quyền: `ADMIN`)
+
+| STT | Chức năng                          | Method | Path                                 | Auth  | Request                                 | Response                          |
+| --- | ---------------------------------- | ------ | ------------------------------------ | ----- | --------------------------------------- | --------------------------------- |
+| 1   | Danh sách phiếu hoàn tiền          | GET    | `/api/v1/admin/refunds`              | Admin | `@ModelAttribute RequestAdminRefundDto` | PageResult\<PaymentRefundResult\> |
+| 2   | Tạo phiếu yêu cầu hoàn tiền        | POST   | `/api/v1/admin/refunds/request`      | Admin | CreateRefundRequest                     | PaymentRefundResult (201)         |
+| 3   | Xác nhận đã chuyển khoản hoàn tiền | POST   | `/api/v1/admin/refunds/{id}/process` | Admin | ProcessRefundRequest                    | PaymentRefundResult (200)         |
+| 4   | Hủy / Từ chối phiếu hoàn tiền      | POST   | `/api/v1/admin/refunds/{id}/cancel`  | Admin | AdminCancelRefundRequest                | PaymentRefundResult (200)         |
+
+**Request/Response DTO (Refund):**
+
+```json
+{
+  "requestAdminRefundFilter": {
+    "params": {
+      "page": 1,
+      "limit": 10,
+      "sortBy": "createdAt",
+      "sortDir": "desc",
+      "search": "mã đơn, mã giao dịch hoàn, lý do...",
+      "status": "REQUESTED | PROCESSING | COMPLETED | CANCELLED | REJECTED (nullable)",
+      "paymentOrderId": "uuid (nullable)",
+      "userId": "uuid (nullable)",
+      "fromDate": "2026-11-01 (nullable, YYYY-MM-DD)",
+      "toDate": "2026-11-30 (nullable, YYYY-MM-DD)"
+    }
+  },
+  "createRefund": {
+    "request": {
+      "paymentOrderId": "uuid (bắt buộc, chỉ hoàn cho đơn COMPLETED hoặc REFUNDED)",
+      "amount": 99000,
+      "reason": "Khách hàng khiếu nại chuyển thừa tiền / yêu cầu hủy gói"
+    }
+  },
+  "processRefund": {
+    "request": {
+      "refundTransactionCode": "Mã GD chuyển khoản ngân hàng hoàn tiền (bắt buộc)",
+      "adminNote": "Đã chuyển tiền vào STK 1903... Techcombank của khách"
+    }
+  },
+  "cancelRefund": {
+    "request": {
+      "adminNote": "Khách rút yêu cầu hoặc không đủ điều kiện chính sách"
+    }
+  },
+  "paymentRefund": {
+    "response": {
+      "id": "uuid",
+      "paymentOrderId": "uuid",
+      "userId": "uuid",
+      "amount": 99000,
+      "status": "REQUESTED | PROCESSING | COMPLETED | CANCELLED | REJECTED",
+      "reason": "string",
+      "adminNote": "string (nullable)",
+      "refundTransactionCode": "string (nullable)",
+      "processedBy": "admin_uuid (nullable)",
+      "requestedAt": "datetime",
+      "processedAt": "datetime (nullable)",
+      "createdAt": "datetime"
+    }
+  }
+}
+```
+
+> **Hành vi nghiệp vụ khi hoàn tiền:**
+>
+> - Khi gọi `/process`: Hệ thống chuyển trạng thái phiếu sang `COMPLETED`, cập nhật đơn hàng thành `REFUNDED` (cộng dồn `refund_amount`, cập nhật `refunded_at` nhưng **giữ nguyên `completed_at`** để lưu bằng chứng đối soát). Đồng thời tự động trừ lùi thời hạn VIP Membership hoặc tắt kích hoạt nếu hoàn đủ gói, và gửi thông báo hệ thống đến người dùng.
+> - Khi gọi `/cancel`: Hệ thống hủy phiếu hoàn tiền (`CANCELLED`), giữ nguyên trạng thái đơn hàng và quyền lợi VIP của khách.
+
+---
+
+## HƯỚNG DẪN TÍCH HỢP FRONTEND (UI/UX) CHO MODULE THANH TOÁN & HOÀN TIỀN
+
+### 1. Nguyên tắc lập trình Frontend
+
+- **Không sử dụng thư viện `axios`**: Bắt buộc dùng `fetch` API chuẩn (hoặc custom `apiClient` / `request<T>()` bọc native fetch).
+- **Tránh báo lỗi đỏ Network Tab (F12)**: Luôn kiểm tra `data.status` từ phản hồi HTTP 200 OK của các API hủy đơn hoặc tra cứu trạng thái.
+
+### 2. Thiết kế giao diện thân thiện (Soft Contrast Color Palette)
+
+Giao diện hiển thị trạng thái giao dịch được thiết kế dịu mắt, độ tương phản vừa phải, không gây chói hoặc quá tối:
+
+| Trạng thái  | Ý nghĩa                             | Mã màu nền (Badge Background) | Mã màu chữ (Text Color) | Border / Tag |
+| :---------- | :---------------------------------- | :---------------------------- | :---------------------- | :----------- |
+| `COMPLETED` | Giao dịch thành công, đã bật VIP    | `#ECFDF5` (Mint dịu)          | `#065F46` (Emerald sẫm) | `#A7F3D0`    |
+| `PENDING`   | Đang chờ khách quét mã VietQR       | `#FFFBEB` (Amber nhạt)        | `#92400E` (Hổ phách)    | `#FDE68A`    |
+| `CANCELLED` | Khách chủ động hủy hoặc hết hạn     | `#F1F5F9` (Slate dịu)         | `#475569` (Slate sẫm)   | `#CBD5E1`    |
+| `FAILED`    | Chuyển thiếu tiền / Cổng TT lỗi     | `#FFF1F2` (Rose nhạt)         | `#9F1239` (Rose sẫm)    | `#FECDD3`    |
+| `REFUNDED`  | Đã hoàn tiền cho khách, thu hồi VIP | `#F5F3FF` (Lavender dịu)      | `#5B21B6` (Purple sẫm)  | `#DDD6FE`    |
 
 ---
 
@@ -1537,6 +1790,25 @@ Luồng "login → nếu `email_not_verified` thì chuyển sang màn nhập OTP
 - Mỗi phiên đăng nhập nay được gắn `session_id` cố định (giữ nguyên qua mọi lần refresh) cùng `user_agent`, `ip_address`, `last_used_at` — chuẩn bị cho tính năng **Quản lý phiên đăng nhập** (liệt kê thiết bị, đăng xuất từ xa). Endpoint cho tính năng này **chưa có**, sẽ bổ sung sau.
 - Refresh token của kênh admin không còn dùng được ở `POST /api/v1/auth/refresh-token` và ngược lại — trả `refresh_token_revoked` (401).
 - Refresh token hết hạn được dọn tự động hằng ngày lúc 02:30.
+
+### 2026-11-10 - v4.2 - Payment Lifecycle, Admin Payment & Refund 3NF
+
+- **Bổ sung API User:**
+  - `POST /api/v1/payments/{transactionCode}/cancel`: Cho phép người dùng chủ động hủy đơn thanh toán đang chờ (`PENDING`). Luôn trả về HTTP 200 OK kể cả khi đơn đã thanh toán hoặc đã hủy để đảm bảo F12 không bị đỏ lỗi.
+  - Cập nhật DTO `PaymentOrderResult`: Bổ sung `gateway`, `durationDays`, `failureReason`, `requestedAt`, `completedAt`, `failedAt`, `cancelledAt`, `refundedAt`, `refundedAmount`.
+- **Bổ sung Module Admin Payment (`/api/v1/admin/payments`):**
+  - `GET /api/v1/admin/payments`: Danh sách đơn thanh toán có phân trang và lọc đa tiêu chí (`RequestAdminPaymentDto` kế thừa `PageQueryParamDto`).
+  - `GET /api/v1/admin/payments/{id}`: Xem chi tiết đơn thanh toán kèm thông tin User, Plan và lịch sử các lần hoàn tiền.
+  - `POST /api/v1/admin/payments/{id}/sync`: Đồng bộ thủ công trạng thái trực tiếp từ PayOS.
+  - `POST /api/v1/admin/payments/{id}/cancel`: Admin hủy đơn treo quá hạn hoặc theo khiếu nại.
+  - `GET /api/v1/admin/payments/statistics`: Báo cáo doanh thu gộp (Gross), tiền hoàn (Refunded), doanh thu thuần (Net), tỷ lệ giao dịch thành công.
+- **Bổ sung Module Admin Refund (`/api/v1/admin/refunds`) chuẩn 3NF:**
+  - `GET /api/v1/admin/refunds`: Lọc và phân trang danh sách phiếu hoàn tiền.
+  - `POST /api/v1/admin/refunds/request`: Tạo phiếu hoàn tiền mới cho đơn đã thanh toán.
+  - `POST /api/v1/admin/refunds/{id}/process`: Xác nhận đã chuyển khoản cho khách $\rightarrow$ tự động trừ lùi/thu hồi Membership VIP và gửi thông báo.
+  - `POST /api/v1/admin/refunds/{id}/cancel`: Hủy/Từ chối phiếu hoàn tiền mà không ảnh hưởng đơn gốc.
+- **Cập nhật Enums:** Bổ sung `REFUNDED` vào `PaymentOrderStatus`; thêm enum `RefundStatus` (`REQUESTED, PROCESSING, COMPLETED, CANCELLED, REJECTED`).
+- **Quy chuẩn Frontend:** Không sử dụng axios (dùng native `fetch`), thiết kế bảng màu Soft Contrast dịu mắt cho các trạng thái giao dịch.
 
 ### 2026-09-07 - v4.1 - Auth Security Hardening
 

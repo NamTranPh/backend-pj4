@@ -4,6 +4,7 @@ import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
@@ -75,6 +76,10 @@ public class EpisodeJpaEntity {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "episode", fetch = FetchType.LAZY)
     private List<CommentJpaEntity> comments = new ArrayList<>();

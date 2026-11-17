@@ -15,10 +15,8 @@ import com.example.backend_pj4.infrastructure.config.properties.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
 public class JwtTokenProvider {
 
     /** Kênh phát token — quyết định token dùng được ở khu nào, KHÔNG phải role. */
@@ -30,9 +28,14 @@ public class JwtTokenProvider {
     public static final String CLAIM_CHANNEL = "ch";
     /** Phiên bản mật khẩu. Thiếu claim này (token phát trước bản nâng cấp) coi như 0. */
     public static final String CLAIM_TOKEN_VERSION = "ver";
+    public static final String CLAIM_SESSION_ID = "sid";
     public static final String TOKEN_TYPE_ACCESS = "access";
 
     private final JwtProperties jwtProperties;
+
+    public JwtTokenProvider(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
@@ -44,12 +47,19 @@ public class JwtTokenProvider {
      *
      * @param channel CHANNEL_ADMIN nếu token phát từ cửa CMS, CHANNEL_USER nếu phát từ cửa người dùng.
      */
-    public String generateAccessToken(String subject, String channel, int tokenVersion) {
+    public String generateAccessToken(String subject, String channel, int tokenVersion, String sessionId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS);
         claims.put(CLAIM_CHANNEL, channel);
         claims.put(CLAIM_TOKEN_VERSION, tokenVersion);
+        if (sessionId != null && !sessionId.isBlank()) {
+            claims.put(CLAIM_SESSION_ID, sessionId);
+        }
         return createToken(claims, subject, jwtProperties.getExpiration());
+    }
+
+    public String generateAccessToken(String subject, String channel, int tokenVersion) {
+        return generateAccessToken(subject, channel, tokenVersion, null);
     }
 
     public String generateRefreshToken(String subject, String tokenId, String channel) {
@@ -105,6 +115,10 @@ public class JwtTokenProvider {
 
     public String getChannelFromToken(String token) {
         return getClaimFromToken(token, claims -> claims.get(CLAIM_CHANNEL, String.class));
+    }
+
+    public String getSessionIdFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get(CLAIM_SESSION_ID, String.class));
     }
 
     public String getTokenIdFromToken(String token) {

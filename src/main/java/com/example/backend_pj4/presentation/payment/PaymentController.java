@@ -1,5 +1,7 @@
 package com.example.backend_pj4.presentation.payment;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,12 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend_pj4.application.dto.payment.PaymentOrderResult;
+import com.example.backend_pj4.application.port.in.payment.CancelMyPaymentOrderUseCase;
 import com.example.backend_pj4.application.port.in.payment.CreatePaymentOrderUseCase;
 import com.example.backend_pj4.application.port.in.payment.GetPaymentStatusUseCase;
 import com.example.backend_pj4.application.port.in.payment.HandlePayOsWebhookUseCase;
 import com.example.backend_pj4.application.port.in.payment.ListMyPaymentOrdersQuery;
 import com.example.backend_pj4.common.annotation.AuthRequired;
 import com.example.backend_pj4.common.annotation.AuthResultUser;
+import com.example.backend_pj4.common.annotation.IgnoreResponseWrapping;
 import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.infrastructure.security.AppUserDetails;
 import com.example.backend_pj4.presentation.common.request.PageQueryParamDto;
@@ -37,17 +41,20 @@ public class PaymentController {
     private final HandlePayOsWebhookUseCase handlePayOsWebhookUseCase;
     private final GetPaymentStatusUseCase getPaymentStatusUseCase;
     private final ListMyPaymentOrdersQuery listMyPaymentOrdersQuery;
+    private final CancelMyPaymentOrderUseCase cancelMyPaymentOrderUseCase;
 
     public PaymentController(
             CreatePaymentOrderUseCase createPaymentOrderUseCase,
             HandlePayOsWebhookUseCase handlePayOsWebhookUseCase,
             GetPaymentStatusUseCase getPaymentStatusUseCase,
-            ListMyPaymentOrdersQuery listMyPaymentOrdersQuery
+            ListMyPaymentOrdersQuery listMyPaymentOrdersQuery,
+            CancelMyPaymentOrderUseCase cancelMyPaymentOrderUseCase
     ) {
         this.createPaymentOrderUseCase = createPaymentOrderUseCase;
         this.handlePayOsWebhookUseCase = handlePayOsWebhookUseCase;
         this.getPaymentStatusUseCase = getPaymentStatusUseCase;
         this.listMyPaymentOrdersQuery = listMyPaymentOrdersQuery;
+        this.cancelMyPaymentOrderUseCase = cancelMyPaymentOrderUseCase;
     }
 
     @Operation(summary = "Tạo đơn thanh toán PayOS.")
@@ -62,11 +69,24 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @Operation(summary = "Người dùng chủ động hủy đơn thanh toán đang chờ.")
+    @AuthRequired
+    @PostMapping("/{transactionCode}/cancel")
+    public ResponseEntity<PaymentOrderResult> cancelOrder(
+            @PathVariable String transactionCode,
+            @AuthResultUser UserDetails userDetails
+    ) {
+        String userId = resolveUserId(userDetails);
+        PaymentOrderResult result = cancelMyPaymentOrderUseCase.execute(transactionCode, userId);
+        return ResponseEntity.ok(result);
+    }
+
     @Operation(summary = "PayOS webhook callback.")
+    @IgnoreResponseWrapping
     @PostMapping("/payos/webhook")
-    public ResponseEntity<Void> payosWebhook(@RequestBody String body) {
+    public ResponseEntity<Map<String, Object>> payosWebhook(@RequestBody String body) {
         handlePayOsWebhookUseCase.execute(body);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("success", true, "message", "Webhook received"));
     }
 
     @Operation(summary = "Kiểm tra trạng thái thanh toán.")

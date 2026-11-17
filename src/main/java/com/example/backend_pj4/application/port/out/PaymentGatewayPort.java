@@ -15,7 +15,11 @@ public interface PaymentGatewayPort {
 
     record CreatePaymentLinkResult(String checkoutUrl, String paymentLinkId) {}
 
-    record WebhookPayload(long orderCode, String status, String transactionId) {}
+    record WebhookPayload(long orderCode, String status, String transactionId, BigDecimal amount) {
+        public WebhookPayload(long orderCode, String status, String transactionId) {
+            this(orderCode, status, transactionId, null);
+        }
+    }
 
     record PaymentStatusResult(String status, long orderCode, BigDecimal amount) {}
 }

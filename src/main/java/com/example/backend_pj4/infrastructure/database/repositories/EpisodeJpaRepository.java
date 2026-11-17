@@ -1,5 +1,6 @@
 package com.example.backend_pj4.infrastructure.database.repositories;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +29,14 @@ public interface EpisodeJpaRepository extends JpaRepository<EpisodeJpaEntity, St
     boolean existsByThumbnailUrl(String thumbnailUrl);
     long countByMovie_Id(String movieId);
     long countByMovie_IdAndStatus(String movieId, VideoStatus status);
+
+    @Query("""
+        SELECT e FROM EpisodeJpaEntity e
+        WHERE e.status = :status
+          AND (e.updatedAt < :threshold OR (e.updatedAt IS NULL AND e.createdAt < :threshold))
+    """)
+    List<EpisodeJpaEntity> findStuckProcessingEpisodes(
+            @Param("status") VideoStatus status,
+            @Param("threshold") LocalDateTime threshold
+    );
 }

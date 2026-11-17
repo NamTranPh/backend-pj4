@@ -32,7 +32,18 @@ public class HandlePayOsWebhookService implements HandlePayOsWebhookUseCase {
     @Override
     @Transactional
     public void execute(String webhookBody) {
-        WebhookPayload payload = paymentGatewayPort.verifyWebhookData(webhookBody);
+        WebhookPayload payload;
+        try {
+            payload = paymentGatewayPort.verifyWebhookData(webhookBody);
+        } catch (Exception e) {
+            log.warn("PayOS webhook verification failed or invalid payload: {}", e.getMessage());
+            return;
+        }
+
+        if (payload == null) {
+            log.warn("PayOS webhook: payload is null");
+            return;
+        }
 
         String orderCodeStr = String.valueOf(payload.orderCode());
         PaymentOrder order = paymentOrderRepository.findByTransactionCode(orderCodeStr)
@@ -44,7 +55,7 @@ public class HandlePayOsWebhookService implements HandlePayOsWebhookUseCase {
         }
 
         if ("PAID".equals(payload.status())) {
-            settlementService.completePayment(order, payload.transactionId());
+            settlementService.completePayment(order, payload.transactionId(), payload.amount());
         } else {
             settlementService.failPayment(order, "PayOS payment failed");
         }

@@ -1,5 +1,6 @@
 package com.example.backend_pj4.infrastructure.database.adapters;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.common.pagination.PageQuery;
 import com.example.backend_pj4.common.pagination.PageResult;
 import com.example.backend_pj4.domain.model.Movie;
@@ -109,5 +111,13 @@ public class JpaMovieRepositoryAdapter implements MovieRepository {
     @Override
     public void deleteById(String id) {
         movieJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Movie> findStuckProcessingMovies(LocalDateTime threshold) {
+        return movieJpaRepository.findStuckProcessingMovies(VideoStatus.PROCESSING, threshold)
+                .stream()
+                .map(moviePersistenceMapper::toDomain)
+                .toList();
     }
 }

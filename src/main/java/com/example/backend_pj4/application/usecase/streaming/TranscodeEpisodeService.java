@@ -3,6 +3,7 @@ package com.example.backend_pj4.application.usecase.streaming;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import com.example.backend_pj4.application.port.out.FileStorageService;
 import com.example.backend_pj4.application.port.out.VideoTranscoder;
 import com.example.backend_pj4.application.port.out.VideoTranscoder.TranscodeCommand;
 import com.example.backend_pj4.application.port.out.VideoTranscoder.TranscodeResult;
@@ -21,10 +22,16 @@ public class TranscodeEpisodeService {
 
     private final EpisodeRepository episodeRepository;
     private final VideoTranscoder videoTranscoder;
+    private final FileStorageService fileStorageService;
 
-    public TranscodeEpisodeService(EpisodeRepository episodeRepository, VideoTranscoder videoTranscoder) {
+    public TranscodeEpisodeService(
+            EpisodeRepository episodeRepository,
+            VideoTranscoder videoTranscoder,
+            FileStorageService fileStorageService
+    ) {
         this.episodeRepository = episodeRepository;
         this.videoTranscoder = videoTranscoder;
+        this.fileStorageService = fileStorageService;
     }
 
     @Async("transcodeExecutor")
@@ -59,6 +66,16 @@ public class TranscodeEpisodeService {
                     .build());
 
             log.info("Transcode completed for episode={}", episodeId);
+
+            // Dọn dẹp file raw trên MinIO sau khi transcode HLS thành công
+            try {
+                if (rawFileKey != null && !rawFileKey.isBlank()) {
+                    fileStorageService.delete(RAW_BUCKET, rawFileKey);
+                    log.info("Deleted raw video file after transcode: bucket={}, key={}", RAW_BUCKET, rawFileKey);
+                }
+            } catch (Exception ex) {
+                log.warn("Failed to delete raw video file bucket={}, key={}: {}", RAW_BUCKET, rawFileKey, ex.getMessage());
+            }
 
         } catch (Exception e) {
             log.error("Transcode failed for episode={}", episodeId, e);

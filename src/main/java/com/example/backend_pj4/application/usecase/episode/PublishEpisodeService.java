@@ -43,16 +43,16 @@ public class PublishEpisodeService implements PublishEpisodeUseCase {
             throw new CustomException(ErrorCode.EPISODE_ALREADY_PROCESSING);
         }
 
-        if (episode.getRawFileKey() == null || episode.getRawFileKey().isBlank()) {
-            throw new CustomException(ErrorCode.EPISODE_NO_VIDEO);
-        }
-
         if (episode.getMasterPlaylistKey() != null && !episode.getMasterPlaylistKey().isBlank()) {
             Episode ready = episodeRepository.save(episode.toBuilder()
                     .status(VideoStatus.READY)
                     .build());
             log.info("Episode published (already transcoded) episodeId={}", episodeId);
             return episodeResultMapper.toResult(ready);
+        }
+
+        if (episode.getRawFileKey() == null || episode.getRawFileKey().isBlank()) {
+            throw new CustomException(ErrorCode.EPISODE_NO_VIDEO);
         }
 
         Episode processing = episodeRepository.save(episode.toBuilder()

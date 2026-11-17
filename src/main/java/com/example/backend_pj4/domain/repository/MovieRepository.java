@@ -1,5 +1,6 @@
 package com.example.backend_pj4.domain.repository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -22,4 +23,5 @@ public interface MovieRepository {
     void restoreEpisodesByMovieId(String movieId);
     List<Movie> findRelatedMovies(String currentMovieId, List<String> genreIds, int limit);
     void deleteById(String id);
+    List<Movie> findStuckProcessingMovies(LocalDateTime threshold);
 }

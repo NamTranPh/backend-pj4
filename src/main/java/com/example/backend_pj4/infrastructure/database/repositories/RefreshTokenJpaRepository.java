@@ -42,6 +42,12 @@ public interface RefreshTokenJpaRepository extends JpaRepository<RefreshTokenJpa
                                 @Param("sessionId") String sessionId,
                                 @Param("now") LocalDateTime now);
 
+    @Query("SELECT DISTINCT r.sessionId FROM RefreshTokenJpaEntity r WHERE r.userId = :userId "
+            + "AND r.sessionId != :sessionId AND r.revokedAt IS NULL AND r.expiresAt > :now AND r.sessionId IS NOT NULL")
+    java.util.List<String> findActiveSessionIdsByUserIdExceptSession(@Param("userId") String userId,
+                                                                   @Param("sessionId") String sessionId,
+                                                                   @Param("now") LocalDateTime now);
+
     // clearAutomatically + flushAutomatically: bulk update đi thẳng DB, bỏ qua persistence
     // context. Không có 2 cờ này thì entity đã nạp trước đó vẫn giữ giá trị cũ.
     @Modifying(clearAutomatically = true, flushAutomatically = true)

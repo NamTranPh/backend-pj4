@@ -1,5 +1,6 @@
 package com.example.backend_pj4.application.usecase.payment;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -35,6 +36,20 @@ public class PaymentSettlementService {
         this.paymentOrderRepository = paymentOrderRepository;
         this.membershipRepository = membershipRepository;
         this.notificationRepository = notificationRepository;
+    }
+
+    /**
+     * Quyết toán một đơn đã thanh toán kèm kiểm tra số tiền thực nhận.
+     */
+    @Transactional
+    public boolean completePayment(PaymentOrder order, String gatewayTransactionId, BigDecimal amount) {
+        if (amount != null && order.getPrice() != null && order.getPrice().compareTo(amount) != 0) {
+            log.warn("LỆCH TIỀN: orderId={}, required={}, received={}", order.getId(), order.getPrice(), amount);
+            failPayment(order, "Số tiền thanh toán không khớp: thực nhận " + amount + " đ, yêu cầu " + order.getPrice() + " đ");
+            return false;
+        }
+
+        return completePayment(order, gatewayTransactionId);
     }
 
     /**
@@ -93,7 +108,40 @@ public class PaymentSettlementService {
             return false;
         }
 
+        notificationRepository.save(Notification.builder()
+                .userId(order.getUserId())
+                .type(NotificationType.SYSTEM)
+                .title("Thanh toán không thành công")
+                .content("Đơn hàng #" + order.getTransactionCode() + " không thành công. Lý do: " + reason)
+                .referenceType(NotificationReferenceType.MEMBERSHIP)
+                .referenceId(order.getMembershipPlanId())
+                .isRead(false)
+                .build());
+
         log.info("Payment failed orderId={} reason={}", order.getId(), reason);
+        return true;
+    }
+
+    /** Đánh dấu đơn bị hủy. Cùng cơ chế nguyên tử. */
+    @Transactional
+    public boolean cancelPayment(PaymentOrder order, String reason) {
+        int won = paymentOrderRepository.markCancelledIfPending(order.getId(), reason, LocalDateTime.now());
+
+        if (won == 0) {
+            return false;
+        }
+
+        notificationRepository.save(Notification.builder()
+                .userId(order.getUserId())
+                .type(NotificationType.SYSTEM)
+                .title("Đơn thanh toán đã hủy")
+                .content("Đơn hàng #" + order.getTransactionCode() + " đã được hủy. Lý do: " + reason)
+                .referenceType(NotificationReferenceType.MEMBERSHIP)
+                .referenceId(order.getMembershipPlanId())
+                .isRead(false)
+                .build());
+
+        log.info("Payment cancelled orderId={} reason={}", order.getId(), reason);
         return true;
     }
 

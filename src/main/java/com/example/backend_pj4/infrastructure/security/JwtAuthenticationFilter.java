@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.backend_pj4.domain.repository.RefreshTokenRepository;
 import com.example.backend_pj4.infrastructure.config.properties.RedisKeyProperties;
 import com.example.backend_pj4.infrastructure.database.repositories.UserJpaRepository;
 
@@ -21,12 +23,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /** Mọi endpoint dưới prefix này thuộc kênh CMS, chỉ token có ch=admin mới đi qua. */
@@ -35,10 +35,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
     private final UserJpaRepository userJpaRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final StringRedisTemplate redisTemplate;
     private final RedisKeyProperties redisKeyProperties;
 
     private static final long ACTIVE_THROTTLE_MINUTES = 5;
+
+    @Autowired
+    public JwtAuthenticationFilter(
+            JwtTokenProvider jwtTokenProvider,
+            UserDetailsService userDetailsService,
+            UserJpaRepository userJpaRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            StringRedisTemplate redisTemplate,
+            RedisKeyProperties redisKeyProperties) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.userDetailsService = userDetailsService;
+        this.userJpaRepository = userJpaRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.redisTemplate = redisTemplate;
+        this.redisKeyProperties = redisKeyProperties;
+    }
+
+    /** Constructor 5 tham số tương thích với các unit test cũ. */
+    public JwtAuthenticationFilter(
+            JwtTokenProvider jwtTokenProvider,
+            UserDetailsService userDetailsService,
+            UserJpaRepository userJpaRepository,
+            StringRedisTemplate redisTemplate,
+            RedisKeyProperties redisKeyProperties) {
+        this(jwtTokenProvider, userDetailsService, userJpaRepository, null, redisTemplate, redisKeyProperties);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -93,6 +120,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Kiểm tra phiên đăng nhập: Cơ chế 2 tầng (Redis Blacklist Cache-first + Graceful DB Fallback)
+        String sessionId = jwtTokenProvider.getSessionIdFromToken(jwt);
+        if (sessionId != null && userDetails instanceof AppUserDetails appUser) {
+            if (isSessionRevoked(sessionId, appUser.getUserId())) {
+                log.debug("Rejected revoked or inactive session sessionId={} on {}", sessionId, request.getRequestURI());
+                return;
+            }
+        }
+
         if (jwtTokenProvider.validateToken(jwt, userDetails)
                 && userDetails.isAccountNonLocked()
                 && userDetails.isEnabled()) {
@@ -103,6 +139,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             touchLastActive(username);
         }
+    }
+
+    private boolean isSessionRevoked(String sessionId, String userId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return false;
+        }
+
+        // Tầng 1: Kiểm tra nhanh trong Redis Blacklist (RAM, <0.5ms, chịu tải cao)
+        try {
+            if (redisTemplate != null && redisKeyProperties != null) {
+                String blacklistKey = redisKeyProperties.getPrefix() + ":revoked:session:" + sessionId;
+                Boolean isBlacklisted = redisTemplate.hasKey(blacklistKey);
+                if (Boolean.TRUE.equals(isBlacklisted)) {
+                    log.debug("Session {} is blacklisted in Redis", sessionId);
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            // Tầng 2: Graceful fallback xuống CSDL PostgreSQL nếu Redis lỗi hoặc timeout
+            log.warn("Redis unavailable while checking session blacklist, falling back to DB: {}", e.getMessage());
+            if (refreshTokenRepository != null && userId != null) {
+                return !refreshTokenRepository.existsActiveSession(userId, sessionId);
+            }
+        }
+
+        return false;
     }
 
     private void touchLastActive(String email) {

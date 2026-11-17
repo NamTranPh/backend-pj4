@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend_pj4.application.dto.payment.PaymentOrderResult;
+import com.example.backend_pj4.application.mapper.PaymentResultMapper;
 import com.example.backend_pj4.application.port.in.payment.GetPaymentStatusUseCase;
 import com.example.backend_pj4.common.constants.ErrorCode;
 import com.example.backend_pj4.common.exceptions.CustomException;
@@ -29,15 +30,6 @@ public class GetPaymentStatusService implements GetPaymentStatusUseCase {
             throw new CustomException(ErrorCode.PAYMENT_NOT_FOUND);
         }
 
-        return new PaymentOrderResult(
-                order.getId(),
-                order.getPlanName(),
-                order.getPrice(),
-                order.getStatus().name(),
-                order.getTransactionCode(),
-                order.getCheckoutUrl(),
-                order.getCreatedAt(),
-                order.getCompletedAt()
-        );
+        return PaymentResultMapper.toResult(order);
     }
 }

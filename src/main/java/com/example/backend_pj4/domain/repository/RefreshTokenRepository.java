@@ -13,6 +13,8 @@ public interface RefreshTokenRepository {
     PageResult<RefreshToken> find(SessionFilter filter, PageQuery query);
     /** Phiên này có thuộc về người dùng này và còn hiệu lực không. */
     boolean existsActiveSession(String userId, String sessionId);
+    /** Lấy danh sách sessionId còn hiệu lực của người dùng ngoại trừ phiên hiện tại. */
+    java.util.List<String> findActiveSessionIdsByUserIdExceptSession(String userId, String currentSessionId);
     void revokeByTokenId(String tokenId);
     void revokeAllByUserId(String userId);
     /** Thu hồi tất cả phiên của người dùng ngoại trừ phiên hiện tại. */

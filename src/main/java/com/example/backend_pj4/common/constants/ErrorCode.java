@@ -94,6 +94,14 @@ public enum ErrorCode {
     PAYMENT_GATEWAY_NOT_CONFIGURED("Payment gateway is not configured.", HttpStatus.SERVICE_UNAVAILABLE),
     PLAYBACK_TOKEN_SECRET_MISSING("Playback token signing key is not configured.", HttpStatus.SERVICE_UNAVAILABLE),
     PAYMENT_VERIFICATION_FAILED("Payment verification failed.", HttpStatus.INTERNAL_SERVER_ERROR),
+    
+    // Khi link thanh toán PayOS đã quá 15 phút
+    PAYMENT_LINK_EXPIRED("Payment link has expired.", HttpStatus.BAD_REQUEST),
+    // Các lỗi cho phân hệ Hoàn tiền (Refund)
+    REFUND_NOT_FOUND("Refund request not found.", HttpStatus.NOT_FOUND),
+    REFUND_CANNOT_BE_PROCESSED("Refund request cannot be processed in its current status.", HttpStatus.BAD_REQUEST),
+    REFUND_CANNOT_BE_CANCELLED("Refund request cannot be cancelled in its current status.", HttpStatus.BAD_REQUEST),
+    PAYMENT_ORDER_NOT_REFUNDABLE("Payment order is not eligible for refund.", HttpStatus.BAD_REQUEST),
 
     // ===== STREAMING =====
     EPISODE_NOT_READY("Episode is not ready for playback.", HttpStatus.BAD_REQUEST),
@@ -109,6 +117,7 @@ public enum ErrorCode {
     BAD_CREDENTIALS("Bad credentials.", HttpStatus.UNAUTHORIZED),
     VALIDATION_FAILED("Validation failed.", HttpStatus.BAD_REQUEST),
     RESOURCE_NOT_FOUND("Resource not found.", HttpStatus.NOT_FOUND),
+    UNAUTHORIZED("Unauthorized access.", HttpStatus.UNAUTHORIZED),
     ACCESS_DENIED("Access denied.", HttpStatus.FORBIDDEN),
     BAD_REQUEST("Bad request.", HttpStatus.BAD_REQUEST),
     TOO_MANY_REQUESTS("Too many requests. Please slow down.", HttpStatus.TOO_MANY_REQUESTS),

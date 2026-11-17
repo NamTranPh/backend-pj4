@@ -123,10 +123,11 @@ public class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
             long orderCode = data.get("orderCode").asLong();
             String status = data.has("code") ? data.get("code").asText() : "00";
             String transactionId = data.has("reference") ? data.get("reference").asText() : null;
+            BigDecimal amount = data.has("amount") ? new BigDecimal(data.get("amount").asText()) : null;
 
             String resolvedStatus = "00".equals(status) ? "PAID" : "FAILED";
 
-            return new WebhookPayload(orderCode, resolvedStatus, transactionId);
+            return new WebhookPayload(orderCode, resolvedStatus, transactionId, amount);
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {

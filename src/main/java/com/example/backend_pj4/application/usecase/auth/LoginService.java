@@ -125,17 +125,12 @@ public class LoginService implements LoginUseCase {
         }
     }
 
-    /**
-     * @param admin true nếu token được phát từ cửa CMS. Quyết định claim {@code ch} của
-     *              access token (kênh dùng được) và cờ admin của refresh token trong DB.
-     */
     public AuthTokenResult issueTokens(User user, boolean admin, String userAgent, String ipAddress) {
         String channel = JwtTokenProvider.channelOf(admin);
         String tokenId = UUID.randomUUID().toString();
-        // Phiên mới: sessionId sinh một lần ở đây rồi giữ nguyên qua mọi lần rotation
         String sessionId = UUID.randomUUID().toString();
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), channel, tokenVersionOf(user));
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getEmail(), channel, tokenVersionOf(user), sessionId);
         String refreshJwt = jwtTokenProvider.generateRefreshToken(user.getEmail(), tokenId, channel);
 
         LocalDateTime now = LocalDateTime.now();

@@ -10,7 +10,16 @@ public record PaymentOrderResult(
         String status,
         String transactionCode,
         String checkoutUrl,
+        String gateway,
+        Integer durationDays,
+        String failureReason,
+        LocalDateTime requestedAt,
+        LocalDateTime completedAt,
+        LocalDateTime failedAt,
+        LocalDateTime cancelledAt,
+        LocalDateTime refundedAt,
+        BigDecimal refundedAmount,
         LocalDateTime createdAt,
-        LocalDateTime completedAt
+        LocalDateTime updatedAt
 ) {
 }

@@ -7,9 +7,6 @@ import com.example.backend_pj4.common.constants.enums.VideoQuality;
 import com.example.backend_pj4.common.constants.enums.VideoStatus;
 
 /**
- * Bộ lọc danh sách phim.
- *
- * @param q          từ khoá tìm theo tiêu đề; null hoặc rỗng là không lọc
  * @param publicOnly true thì chỉ lấy phim READY + PUBLIC, và bỏ qua {@code status}
  */
 public record MovieFilter(

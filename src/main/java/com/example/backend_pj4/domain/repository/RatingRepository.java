@@ -17,6 +17,5 @@ public interface RatingRepository {
     void deleteByUserIdAndMovieId(String userId, String movieId);
     Double averageScoreByMovieId(String movieId);
     long countByMovieId(String movieId);
-    /** Đếm số lượt đánh giá theo từng phim theo batch. */
     Map<String, Long> countByMovieIds(Collection<String> movieIds);
 }

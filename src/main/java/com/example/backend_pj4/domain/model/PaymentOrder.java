@@ -28,6 +28,8 @@ public class PaymentOrder {
     private LocalDateTime completedAt;
     private LocalDateTime failedAt;
     private LocalDateTime cancelledAt;
+    private LocalDateTime refundedAt;
+    private BigDecimal refundedAmount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

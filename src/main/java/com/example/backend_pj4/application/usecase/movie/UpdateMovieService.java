@@ -108,7 +108,19 @@ public class UpdateMovieService implements UpdateMovieUseCase {
             Map<String, Actor> actorMap = foundActors.stream()
                     .collect(Collectors.toMap(Actor::getId, a -> a));
 
-            List<MovieActor> movieActors = command.movieActors().stream().map(a -> MovieActor.builder()
+            Map<String, String> existingActorToMovieActorId = (movie.getMovieActors() != null)
+                    ? movie.getMovieActors().stream()
+                            .filter(ma -> ma.getActorId() != null && ma.getId() != null)
+                            .collect(Collectors.toMap(MovieActor::getActorId, MovieActor::getId, (existing, replacement) -> existing))
+                    : Map.of();
+
+            Map<String, MovieActorAssignmentCommand> deduplicatedActors = new java.util.LinkedHashMap<>();
+            for (MovieActorAssignmentCommand maCmd : command.movieActors()) {
+                deduplicatedActors.putIfAbsent(maCmd.actorId(), maCmd);
+            }
+
+            List<MovieActor> movieActors = deduplicatedActors.values().stream().map(a -> MovieActor.builder()
+                    .id(existingActorToMovieActorId.get(a.actorId()))
                     .movieId(movie.getId())
                     .actorId(a.actorId())
                     .actor(actorMap.get(a.actorId()))

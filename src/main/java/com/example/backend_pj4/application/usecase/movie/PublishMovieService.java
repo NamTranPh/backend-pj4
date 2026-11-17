@@ -56,16 +56,16 @@ public class PublishMovieService implements PublishMovieUseCase {
     }
 
     private MovieResult publishSingleMovie(Movie movie) {
-        if (movie.getRawFileKey() == null || movie.getRawFileKey().isBlank()) {
-            throw new CustomException(ErrorCode.MOVIE_NO_VIDEO);
-        }
-
         if (movie.getMasterPlaylistKey() != null && !movie.getMasterPlaylistKey().isBlank()) {
             Movie published = movieRepository.save(movie.toBuilder()
                     .status(VideoStatus.READY)
                     .build());
             log.info("Movie published (already transcoded) movieId={}", movie.getId());
             return movieResultMapper.toResult(published);
+        }
+
+        if (movie.getRawFileKey() == null || movie.getRawFileKey().isBlank()) {
+            throw new CustomException(ErrorCode.MOVIE_NO_VIDEO);
         }
 
         Movie processing = movieRepository.save(movie.toBuilder()

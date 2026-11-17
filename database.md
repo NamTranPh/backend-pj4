@@ -35,15 +35,16 @@
 | 12  | `membership_plan`    | Gói thành viên                            | ~5           |
 | 13  | `membership`         | Đăng ký thành viên                        | ~5k          |
 | 14  | `payment_order`      | Đơn thanh toán                            | ~5k          |
-| 15  | `refresh_token`      | Refresh token session                     | ~10k         |
-| 16  | `otp_verification`   | OTP xác thực                              | ~10k         |
-| 17  | `email_verification` | ⛔ **CHƯA DÙNG** — xem ghi chú ở mục 17   | **0**        |
-| 18  | `notification`       | Thông báo                                 | ~50k         |
-| 19  | `report`             | ⏳ **CHƯA DÙNG** — module chưa làm        | **0**        |
-| 20  | `outbox_event`       | ⏳ **CHƯA DÙNG** — chưa có message broker | **0**        |
-| 21  | `comment_like`       | Lượt thích bình luận                      | ~300k        |
-| 22  | `actor`              | Diễn viên                                 | ~10k         |
-| 23  | `movie_actor`        | Phân vai diễn viên trong phim             | ~50k         |
+| 15  | `payment_refund`     | Phiếu hoàn tiền độc lập (Chuẩn 3NF)       | ~1k          |
+| 16  | `refresh_token`      | Refresh token session                     | ~10k         |
+| 17  | `otp_verification`   | OTP xác thực                              | ~10k         |
+| 18  | `email_verification` | ⛔ **CHƯA DÙNG** — xem ghi chú ở mục 18   | **0**        |
+| 19  | `notification`       | Thông báo                                 | ~50k         |
+| 20  | `report`             | ⏳ **CHƯA DÙNG** — module chưa làm        | **0**        |
+| 21  | `outbox_event`       | ⏳ **CHƯA DÙNG** — chưa có message broker | **0**        |
+| 22  | `comment_like`       | Lượt thích bình luận                      | ~300k        |
+| 23  | `actor`              | Diễn viên                                 | ~10k         |
+| 24  | `movie_actor`        | Phân vai diễn viên trong phim             | ~50k         |
 
 ---
 
@@ -203,6 +204,7 @@
 | 14  | view_count          | BIGINT                                                              | -                             | Số lượt xem             |
 | 15  | deleted_at          | TIMESTAMP                                                           | -                             | Soft delete             |
 | 16  | created_at          | TIMESTAMP                                                           | DEFAULT CURRENT_TIMESTAMP     | Ngày tạo                |
+| 17  | updated_at          | TIMESTAMP                                                           | -                             | Ngày cập nhật           |
 
 **Soft delete:** `@Where(clause = "deleted_at IS NULL")`
 
@@ -436,27 +438,29 @@ Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, 
 
 ### 14. payment_order (Đơn thanh toán)
 
-| STT | Column                 | Type                                        | Constraint                              | Description                  |
-| --- | ---------------------- | ------------------------------------------- | --------------------------------------- | ---------------------------- |
-| 1   | id                     | UUID (String)                               | PRIMARY KEY                             | ID đơn                       |
-| 2   | user_id                | UUID (String)                               | FOREIGN KEY (user), NOT NULL            | ID người dùng                |
-| 3   | membership_plan_id     | UUID (String)                               | FOREIGN KEY (membership_plan), NOT NULL | ID gói                       |
-| 4   | plan_name              | VARCHAR(100)                                | NOT NULL                                | Tên gói snapshot             |
-| 5   | price                  | DECIMAL(10,2)                               | NOT NULL                                | Số tiền                      |
-| 6   | duration_days          | INT                                         | NOT NULL                                | Số ngày gói                  |
-| 7   | gateway                | VARCHAR(50)                                 | NOT NULL                                | Cổng TT (VNPAY, MOMO, PAYOS) |
-| 8   | status                 | ENUM(PENDING, COMPLETED, FAILED, CANCELLED) | NOT NULL                                | Trạng thái                   |
-| 9   | transaction_code       | VARCHAR(100)                                | NOT NULL, UNIQUE                        | Mã giao dịch                 |
-| 10  | gateway_transaction_id | VARCHAR(255)                                | -                                       | Mã giao dịch từ gateway      |
-| 11  | checkout_url           | VARCHAR(500)                                | -                                       | URL thanh toán               |
-| 12  | failure_reason         | TEXT                                        | -                                       | Lý do thất bại               |
-| 13  | metadata               | JSON                                        | -                                       | Metadata bổ sung             |
-| 14  | requested_at           | TIMESTAMP                                   | -                                       | Thời điểm yêu cầu            |
-| 15  | completed_at           | TIMESTAMP                                   | -                                       | Thời điểm hoàn tất           |
-| 16  | failed_at              | TIMESTAMP                                   | -                                       | Thời điểm thất bại           |
-| 17  | cancelled_at           | TIMESTAMP                                   | -                                       | Thời điểm hủy                |
-| 18  | created_at             | TIMESTAMP                                   | DEFAULT CURRENT_TIMESTAMP               | Ngày tạo                     |
-| 19  | updated_at             | TIMESTAMP                                   | -                                       | Ngày cập nhật                |
+| STT | Column                 | Type                                                  | Constraint                              | Description                  |
+| --- | ---------------------- | ----------------------------------------------------- | --------------------------------------- | ---------------------------- |
+| 1   | id                     | UUID (String)                                         | PRIMARY KEY                             | ID đơn                       |
+| 2   | user_id                | UUID (String)                                         | FOREIGN KEY (user), NOT NULL            | ID người dùng                |
+| 3   | membership_plan_id     | UUID (String)                                         | FOREIGN KEY (membership_plan), NOT NULL | ID gói                       |
+| 4   | plan_name              | VARCHAR(100)                                          | NOT NULL                                | Tên gói snapshot             |
+| 5   | price                  | DECIMAL(10,2)                                         | NOT NULL                                | Số tiền                      |
+| 6   | duration_days          | INT                                                   | NOT NULL                                | Số ngày gói                  |
+| 7   | gateway                | VARCHAR(50)                                           | NOT NULL                                | Cổng TT (VNPAY, MOMO, PAYOS) |
+| 8   | status                 | ENUM(PENDING, COMPLETED, FAILED, CANCELLED, REFUNDED) | NOT NULL                                | Trạng thái                   |
+| 9   | transaction_code       | VARCHAR(100)                                          | NOT NULL, UNIQUE                        | Mã giao dịch                 |
+| 10  | gateway_transaction_id | VARCHAR(255)                                          | -                                       | Mã giao dịch từ gateway      |
+| 11  | checkout_url           | VARCHAR(500)                                          | -                                       | URL thanh toán               |
+| 12  | failure_reason         | TEXT                                                  | -                                       | Lý do thất bại               |
+| 13  | metadata               | JSON                                                  | -                                       | Metadata bổ sung             |
+| 14  | requested_at           | TIMESTAMP                                             | -                                       | Thời điểm yêu cầu            |
+| 15  | completed_at           | TIMESTAMP                                             | -                                       | Thời điểm hoàn tất           |
+| 16  | failed_at              | TIMESTAMP                                             | -                                       | Thời điểm thất bại           |
+| 17  | cancelled_at           | TIMESTAMP                                             | -                                       | Thời điểm hủy                |
+| 18  | refunded_at            | TIMESTAMP                                             | -                                       | Thời điểm hoàn tất hoàn tiền |
+| 19  | refund_amount          | DECIMAL(10,2)                                         | DEFAULT 0.00                            | Tổng số tiền đã hoàn cho đơn |
+| 20  | created_at             | TIMESTAMP                                             | DEFAULT CURRENT_TIMESTAMP               | Ngày tạo                     |
+| 21  | updated_at             | TIMESTAMP                                             | -                                       | Ngày cập nhật                |
 
 **Index:**
 
@@ -466,7 +470,33 @@ Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, 
 
 ---
 
-### 15. refresh_token (Refresh Token Sessions)
+### 15. payment_refund (Phiếu hoàn tiền - Chuẩn 3NF)
+
+| STT | Column                  | Type          | Constraint                                            | Description                                           |
+| --- | ----------------------- | ------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| 1   | id                      | UUID (String) | PRIMARY KEY                                           | ID phiếu hoàn tiền                                    |
+| 2   | payment_order_id        | UUID (String) | FOREIGN KEY (payment_order), NOT NULL                 | ID đơn thanh toán cần hoàn tiền                       |
+| 3   | user_id                 | UUID (String) | FOREIGN KEY (user), NOT NULL                          | ID người nhận tiền                                    |
+| 4   | amount                  | DECIMAL(10,2) | NOT NULL                                              | Số tiền hoàn trả (VNĐ)                                |
+| 5   | status                  | VARCHAR(32)   | NOT NULL                                              | REQUESTED, PROCESSING, COMPLETED, CANCELLED, REJECTED |
+| 6   | reason                  | TEXT          | NOT NULL                                              | Lý do yêu cầu hoàn tiền                               |
+| 7   | admin_note              | TEXT          | -                                                     | Ghi chú của Admin                                     |
+| 8   | refund_transaction_code | VARCHAR(100)  | -                                                     | Mã giao dịch chuyển khoản ngân hàng hoàn tiền         |
+| 9   | processed_by            | UUID (String) | -                                                     | Admin ID người duyệt / xử lý                          |
+| 10  | requested_at            | TIMESTAMP     | NOT NULL                                              | Thời điểm tạo yêu cầu                                 |
+| 11  | processed_at            | TIMESTAMP     | -                                                     | Thời điểm xử lý xong hoặc hủy                         |
+| 12  | created_at              | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP                             | Ngày tạo                                              |
+| 13  | updated_at              | TIMESTAMP     | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | Ngày cập nhật                                         |
+
+**Index:**
+
+- PRIMARY KEY: id
+- FOREIGN KEY: payment_order_id → payment_order(id), user_id → user(id)
+- INDEX: idx_payment_refund_payment_order_id, idx_payment_refund_user_id, idx_payment_refund_status
+
+---
+
+### 16. refresh_token (Refresh Token Sessions)
 
 | STT | Column       | Type          | Constraint                | Description                               |
 | --- | ------------ | ------------- | ------------------------- | ----------------------------------------- |
@@ -498,7 +528,7 @@ Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, 
 
 ---
 
-### 16. otp_verification (OTP xác thực)
+### 17. otp_verification (OTP xác thực)
 
 | STT | Column     | Type                               | Constraint                | Description       |
 | --- | ---------- | ---------------------------------- | ------------------------- | ----------------- |
@@ -518,7 +548,7 @@ Lý do có cột thứ hai: danh sách phân trang theo bình luận **gốc**, 
 
 ---
 
-### 17. email_verification ⛔ CHƯA DÙNG
+### 18. email_verification ⛔ CHƯA DÙNG
 
 > **Bảng này không có và sẽ không có dòng nào.** Code Java của nó đã bị xoá ngày 2026-10-11.
 > Bảng vẫn còn trong MySQL vì `ddl-auto=update` không bao giờ DROP bảng — xoá thủ công nếu muốn:
@@ -555,7 +585,8 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 ---
 
-### 18. notification (Thông báo)
+
+### 19. notification (Thông báo)
 
 | STT | Column         | Type                                                                                     | Constraint                   | Description               |
 | --- | -------------- | ---------------------------------------------------------------------------------------- | ---------------------------- | ------------------------- |
@@ -580,7 +611,7 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 ---
 
-### 19. report ⏳ CHƯA DÙNG
+### 20. report ⏳ CHƯA DÙNG
 
 > Đủ 9 file persistence (domain model, port, entity, mapper, adapter, JPA repository, 3 enum)
 > nhưng **không có use case hay controller nào**. Bảng không có dòng nào.
@@ -612,7 +643,8 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 ---
 
-### 20. outbox_event ⏳ CHƯA DÙNG
+
+### 21. outbox_event ⏳ CHƯA DÙNG
 
 > Đủ 6 file persistence nhưng **không có publisher hay job relay nào**. Bảng không có dòng nào.
 >
@@ -644,7 +676,7 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 ---
 
-### 21. comment_like (Lượt thích bình luận)
+### 22. comment_like (Lượt thích bình luận)
 
 | STT | Column     | Type          | Constraint                      | Description     |
 | --- | ---------- | ------------- | ------------------------------- | --------------- |
@@ -675,7 +707,8 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 ---
 
-### 22. actor (Diễn viên)
+
+### 23. actor (Diễn viên)
 
 | STT | Column        | Type          | Constraint                                            | Description                                   |
 | --- | ------------- | ------------- | ----------------------------------------------------- | --------------------------------------------- |
@@ -701,7 +734,7 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 
 ---
 
-### 23. movie_actor (Phân vai diễn viên trong phim)
+### 24. movie_actor (Phân vai diễn viên trong phim)
 
 | STT | Column         | Type          | Constraint                    | Description                          |
 | --- | -------------- | ------------- | ----------------------------- | ------------------------------------ |
@@ -737,7 +770,8 @@ Cấu trúc bảng (giữ lại để tham khảo nếu sau này cần làm lạ
 | OtpType                   | REGISTRATION, PASSWORD_RESET                                                       |
 | UploadType                | AVATAR, POSTER, VIDEO                                                              |
 | MembershipPaymentStatus   | PENDING, PAID, FAILED, REFUNDED                                                    |
-| PaymentOrderStatus        | PENDING, COMPLETED, FAILED, CANCELLED                                              |
+| PaymentOrderStatus        | PENDING, COMPLETED, FAILED, CANCELLED, REFUNDED                                    |
+| RefundStatus              | REQUESTED, PROCESSING, COMPLETED, CANCELLED, REJECTED                              |
 | PaymentGateway            | VNPAY, MOMO, PAYOS                                                                 |
 | PaymentStatus             | PENDING, COMPLETED, FAILED, REFUNDED                                               |
 | SortOrder                 | asc, desc                                                                          |
@@ -866,6 +900,17 @@ ALTER TABLE refresh_token
 | `last_used_at` | TIMESTAMP    | ✓    | Cập nhật mỗi lần rotation, để hiển thị "hoạt động 2 phút trước".                                                                                                                                                                                                                          |
 
 Quan hệ giữa hai cột định danh: một `session_id` có nhiều `token_id` theo thời gian (rotation sinh `token_id` mới mỗi 15 phút, thu hồi cái cũ), còn `session_id` giữ nguyên từ lúc login tới lúc logout.
+
+### 2026-11-10 - v3.3
+
+- **Tạo mới bảng `payment_refund` (Chuẩn 3NF):** Tách biệt vòng đời hoàn tiền khỏi bảng `payment_order`, hỗ trợ 1 đơn có nhiều phiếu hoàn tiền hoặc hoàn từng phần (`amount`, `status`, `reason`, `admin_note`, `refund_transaction_code`, `processed_by`, `requested_at`, `processed_at`).
+- **Cập nhật bảng `payment_order`:**
+  - Bổ sung giá trị `REFUNDED` vào enum `PaymentOrderStatus` (`PENDING, COMPLETED, FAILED, CANCELLED, REFUNDED`).
+  - Thêm column `refunded_at` (TIMESTAMP, nullable) lưu thời điểm hoàn tiền.
+  - Thêm column `refund_amount` (DECIMAL(10,2), DEFAULT 0.00) lưu tổng số tiền đã hoàn.
+  - **Giữ nguyên `completed_at`** làm bằng chứng lịch sử thanh toán thành công ban đầu.
+- **Thêm enum `RefundStatus`:** `REQUESTED, PROCESSING, COMPLETED, CANCELLED, REJECTED`.
+- **Tổng: 23 → 24 bảng.**
 
 ### 2026-09-07 - v3.2
 

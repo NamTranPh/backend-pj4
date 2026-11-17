@@ -1,5 +1,6 @@
 package com.example.backend_pj4.infrastructure.database.repositories;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.example.backend_pj4.common.constants.enums.VideoStatus;
 import com.example.backend_pj4.infrastructure.database.entities.MovieJpaEntity;
 
 /**
@@ -67,5 +69,15 @@ public interface MovieJpaRepository
     List<MovieJpaEntity> findTopPublicMovies(
             @Param("movieId") String movieId,
             Pageable pageable
+    );
+
+    @Query("""
+        SELECT m FROM MovieJpaEntity m
+        WHERE m.status = :status
+          AND (m.updatedAt < :threshold OR (m.updatedAt IS NULL AND m.createdAt < :threshold))
+    """)
+    List<MovieJpaEntity> findStuckProcessingMovies(
+            @Param("status") VideoStatus status,
+            @Param("threshold") LocalDateTime threshold
     );
 }

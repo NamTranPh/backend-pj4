@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend_pj4.application.dto.payment.PaymentOrderResult;
+import com.example.backend_pj4.application.mapper.PaymentResultMapper;
 import com.example.backend_pj4.application.port.in.payment.CreatePaymentOrderUseCase;
 import com.example.backend_pj4.application.port.out.PaymentGatewayPort;
 import com.example.backend_pj4.application.port.out.PaymentGatewayPort.CreatePaymentLinkResult;
@@ -20,6 +20,9 @@ import com.example.backend_pj4.domain.repository.MembershipPlanRepository;
 import com.example.backend_pj4.domain.repository.PaymentOrderRepository;
 import com.example.backend_pj4.infrastructure.config.properties.PayOsProperties;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
 
@@ -29,19 +32,7 @@ public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
     private final PayOsProperties payOsProperties;
 
     /**
-     * Bộ sinh mã đơn tăng dần nghiêm ngặt.
-     *
-     * <p>Trước đây mã sinh bằng {@code System.currentTimeMillis() % 1_000_000_000L}. Phép chia
-     * lấy dư chỉ giữ 9 chữ số cuối, mà 9 chữ số đếm được tối đa 10⁹ mili-giây = <b>11,57 ngày</b>
-     * — nên cứ 11,57 ngày mã lại lặp lại y hệt. Vì {@code transaction_code} có ràng buộc UNIQUE,
-     * lần trùng đó làm INSERT ném lỗi và khách nhận 500 khi bấm mua gói. Đây không phải race
-     * condition mà là phép toán, chắc chắn xảy ra sau khi chạy đủ lâu.
-     *
-     * <p>Bỏ phép {@code %} là xử lý xong việc lặp. {@code AtomicLong} xử lý nốt trường hợp hai
-     * người bấm mua trong cùng một mili-giây: mã luôn lớn hơn mã trước ít nhất 1.
-     *
-     * <p>Giới hạn: chỉ đảm bảo duy nhất trong phạm vi một tiến trình. Khi chạy nhiều instance
-     * thì cần chuyển sang sequence của database.
+     * Bộ sinh mã đơn tăng dần
      */
     private final AtomicLong orderCodeSequence = new AtomicLong(0);
 
@@ -58,7 +49,6 @@ public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
     }
 
     @Override
-    @Transactional
     public PaymentOrderResult execute(String userId, String planSlug) {
         MembershipPlan plan = membershipPlanRepository.findBySlug(planSlug)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBERSHIP_PLAN_NOT_FOUND));
@@ -81,6 +71,7 @@ public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
                 .requestedAt(LocalDateTime.now())
                 .build();
 
+        // Bước 1: Lưu đơn PENDING vào DB (tự commit và giải phóng DB connection ngay lập tức)
         order = paymentOrderRepository.save(order);
 
         String description = "Mua goi " + plan.getName();
@@ -90,39 +81,39 @@ public class CreatePaymentOrderService implements CreatePaymentOrderUseCase {
 
         long expiredAt = Instant.now().getEpochSecond() + (long) payOsProperties.getPaymentLinkTtlMinutes() * 60;
 
-        CreatePaymentLinkResult linkResult = paymentGatewayPort.createPaymentLink(
-                orderCode,
-                plan.getPrice(),
-                description,
-                payOsProperties.getReturnUrl(),
-                payOsProperties.getCancelUrl(),
-                expiredAt
-        );
+        // Bước 2: Gọi HTTP ra cổng PayOS (Hoàn toàn nằm ngoài DB transaction)
+        CreatePaymentLinkResult linkResult;
+        try {
+            linkResult = paymentGatewayPort.createPaymentLink(
+                    orderCode,
+                    plan.getPrice(),
+                    description,
+                    payOsProperties.getReturnUrl(),
+                    payOsProperties.getCancelUrl(),
+                    expiredAt
+            );
+        } catch (Exception e) {
+            log.error("PayOS createPaymentLink thất bại cho orderId={}, code={}", order.getId(), orderCode, e);
+            paymentOrderRepository.markFailedIfPending(
+                    order.getId(),
+                    "Không thể tạo link thanh toán PayOS",
+                    LocalDateTime.now()
+            );
+            throw new CustomException(ErrorCode.PAYMENT_CREATION_FAILED);
+        }
 
+        // Bước 3: Cập nhật checkoutUrl và gatewayTransactionId vào DB
         order = order.toBuilder()
                 .checkoutUrl(linkResult.checkoutUrl())
                 .gatewayTransactionId(linkResult.paymentLinkId())
                 .build();
         order = paymentOrderRepository.save(order);
 
-        return toResult(order);
+        return PaymentResultMapper.toResult(order);
     }
 
     private long nextOrderCode() {
         long now = System.currentTimeMillis();
         return orderCodeSequence.updateAndGet(previous -> Math.max(previous + 1, now));
-    }
-
-    private PaymentOrderResult toResult(PaymentOrder order) {
-        return new PaymentOrderResult(
-                order.getId(),
-                order.getPlanName(),
-                order.getPrice(),
-                order.getStatus().name(),
-                order.getTransactionCode(),
-                order.getCheckoutUrl(),
-                order.getCreatedAt(),
-                order.getCompletedAt()
-        );
     }
 }
